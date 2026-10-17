@@ -6,85 +6,91 @@
 
 **你的耳机，随手可控。**
 
-原生 macOS 菜单栏耳机管理工具 · Apple Silicon · SwiftUI
+原生 macOS 菜单栏耳机管理工具
 
-[下载 v0.3.0](https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.3.0) · [English](README_EN.md) · [支持范围](docs/COMPATIBILITY.md) · [从源码构建](#从源码构建) · [更新记录](CHANGELOG.md)
+[下载应用](https://github.com/abaichuan1017/HeyBuds/releases/latest) · [English](README_EN.md) · [支持的耳机](#支持的耳机) · [安装与使用](#安装与使用)
 
 </div>
 
-HeyBuds 在菜单栏集中显示耳机电量、降噪、音效和多设备状态，支持 OPPO／OnePlus／realme、vivo／iQOO、华为、小米／Redmi、漫步者，以及只读的 AirPods／Beats 广播。界面使用 macOS 原生控件与 Liquid Glass，支持中文和英文。
+在菜单栏查看耳机电量，切换降噪与通透，调整音效，管理多设备连接。支持中文和英文。
 
-当前版本 **0.3.0**，项目原名 EncoBar。协议与型号数据主要移植自 [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager)，保留上游署名与 GPL 许可。
+## 应用截图
+
+<table>
+  <tr><th>主面板</th><th>高级功能</th></tr>
+  <tr>
+    <td valign="top"><img src="docs/images/home.png" alt="HeyBuds 主面板，显示耳机电量、降噪和多设备入口" width="300"></td>
+    <td valign="top"><img src="docs/images/advanced.png" alt="HeyBuds 高级功能，包含均衡器、空间音效、游戏模式和佩戴检测" width="300"></td>
+  </tr>
+</table>
 
 ## 功能
 
-- 左耳、右耳、充电盒电量与充电状态；未知值与真实 0% 分别处理，头戴式等设备支持单电量布局。
-- 按型号显示降噪、通透及降噪强度，保持紧凑的主面板。
-- 按设备能力开放 EQ、自定义 EQ、空间音频、游戏音效、佩戴检测等。
-- 多设备列表、连接／断开和支持的连接优先级操作。
-- 菜单栏弹窗、连接提示、低电量提醒、后台运行、登录启动及退避重连。
-- 设备状态以有效响应和写后回读为准；通用 ACK 不代表设置成功。
-- 无网络遥测、无内置自更新、不读取系统配对密钥。
+- 查看左右耳与充电盒电量、充电和佩戴状态。
+- 切换降噪、通透和降噪强度。
+- 调整均衡器、自定义 EQ、空间音效和游戏模式。
+- 查看多设备连接，连接或断开支持的设备。
+- 连接提示、低电量提醒、自动重连、后台运行和登录时启动。
 
-## 支持范围
+## 支持的耳机
 
-| 品牌 | 目录来源 | 当前范围 |
-| --- | --- | --- |
-| OPPO / OnePlus / realme | 137 个产品 ID | RFCOMM／BLE、电量、降噪、音效、开关、多设备等 |
-| vivo / iQOO | 43 个显示型号，87 条原始配置 | GAIA、电量、降噪、EQ、空间／游戏、佩戴、查找和多设备等 |
-| HUAWEI | 24 个型号路由 | 电量、型号专属降噪、EQ、部分 10 段自定义及双设备等 |
-| Xiaomi / Redmi | 品牌系列识别 | 电量、可选认证；低延迟配置需有效回读后开放 |
-| EDIFIER | W820NB、W200BT、EDIFIER 系列规则 | SPP 电量与降噪；纯 BLE 型号尚未接入 |
-| Apple / Beats | 18 个广播型号映射 | 明文 BLE 广播电量／充电／佩戴，只读 |
+| 品牌 | 常见型号 |
+| --- | --- |
+| OPPO | Enco Air5 Pro、Air5、Air4 Pro、Air4、Air3 Pro、X3、X3i、X3s、X2、Free4、Clip、Clip2 |
+| OnePlus | Buds Pro 3、Pro 2、Pro、Buds 4、Buds 3、Nord Buds 4、Nord Buds 3 Pro、Buds Ace 3、Open Buds |
+| realme | Buds Air8 Pro、Air8、Air7 Pro、Air7、Air6 Pro、Air6、T500 Pro、T500、T310、T300、Buds Clip |
+| vivo | TWS 5 Pro、TWS 5 Hi-Fi、TWS 5、TWS 4 Hi-Fi、TWS 4、TWS 3 Pro、TWS 3、TWS Air3 Pro、TWS Neo |
+| iQOO | TWS 5、TWS 5e、TWS 5i、TWS 2、TWS 1、TWS Air3 Pro、TWS Air3、TWS Air2 |
+| HUAWEI | FreeBuds Pro 5、Pro 4、Pro 3、Pro 2、FreeBuds 6i、5i、7i、FreeClip 2、FreeClip、FreeLace Pro 2 |
+| Xiaomi / Redmi | Xiaomi、Redmi 耳机系列识别 |
+| EDIFIER | W820NB、W200BT 及使用 SPP 协议的 EDIFIER 系列 |
+| Apple / Beats | AirPods 1 至 4、AirPods Pro 1 至 3、AirPods Max、Beats Fit Pro、Powerbeats Pro、Beats Flex、Beats Solo 3 |
 
-**目录导入不代表逐款实机兼容。** 226 条目录记录包含系列规则，不能等同于 226 款具体耳机。新增品牌目前完成源码与模拟协议验证；实际功能受型号、固件、macOS 可见服务和有效设备响应限制。AirPods 匿名或加密广播不会被误认成当前设备。详见 [兼容性](docs/COMPATIBILITY.md) 与[品牌移植记录](docs/ALL_BRANDS.md)。
+[查看完整型号清单](docs/SUPPORTED_DEVICES.md)
+
+列表来自已接入的型号目录，尚未逐款实机验证。具体功能因型号和固件而异，AirPods 与 Beats 仅支持读取状态。详见[兼容性说明](docs/COMPATIBILITY.md)。
 
 ## 安装与使用
 
-要求 Apple Silicon Mac、**macOS 27 或更新版本**。当前不提供 Intel 构建。
+需要 **Apple Silicon Mac 和 macOS 27 或更新版本**。
 
-1. 解压 `HeyBuds-arm64.zip`，将 `HeyBuds.app` 放入“应用程序”文件夹。
-2. 先在 macOS 蓝牙设置中配对耳机，退出其他耳机控制器，再打开 HeyBuds。
-3. 按系统提示允许蓝牙访问；需要低电量提醒时单独开启通知。
-4. 点击菜单栏图标使用。设备型号默认自动识别，通常不需要手动覆盖。
+### 安装
 
-本地交付采用 ad-hoc 签名，尚未公证。macOS 可能要求你通过系统“打开”操作确认。不要关闭系统安全保护。登录启动需要应用位于稳定路径。
+1. 在 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.zip`。
+2. 解压，将 `HeyBuds.app` 拖入“应用程序”文件夹。
+3. 打开 HeyBuds，按提示允许蓝牙访问。
 
-从旧版升级时，请先退出 EncoBar。HeyBuds 首次启动只迁移已识别的本地偏好，不覆盖已有 HeyBuds 设置。新 Bundle ID 为 `local.heybuds.app`，蓝牙、通知和登录启动等系统授权需按新应用状态处理。
+当前应用尚未公证。若系统阻止打开，确认安装包来自本仓库后，可按 [Apple 官方说明](https://support.apple.com/zh-cn/102445)，在“系统设置 → 隐私与安全性”中选择“仍要打开”。
+
+### 使用
+
+1. 在 macOS 蓝牙设置中配对并连接耳机，退出其他耳机控制工具。
+2. 点击菜单栏的 HeyBuds 图标，在顶部选择耳机。若控制尚未连接，点击右上角电源按钮。
+3. 在主面板查看电量、切换降噪；进入“高级功能”调整音效，进入“多设备连接”管理连接设备。
+4. 在设置中开启自动重连、低电量提醒或登录时启动。使用提醒时允许通知访问。
+
+### 常见问题
+
+- **找不到耳机**：确认耳机已在系统蓝牙设置中连接，再从顶部设备菜单选择“重新查找设备”。
+- **没有电量或控制选项**：保持耳机在连接范围内，点击底部刷新按钮。部分功能仅在对应型号上提供。
+- **从 EncoBar 升级**：先退出旧应用，再启动 HeyBuds，已有偏好会自动迁移。
 
 ## 从源码构建
 
-需要 **Swift 6.4、macOS 27 SDK、Apple Silicon**。可使用匹配版本的 Command Line Tools 或 Xcode；普通构建不需要外部参考仓库、Rust、.NET 或第三方 Swift 包。
+需要 Swift 6.4 和 macOS 27 SDK。
 
 ```sh
+git clone https://github.com/abaichuan1017/HeyBuds.git
+cd HeyBuds
 swift test
 bash scripts/build.sh
 open dist/HeyBuds.app
 ```
 
-产物为 `dist/HeyBuds.app` 与 `dist/HeyBuds-arm64.zip`。重复构建会将上一个应用保存在 `dist/backups/`。如有自己的签名身份，可设置 `HEYBUDS_SIGN_IDENTITY`；脚本不会申请证书、公证、安装或上传发布。
-
-```sh
-python3 scripts/package-source.py
-```
-
-生成白名单筛选的 `releases/HeyBuds-v0.3.0-source.zip`、文件清单及校验值，不打包本地偏好、诊断、缓存和历史备份。[发布说明](docs/RELEASING.md) 记录 GitHub 准备流程。仓库包含 macOS 构建／测试工作流；云端运行结果须以上传后的 Actions 为准。
-
-## 诊断与开发
-
-```sh
-swift run heybuds-probe catalog
-swift run heybuds-probe devices
-swift run heybuds-probe read
-swift run heybuds-probe read --ble
-```
-
-硬件 probe 会占用设备控制通道：先退出 HeyBuds 和其他控制器，终端需获蓝牙授权。`--ble` 仅用于 OPPO 系 GATT。应用设置页提供默认移除设备地址、主机名和原始负载的诊断导出；提交问题前仍应检查内容。
-
-项目分为 `HeyBudsProtocol`（帧、状态和型号）、`HeyBudsBluetooth`（传输和会话）、`HeyBuds`（SwiftUI 与系统集成）和 `heybuds-probe`（只读工具）。参见[架构](docs/ARCHITECTURE.md)、[贡献指南](CONTRIBUTING.md)及[验证记录](docs/VALIDATION.md)。
+[贡献指南](CONTRIBUTING.md) · [项目架构](docs/ARCHITECTURE.md) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/abaichuan1017/HeyBuds/issues)
 
 ## 许可与致谢
 
-**GPL-3.0-or-later**，完整许可见 [LICENSE](LICENSE)。基于 OppoPodsManager 的协议和型号资料，并参考 MIT 许可的 [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller)。Buds for macOS 仅作界面参考，没有复制其 PolyForm 许可源码或资源。
+采用 [GPL-3.0-or-later](LICENSE) 许可。协议与型号资料主要来自 [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager)，并参考 [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller)。完整署名见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
-第三方署名与系统图标说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，来源文件指纹见 [UPSTREAM.md](docs/UPSTREAM.md)。HeyBuds 为独立社区项目，与所列耳机品牌及 Apple 无隶属关系。
+HeyBuds 是独立社区项目，与所列品牌无隶属关系。

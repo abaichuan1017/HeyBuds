@@ -1,84 +1,96 @@
-# HeyBuds
+<div align="center">
 
 <img src="docs/HeyBuds.png" alt="HeyBuds" width="112">
 
+# HeyBuds
+
 **Your earbuds, a click away.**
 
-A native Apple Silicon macOS menu bar app for earbud battery levels, noise control, sound settings and connected hosts. Built with SwiftUI and native Liquid Glass controls, with Chinese and English interfaces.
+A native macOS menu bar companion for your earbuds
 
-[Download v0.3.0](https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.3.0) · [简体中文](README.md) · [Compatibility](docs/COMPATIBILITY.md) · [Changelog](CHANGELOG.md)
+[Download](https://github.com/abaichuan1017/HeyBuds/releases/latest) · [简体中文](README.md) · [Supported earbuds](#supported-earbuds) · [Install and use](#install-and-use)
 
-Version **0.3.0**. Previously named EncoBar. Protocols and catalogs are primarily ported from [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager), with upstream attribution and GPL licensing preserved.
+</div>
+
+Check battery levels, switch noise modes, adjust sound and manage connected devices from the menu bar. Available in Chinese and English.
+
+## Screenshots
+
+<table>
+  <tr><th>Main panel</th><th>Advanced features</th></tr>
+  <tr>
+    <td valign="top"><img src="docs/images/home.png" alt="HeyBuds main panel with battery levels, noise control and connected devices" width="300"></td>
+    <td valign="top"><img src="docs/images/advanced.png" alt="HeyBuds advanced features with EQ, spatial audio, gaming and wear detection" width="300"></td>
+  </tr>
+</table>
 
 ## Features
 
-- Separate left, right and case battery readings, charging flags, unknown states and a single-battery layout where appropriate.
-- Model-specific noise cancellation, transparency and strength controls.
-- Capability-gated EQ, custom EQ, spatial audio, gaming, wear detection and other supported controls.
-- Connected-host lists, connect/disconnect and supported priority operations.
-- Connection cards, low-battery notifications, background mode, launch at login and reconnection backoff.
-- Device readback confirms settings. A generic ACK does not mean that a setting was applied.
-- No network telemetry, built-in updater or access to system Bluetooth pairing keys.
+- Left, right and case battery levels, charging and wear status.
+- Noise cancellation, transparency and ANC strength controls.
+- EQ presets, custom EQ, spatial audio and gaming mode.
+- Connected-device lists and supported connection controls.
+- Connection pop-ups, low-battery alerts, automatic reconnection, background mode and launch at login.
 
-## Compatibility
+## Supported earbuds
 
-| Family | Catalog | Scope |
-| --- | --- | --- |
-| OPPO / OnePlus / realme | 137 product IDs | RFCOMM / BLE, battery, noise, sound, feature switches, hosts |
-| vivo / iQOO | 43 display models, 87 original variants | GAIA, battery, noise, EQ, spatial / gaming, wear, find, hosts |
-| HUAWEI | 24 model routes | Battery, model-specific noise, EQ, selected custom EQ and dual connection |
-| Xiaomi / Redmi | Family detection | Battery and optional authentication; latency control requires valid readback |
-| EDIFIER | W820NB, W200BT, EDIFIER rules | SPP battery and noise; BLE-only models are not connected |
-| Apple / Beats | 18 advertisement model mappings | Read-only plaintext BLE battery, charging and wear |
+| Brand | Selected models |
+| --- | --- |
+| OPPO | Enco Air5 Pro, Air5, Air4 Pro, Air4, Air3 Pro, X3, X3i, X3s, X2, Free4, Clip, Clip2 |
+| OnePlus | Buds Pro 3, Pro 2, Pro, Buds 4, Buds 3, Nord Buds 4, Nord Buds 3 Pro, Buds Ace 3, Open Buds |
+| realme | Buds Air8 Pro, Air8, Air7 Pro, Air7, Air6 Pro, Air6, T500 Pro, T500, T310, T300, Buds Clip |
+| vivo | TWS 5 Pro, TWS 5 Hi-Fi, TWS 5, TWS 4 Hi-Fi, TWS 4, TWS 3 Pro, TWS 3, TWS Air3 Pro, TWS Neo |
+| iQOO | TWS 5, TWS 5e, TWS 5i, TWS 2, TWS 1, TWS Air3 Pro, TWS Air3, TWS Air2 |
+| HUAWEI | FreeBuds Pro 5, Pro 4, Pro 3, Pro 2, FreeBuds 6i, 5i, 7i, FreeClip 2, FreeClip, FreeLace Pro 2 |
+| Xiaomi / Redmi | Xiaomi and Redmi family detection |
+| EDIFIER | W820NB, W200BT and EDIFIER devices using SPP |
+| Apple / Beats | AirPods 1–4, AirPods Pro 1–3, AirPods Max, Beats Fit Pro, Powerbeats Pro, Beats Flex, Beats Solo 3 |
 
-**An imported catalog is not hardware certification.** The 226 records include family matching rules, rather than 226 independently verified products. Newly added families have source and simulated-protocol coverage; hardware behavior remains unverified. Availability depends on the device, firmware, macOS service exposure and valid responses. Anonymous or encrypted AirPods advertisements are not assigned to the selected device. See [compatibility](docs/COMPATIBILITY.md) and [porting scope](docs/ALL_BRANDS.md).
+[Browse the full model list](docs/SUPPORTED_DEVICES.md)
 
-## Install
+These models come from the integrated catalog and have not all been tested on hardware. Features vary by model and firmware. AirPods and Beats support status reading only. See [compatibility](docs/COMPATIBILITY.md).
 
-Requires an **Apple Silicon Mac with macOS 27 or later**. Intel builds are not provided.
+## Install and use
 
-1. Extract `HeyBuds-arm64.zip` and place `HeyBuds.app` in Applications.
-2. Pair your earbuds in macOS Bluetooth settings and quit other controllers.
-3. Open HeyBuds and allow Bluetooth access when prompted. Notifications are optional.
-4. Click the menu bar icon. Leave model detection on Automatic unless identification is incorrect.
+Requires an **Apple Silicon Mac running macOS 27 or later**.
 
-Local builds are ad-hoc signed and are not notarized. Use the normal macOS Open flow when required; do not disable system protections. Launch at login needs a stable installation path.
+### Install
 
-Quit the legacy EncoBar before upgrading. HeyBuds migrates recognized local preferences once and preserves existing HeyBuds settings. The new bundle identifier is `local.heybuds.app`; Bluetooth, notifications and login registration follow the new app's system permissions.
+1. Download `HeyBuds-arm64.zip` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest).
+2. Extract the ZIP and drag `HeyBuds.app` to Applications.
+3. Open HeyBuds and allow Bluetooth access when prompted.
 
-## Build
+The app is not yet notarized. If macOS blocks it, confirm that you downloaded it from this repository and follow [Apple's instructions](https://support.apple.com/en-us/102445) to choose Open Anyway in System Settings → Privacy & Security.
 
-Requires **Swift 6.4 and the macOS 27 SDK** on Apple Silicon. A matching Command Line Tools or Xcode installation works. No reference checkout or third-party Swift dependencies are required for a normal build.
+### Use
+
+1. Pair and connect your earbuds in macOS Bluetooth settings, then quit other earbud controllers.
+2. Click the HeyBuds menu bar icon and select your earbuds at the top. If controls are offline, click the power button in the upper-right corner.
+3. Check battery levels and switch noise modes in the main panel. Open Advanced features for sound settings or Connected devices to manage connections.
+4. Enable automatic reconnection, low-battery alerts or launch at login in Settings. Allow notifications if you want alerts.
+
+### Troubleshooting
+
+- **Earbuds missing:** Check their connection in macOS Bluetooth settings, then choose Refresh devices from the device menu.
+- **Battery levels or controls missing:** Keep the earbuds nearby and click the refresh button at the bottom. Some controls are available only on specific models.
+- **Upgrading from EncoBar:** Quit the old app before opening HeyBuds. Existing preferences migrate automatically.
+
+## Build from source
+
+Requires Swift 6.4 and the macOS 27 SDK.
 
 ```sh
+git clone https://github.com/abaichuan1017/HeyBuds.git
+cd HeyBuds
 swift test
 bash scripts/build.sh
 open dist/HeyBuds.app
 ```
 
-Outputs: `dist/HeyBuds.app` and `dist/HeyBuds-arm64.zip`. Previous apps are preserved in `dist/backups/`. Set `HEYBUDS_SIGN_IDENTITY` to use an existing identity. The script does not install, notarize or publish the app.
+[Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/abaichuan1017/HeyBuds/issues)
 
-```sh
-python3 scripts/package-source.py
-```
+## License and credits
 
-Creates `releases/HeyBuds-v0.3.0-source.zip`, a file manifest and checksums from an explicit public-file allowlist. Local diagnostics, preferences, build products and backups are excluded. See [release preparation](docs/RELEASING.md). GitHub workflows are included; hosted execution has to be verified after upload.
+Licensed under [GPL-3.0-or-later](LICENSE). Protocols and model data are primarily based on [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager), with references from [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller). See [third-party notices](THIRD_PARTY_NOTICES.md) for full attribution.
 
-## Diagnostics and contributing
-
-```sh
-swift run heybuds-probe catalog
-swift run heybuds-probe devices
-swift run heybuds-probe read
-swift run heybuds-probe read --ble
-```
-
-Quit other controllers before hardware probing. The terminal needs Bluetooth permission. `--ble` applies to the OPPO-family GATT transport. In-app diagnostics redact device addresses, host names and raw payloads by default; inspect exports before sharing.
-
-Modules: `HeyBudsProtocol`, `HeyBudsBluetooth`, `HeyBuds` and the `heybuds-probe` executable. See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md) and [validation](docs/VALIDATION.md).
-
-## License
-
-**GPL-3.0-or-later**. See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md). Protocol work is primarily based on OppoPodsManager, with MIT references from [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller). No PolyForm-licensed Buds for macOS code or assets are included. Upstream fingerprints are recorded in [UPSTREAM.md](docs/UPSTREAM.md).
-
-An independent community project, unaffiliated with Apple or the listed earbud brands.
+HeyBuds is an independent community project, unaffiliated with the listed brands.
