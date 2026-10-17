@@ -1,0 +1,13 @@
+name: Feature request / 功能建议
+description: Describe a device capability or workflow / 描述设备能力或使用需求
+body:
+  - type: textarea
+    id: request
+    attributes:
+      label: Requested behavior and use case / 期望行为与使用场景
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Device model and public protocol references / 型号与公开协议依据（如有）

@@ -1,0 +1,39 @@
+name: Bug report / 问题反馈
+description: Report a reproducible issue with HeyBuds / 反馈可复现的问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Please remove device addresses, host names, pairing keys and personal information before sharing diagnostics. 提交前请移除设备地址、主机名、配对密钥及个人信息。"
+  - type: input
+    id: environment
+    attributes:
+      label: App and macOS versions / 应用与系统版本
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Earbud model and firmware / 耳机型号与固件
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected result and observed result / 复现步骤、预期与实际结果
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence
+    attributes:
+      label: Evidence / 验证来源
+      options:
+        - Real device / 实机
+        - Simulated protocol session / 模拟协议
+        - Source inspection / 源码检查
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics / 已检查并脱敏的诊断（可选）

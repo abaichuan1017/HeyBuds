@@ -1,0 +1,47 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check build environment
+        shell: bash
+        run: |
+          test "$(uname -m)" = arm64
+          test "$(sw_vers -productVersion | cut -d. -f1)" -ge 27
+          xcrun --sdk macosx --show-sdk-version
+          swift --version
+          python3 -c 'import re,subprocess; sdk=subprocess.check_output(["xcrun","--sdk","macosx","--show-sdk-version"],text=True).strip(); swift=subprocess.check_output(["swift","--version"],text=True); assert int(sdk.split(".")[0]) >= 27; version=re.search(r"Swift version (\d+)\.(\d+)",swift); assert version and tuple(map(int,version.groups())) >= (6,4)'
+      - name: Audit public source
+        run: python3 scripts/audit-source.py
+      - name: Run protocol, session and presentation tests
+        run: swift test
+      - name: Build signed local application
+        run: bash scripts/build.sh
+      - name: Package public source
+        run: python3 scripts/package-source.py
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeyBuds-arm64
+          path: |
+            dist/HeyBuds-arm64.zip
+            releases/HeyBuds-v*-source.zip
+            releases/SHA256SUMS
+            releases/source-manifest.json
+          if-no-files-found: error
