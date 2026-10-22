@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.5 — 2026-10-22
+
+- Make the connection pop-up more compact with less top spacing and balanced battery columns.
+- Align the dismiss button with the header, add a subtle circular background and move battery-loading status into the connection line.
+
 ## 0.4.4 — 2026-10-22
 
 - Fix the menu-bar panel covering native update windows when checking for updates.

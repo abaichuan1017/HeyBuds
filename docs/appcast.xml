@@ -4,17 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.4</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.4</link>
-      <sparkle:version>12</sparkle:version>
-      <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.5</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.5</link>
+      <sparkle:version>13</sparkle:version>
+      <sparkle:shortVersionString>0.4.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 修复检查更新时菜单栏弹出页遮挡更新窗口的问题。
-- 调整常规设置顺序，将“断线自动重连”放到“后台运行”上方。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.4/HeyBuds-arm64.dmg" length="2393481" type="application/octet-stream" sparkle:edSignature="UPKQ4Ttlx81XurKL+c4QBf9T8JTfO1lcDlVBdvWO9TSgMpBotr12CuJnAhrmehmbCio7GWLcyqEXvmcQuNLdAA=="></enclosure>
+      <description format="plain-text">- 优化连接弹窗比例，减少顶部留白，让电量信息排列更紧凑。
+- 调整关闭按钮的位置并增加淡圆形衬底，将电量等待提示合并到状态行。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.5/HeyBuds-arm64.dmg" length="2391427" type="application/octet-stream" sparkle:edSignature="NK2sU1oiQa1GZQqSQL6iiu5CCvxi+JgW2qs5Z4Iv13jvhD1hZ8Tcnd/nsq7C3c3Cgm5KwMjH9He08AagFCnpBw=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: JKAAZFh/P6tCQev/KA8T8NAH4aGN1elS4uaOI8kRzrsug/WXCC7fntqbsgtMgO5+q/3smVp7gczKLLxCKWE2CA==
-length: 1255
+edSignature: YyPzSPWsGPJW/AK6iWtgpfBGvkqGThjNTEkkkP/uVYRagn1YglSXqhDOskIJb5FbiU49o5yWURLlZzQacx/hCQ==
+length: 1276
 -->

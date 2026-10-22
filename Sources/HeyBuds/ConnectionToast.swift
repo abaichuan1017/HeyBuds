@@ -5,9 +5,9 @@ import HeyBudsBluetooth
 import HeyBudsProtocol
 
 struct ConnectionTipView:View {
-    private static let contentSize=NSSize(width:336,height:208)
+    private static let contentSize=NSSize(width:336,height:164)
     // Keep the antialiased material edge inside the transparent window bounds.
-    static let size=NSSize(width:340,height:212)
+    static let size=NSSize(width:340,height:168)
     @Bindable var app:AppModel
     let device:DeviceCandidate?
     var preview=false
@@ -35,28 +35,34 @@ struct ConnectionTipView:View {
         return app.state.placement[slot]
     }
     private var missingBattery:Bool { reading(.left) == nil && reading(.right) == nil }
+    private var statusText:String {
+        if preview && !connected { return L("连接提示预览","Connection preview") }
+        if missingBattery {
+            return app.connecting ? L("已连接 · 正在读取电量…","Connected · Reading battery…") : L("已连接 · 等待电量","Connected · Waiting for battery")
+        }
+        return L("已连接","Connected")
+    }
     private var header:some View {
-        HStack(spacing:12) {
-            Image(systemName:EarbudIcon.pair).font(.system(size:32)).frame(width:54,height:44)
+        HStack(spacing:10) {
+            Image(systemName:EarbudIcon.pair).font(.system(size:28)).frame(width:44,height:36)
             VStack(alignment:.leading,spacing:4) {
                 Text(name).font(.system(size:14,weight:.semibold)).lineLimit(1).truncationMode(.middle)
                 HStack(spacing:5) {
                     Circle().fill(connected ? Color.green : .secondary).frame(width:5,height:5)
-                    Text(preview && !connected ? L("连接提示预览","Connection preview") : L("已连接","Connected"))
-                        .font(.system(size:11)).foregroundStyle(.secondary)
+                    Text(statusText).font(.system(size:11)).foregroundStyle(.secondary).lineLimit(1)
                 }
             }
-            Spacer(minLength:18)
-        }
+            Spacer(minLength:0)
+        }.padding(.trailing,28)
     }
     private var batteryRow:some View {
         HStack(alignment:.top,spacing:8) {
-            BatteryCell(title:deviceModel?.singleBattery == true ? L("耳机","Headphones") : L("左耳","Left"),symbol:deviceModel?.singleBattery == true ? "headphones" : "airpods.pro.left",sideLabel:deviceModel?.singleBattery == true ? nil : "L",reading:reading(.left),placement:placement(.left),t500:deviceModel?.isT500 == true,compact:true)
+            BatteryCell(title:deviceModel?.singleBattery == true ? L("耳机","Headphones") : L("左耳","Left"),symbol:deviceModel?.singleBattery == true ? "headphones" : "airpods.pro.left",sideLabel:deviceModel?.singleBattery == true ? nil : "L",reading:reading(.left),placement:placement(.left),t500:deviceModel?.isT500 == true,compact:true).frame(width:88)
             if deviceModel?.singleBattery != true {
-            BatteryCell(title:L("右耳","Right"),symbol:"airpods.pro.right",sideLabel:"R",reading:reading(.right),placement:placement(.right),t500:deviceModel?.isT500 == true,compact:true)
+            BatteryCell(title:L("右耳","Right"),symbol:"airpods.pro.right",sideLabel:"R",reading:reading(.right),placement:placement(.right),t500:deviceModel?.isT500 == true,compact:true).frame(width:88)
             }
             if deviceModel?.singleBattery != true,let enclosure=reading(.enclosure) {
-                BatteryCell(title:L("充电盒","Case"),symbol:EarbudIcon.enclosure,reading:enclosure,placement:nil,t500:false,compact:true)
+                BatteryCell(title:L("充电盒","Case"),symbol:EarbudIcon.enclosure,reading:enclosure,placement:nil,t500:false,compact:true).frame(width:88)
             }
         }
     }
@@ -66,7 +72,7 @@ struct ConnectionTipView:View {
                 if reduceTransparency { Color(nsColor:.windowBackgroundColor) }
                 else { ConnectionTipMaterial() }
             }
-            .clipShape(RoundedRectangle(cornerRadius:28,style:.continuous))
+            .clipShape(RoundedRectangle(cornerRadius:24,style:.continuous))
             .padding(2)
             .font(.system(size:13,weight:.regular))
             .preferredColorScheme(app.appearance == "dark" ? .dark : app.appearance == "light" ? .light : nil)
@@ -74,21 +80,22 @@ struct ConnectionTipView:View {
     private var content:some View {
         ZStack(alignment:.topTrailing) {
             Button(action:onOpen) {
-                VStack(spacing:14) {
+                VStack(spacing:12) {
                     header
                     batteryRow
-                    if missingBattery {
-                        Text(app.connecting ? L("正在读取耳机电量…","Reading battery levels…") : L("电量暂未上报","Battery not yet reported"))
-                            .font(.system(size:10)).foregroundStyle(.secondary)
-                    }
-                }.padding(18).frame(width:Self.contentSize.width,height:Self.contentSize.height)
-                    .contentShape(RoundedRectangle(cornerRadius:28))
+                }.padding(.horizontal,16).padding(.vertical,14)
+                    .frame(width:Self.contentSize.width,height:Self.contentSize.height,alignment:.top)
+                    .contentShape(RoundedRectangle(cornerRadius:24))
             }.buttonStyle(.plain)
                 .accessibilityLabel(name+(preview && !connected ? L("，连接提示预览",", connection preview") : L("，已连接。打开控制面板",", connected. Open controls")))
                 .accessibilityValue(L("左耳：","Left: ")+(reading(.left).map { "\($0.percent)%" } ?? L("未知","unknown"))+L("，右耳：",", right: ")+(reading(.right).map { "\($0.percent)%" } ?? L("未知","unknown")))
             Button(action:onClose) {
-                Image(systemName:"xmark").font(.system(size:9,weight:.semibold)).foregroundStyle(.secondary).frame(width:24,height:24)
-            }.buttonStyle(.plain).padding(7).accessibilityLabel(L("关闭连接提示","Dismiss connection pop-up"))
+                Image(systemName:"xmark").font(.system(size:10,weight:.medium)).foregroundStyle(.secondary)
+                    .frame(width:22,height:22).background(.quaternary.opacity(0.55),in:Circle())
+                    .frame(width:28,height:28).contentShape(Circle())
+            }.buttonStyle(.plain).padding(.top,18).padding(.trailing,12)
+                .help(L("关闭连接提示","Dismiss connection pop-up"))
+                .accessibilityLabel(L("关闭连接提示","Dismiss connection pop-up"))
         }
     }
 }
