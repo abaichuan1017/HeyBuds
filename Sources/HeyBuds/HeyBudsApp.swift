@@ -72,6 +72,7 @@ import HeyBudsBluetooth
         model.onStatusChange = { [weak self] in self?.updateStatus() }
         model.onDeviceConnected = { [weak self] device in self?.announceConnection(device) }
         model.onPreviewConnectionTip = { [weak self] in self?.previewConnectionTip() }
+        model.updater.onWillPresentUI = { [weak self] in self?.dismissPanelForUpdate() }
         connectionToast.onDismiss = { [weak self] in self?.explicitAccess=false; self?.updateStatus() }
         UNUserNotificationCenter.current().delegate=self
         let center=NSWorkspace.shared.notificationCenter
@@ -215,6 +216,14 @@ import HeyBudsBluetooth
                   event.window === panelWindow else { return event }
             self.popover.performClose(nil); return nil
         }
+    }
+    private func dismissPanelForUpdate() {
+        guard popover.isShown else { return }
+        // Finish closing the higher-level popover before Sparkle shows its window.
+        let animates=popover.animates
+        popover.animates=false
+        popover.performClose(nil)
+        popover.animates=animates
     }
     func popoverDidClose(_ notification:Notification) {
         if let eventMonitor { NSEvent.removeMonitor(eventMonitor) }; eventMonitor=nil

@@ -4,16 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.3</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.3</link>
-      <sparkle:version>11</sparkle:version>
-      <sparkle:shortVersionString>0.4.3</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.4</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.4</link>
+      <sparkle:version>12</sparkle:version>
+      <sparkle:shortVersionString>0.4.4</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 修复从控制页进入设置页时，开关短暂变黑或闪白的问题。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.3/HeyBuds-arm64.dmg" length="2392514" type="application/octet-stream" sparkle:edSignature="JLNqL47KwuntHYMoPcbVeQFbgHgD5dPUtM+QPi5zuz2PHH9SO66j1ZmbWmWnZn6ew01y7r5lLD3nUrZuLdnoCA=="></enclosure>
+      <description format="plain-text">- 修复检查更新时菜单栏弹出页遮挡更新窗口的问题。
+- 调整常规设置顺序，将“断线自动重连”放到“后台运行”上方。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.4/HeyBuds-arm64.dmg" length="2393481" type="application/octet-stream" sparkle:edSignature="UPKQ4Ttlx81XurKL+c4QBf9T8JTfO1lcDlVBdvWO9TSgMpBotr12CuJnAhrmehmbCio7GWLcyqEXvmcQuNLdAA=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: fwqVpEaf6JBz2DVgFmoFz9qx4/BULfHNe0mNh8fn1vlGhM0t+NeEvsysyq0G1/hp1pLoGDwkOQ1qGYhuwuN7AQ==
-length: 1174
+edSignature: JKAAZFh/P6tCQev/KA8T8NAH4aGN1elS4uaOI8kRzrsug/WXCC7fntqbsgtMgO5+q/3smVp7gczKLLxCKWE2CA==
+length: 1255
 -->

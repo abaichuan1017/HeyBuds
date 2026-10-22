@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4 — 2026-10-22
+
+- Fix the menu-bar panel covering native update windows when checking for updates.
+- Place Reconnect automatically above Background mode in General settings.
+
 ## 0.4.3 — 2026-10-22
 
 - Fix switches briefly turning dark or bright when opening Settings by removing the whole-panel page transition.

@@ -508,9 +508,9 @@ struct PanelView: View {
                 Divider()
                 settingToggle(L("菜单栏显示电量","Battery in menu bar"),isOn:$app.menuBattery)
                 Divider()
-                settingToggle(L("后台运行","Background mode"),helpText:L("未连接已识别耳机时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no recognized earbuds are connected. Reopen HeyBuds to access settings."),isOn:$app.backgroundMode)
-                Divider()
                 settingToggle(L("断线自动重连","Reconnect automatically"),isOn:$app.autoReconnect)
+                Divider()
+                settingToggle(L("后台运行","Background mode"),helpText:L("未连接已识别耳机时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no recognized earbuds are connected. Reopen HeyBuds to access settings."),isOn:$app.backgroundMode)
                 Divider()
                 settingToggle(L("登录时启动","Launch at login"),isOn:Binding(get:{app.launchAtLogin},set:app.setLogin))
             }.onAppear { app.refreshLoginStatus() }
