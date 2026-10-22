@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 — 2026-10-22
+
+- Download and install updates in a native macOS window, with progress, cancellation and restart.
+- Make Settings more compact, merge the version into the update action and move diagnostics to the bottom right.
+- Use a small GitHub footer icon and a separate coffee support entry with Alipay amounts of ¥5 / ¥10 / ¥20 / ¥50, direct links and sharing to a phone.
+
 ## 0.3.4 — 2026-10-22
 
 - Use circular glass back buttons across secondary pages.

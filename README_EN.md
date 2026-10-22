@@ -12,7 +12,7 @@ A lightweight, native macOS menu bar companion
 
 </div>
 
-Check battery levels, switch noise modes, adjust sound and manage connected devices. Available in Chinese and English. Uses system frameworks, with no third-party runtime, telemetry or self-updater.
+Check battery levels, switch noise modes, adjust sound and manage connected devices. Available in Chinese and English. Uses a native interface and Sparkle for in-app updates. No telemetry.
 
 <table>
   <tr><th>Disconnected</th><th>Connection pop-up</th></tr>
@@ -48,7 +48,7 @@ Requires an **Apple Silicon Mac running macOS 26+**.
 3. Open HeyBuds, allow Bluetooth access and select your earbuds from its menu bar icon.
 4. Use the main panel for noise control and Advanced features for sound settings. Settings includes connection pop-ups, low-battery alerts, automatic reconnection and launch at login.
 
-Diagnostics in Settings includes manual update checking, the GitHub project link, donations and redacted diagnostic export.
+The bottom of Settings shows the version and in-app update action, followed by a separate coffee support entry. The GitHub icon opens the project, and the bottom-right diagnostic button exports a redacted report.
 
 The app is not notarized. If macOS blocks it, verify the download source and choose Open Anyway in System Settings → Privacy & Security. See [Apple's instructions](https://support.apple.com/en-us/102445).
 

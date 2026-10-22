@@ -13,6 +13,12 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$bin_dir/HeyBuds" "$app/Contents/MacOS/HeyBuds"
 if [[ "$config" == release ]]; then xcrun strip -S -x "$app/Contents/MacOS/HeyBuds"; fi
 cp -R "$bin_dir/HeyBuds_HeyBudsProtocol.bundle" "$app/Contents/Resources/"
+# Keep only the public image and minimal bundle metadata from the app resources.
+mkdir -p "$app/Contents/Resources/HeyBuds_HeyBuds.bundle/Contents/Resources"
+cp "$bin_dir/HeyBuds_HeyBuds.bundle/Contents/Info.plist" "$app/Contents/Resources/HeyBuds_HeyBuds.bundle/Contents/"
+cp Sources/HeyBuds/Resources/GitHub.pdf "$app/Contents/Resources/HeyBuds_HeyBuds.bundle/Contents/Resources/"
+mkdir -p "$app/Contents/Frameworks"
+ditto .build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework "$app/Contents/Frameworks/Sparkle.framework"
 # Keep the source catalogs readable; ship equivalent compact JSON in the app.
 python3 - "$app/Contents/Resources/HeyBuds_HeyBudsProtocol.bundle" <<'PY'
 import json
@@ -88,12 +94,19 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>HeyBuds</string>
 <key>CFBundleDisplayName</key><string>HeyBuds</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.3.4</string>
-<key>CFBundleVersion</key><string>7</string>
+<key>CFBundleShortVersionString</key><string>0.4.0</string>
+<key>CFBundleVersion</key><string>8</string>
 <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
 <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>en</string></array>
 <key>CFBundleIconFile</key><string>HeyBuds.icns</string>
 <key>LSMinimumSystemVersion</key><string>26.0</string>
+<key>SUFeedURL</key><string>https://raw.githubusercontent.com/abaichuan1017/HeyBuds/main/docs/appcast.xml</string>
+<key>SUPublicEDKey</key><string>BsaMQHq82v0/YwPtqwjwuWBvyPjkUjHuk3nQ12sgC3U=</string>
+<key>SURequireSignedFeed</key><true/>
+<key>SUVerifyUpdateBeforeExtraction</key><true/>
+<key>SUEnableAutomaticChecks</key><false/>
+<key>SUAllowsAutomaticUpdates</key><false/>
+<key>SUSendProfileInfo</key><false/>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSBluetoothAlwaysUsageDescription</key><string>HeyBuds 通过蓝牙读取耳机电量，并控制降噪和音效。

@@ -7,12 +7,13 @@ typealias ViewState<Value> = SwiftUI.State<Value>
 
 private enum Page: Hashable { case home,hosts,device,advanced,settings }
 private struct Card: ViewModifier {
+    var verticalPadding:CGFloat=12
     func body(content:Content) -> some View {
-        content.padding(12).frame(maxWidth:.infinity,alignment:.leading)
+        content.padding(.horizontal,12).padding(.vertical,verticalPadding).frame(maxWidth:.infinity,alignment:.leading)
             .background(.quaternary.opacity(0.45),in:RoundedRectangle(cornerRadius:16))
     }
 }
-extension View { fileprivate func card() -> some View { modifier(Card()) } }
+extension View { fileprivate func card(verticalPadding:CGFloat=12) -> some View { modifier(Card(verticalPadding:verticalPadding)) } }
 
 // The same SF Symbols used by the MIT-licensed Realme menu bar controller.
 enum EarbudIcon {
@@ -495,7 +496,7 @@ struct PanelView: View {
         }
     }
     private var settingsPage:some View {
-        VStack(alignment:.leading,spacing:16) {
+        VStack(alignment:.leading,spacing:12) {
             settingsGroup(L("常规","General")) {
                 settingPicker(L("语言","Language"),value:app.language == "en" ? "English" : "简体中文",selection:$app.language) {
                     Text("简体中文").tag("zh"); Text("English").tag("en")
@@ -533,16 +534,14 @@ struct PanelView: View {
                     ForEach(app.catalog.models.sorted(by:{$0.name < $1.name})) { Text($0.name).tag($0.id) }
                 }
             }
-            DiagnosticsSection(app:app)
-            Text("HeyBuds 0.3.4 · GPL-3.0-or-later")
-                .font(.system(size:10)).foregroundStyle(.secondary)
-                .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12)
+            UpdatesSection(app:app)
+            ProjectFooter()
         }
     }
     private func settingsGroup<Content:View>(_ title:String,@ViewBuilder content:() -> Content) -> some View {
         VStack(alignment:.leading,spacing:6) {
             Text(title).font(.system(size:11,weight:.semibold)).foregroundStyle(.secondary).padding(.horizontal,12)
-            VStack(alignment:.leading,spacing:0,content:content).card()
+            VStack(alignment:.leading,spacing:0,content:content).card(verticalPadding:6)
         }.frame(maxWidth:.infinity,alignment:.leading)
     }
     private func settingRow<Control:View>(_ title:String,helpText:String? = nil,@ViewBuilder control:() -> Control) -> some View {
@@ -550,7 +549,7 @@ struct PanelView: View {
             SettingsLabel(title:title,helpText:helpText)
             Spacer(minLength:0)
             control()
-        }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).padding(.vertical,2)
+        }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading)
     }
     private func settingPicker<Value:Hashable,Options:View>(_ title:String,helpText:String? = nil,isDisabled:Bool = false,value:String,selection:Binding<Value>,@ViewBuilder options:() -> Options) -> some View {
         settingRow(title,helpText:helpText) {
@@ -607,6 +606,12 @@ struct PanelView: View {
             Button { NSApplication.shared.terminate(nil) } label: {
                 Text(L("退出","Quit")).font(.system(size:11))
                     .frame(minWidth:28,minHeight:22).contentShape(Rectangle())
+            }
+            if page == .settings {
+                Button { app.exportDiagnostics() } label: {
+                    Image(systemName:"stethoscope").font(.system(size:12))
+                        .frame(width:22,height:22).contentShape(Rectangle())
+                }.help(L("导出诊断…","Export diagnostics…")).accessibilityLabel(L("导出诊断","Export diagnostics"))
             }
         }.frame(height:30)
             .overlay(alignment:.center) {
@@ -696,40 +701,95 @@ struct SettingsLabel:View {
 
 struct SettingsActionRow:View {
     let title:String, symbol:String
+    var detail:String?=nil
     let action:() -> Void
     var body:some View {
         Button(action:action) {
             HStack(spacing:12) {
                 Text(title).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
                 Spacer(minLength:0)
+                if let detail { Text(detail).foregroundStyle(.secondary).monospacedDigit() }
                 Image(systemName:symbol).font(.system(size:11,weight:.medium)).foregroundStyle(.secondary).frame(width:16)
-            }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).padding(.vertical,2).contentShape(Rectangle())
+            }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
 }
 
-struct DiagnosticsSection:View {
+struct UpdatesSection:View {
     @Bindable var app:AppModel
+    @ViewState private var showingDonation=false
     var body:some View {
         VStack(alignment:.leading,spacing:6) {
-            Text(L("诊断","Diagnostics")).font(.system(size:11,weight:.semibold)).foregroundStyle(.secondary).padding(.horizontal,12)
-            VStack(alignment:.leading,spacing:0) {
-                SettingsActionRow(title:app.checkingForUpdates ? L("正在检查…","Checking…") : L("检查更新","Check for updates"),symbol:"arrow.down.circle") {
-                    Task { await app.checkForUpdates() }
-                }.disabled(app.checkingForUpdates)
-                Divider()
-                SettingsActionRow(title:L("GitHub 项目地址","GitHub project"),symbol:"arrow.up.right.square") { NSWorkspace.shared.open(AppIdentity.projectURL) }
-                Divider()
-                SettingsActionRow(title:L("捐赠","Donate"),symbol:"heart") { NSWorkspace.shared.open(AppIdentity.donationURL) }
-                Divider()
-                SettingsActionRow(title:L("导出诊断…","Export diagnostics…"),symbol:"square.and.arrow.up") { app.exportDiagnostics() }
-            }.card()
-        }.alert(L("检查更新","Check for updates"),isPresented:$app.showUpdateAlert) {
-            if let url=app.updateReleaseURL {
-                Button(L("前往发布页","Open releases")) { NSWorkspace.shared.open(url) }
+            Text(L("关于","About")).font(.system(size:11,weight:.semibold)).foregroundStyle(.secondary).padding(.horizontal,12)
+            VStack(spacing:8) {
+                SettingsActionRow(title:L("检查更新…","Check for updates…"),symbol:"arrow.down.circle",detail:AppIdentity.version) {
+                    app.updater.checkForUpdates()
+                }.disabled(!app.updater.canCheckForUpdates).card(verticalPadding:6)
+                Button { showingDonation=true } label: {
+                    HStack(spacing:8) {
+                        Image(systemName:"cup.and.saucer").frame(width:18)
+                        Text(L("请作者喝杯咖啡","Buy the developer a coffee"))
+                        Spacer(minLength:0)
+                        Image(systemName:"chevron.right").font(.system(size:11,weight:.medium)).foregroundStyle(.secondary)
+                    }.frame(minHeight:30).contentShape(Rectangle())
+                }.buttonStyle(.plain).card(verticalPadding:6)
+                    .popover(isPresented:$showingDonation,arrowEdge:.bottom) { DonationLinks() }
             }
-            Button(L("好","OK"),role:.cancel) { }
-        } message: { Text(app.updateMessage) }
+        }
+    }
+}
+
+struct ProjectFooter:View {
+    private var githubImage:NSImage {
+        let image=NSImage(contentsOf:Bundle.module.url(forResource:"GitHub",withExtension:"pdf")!)!
+        image.isTemplate=true
+        return image
+    }
+    var body:some View {
+        HStack(spacing:12) {
+            Text("HeyBuds · GPL-3.0-or-later").font(.system(size:10)).foregroundStyle(.secondary)
+            Spacer(minLength:0)
+            Button { NSWorkspace.shared.open(AppIdentity.projectURL) } label: {
+                Image(nsImage:githubImage).resizable().scaledToFit().frame(width:16,height:16).frame(width:26,height:26)
+            }.help(L("GitHub 项目","GitHub project")).accessibilityLabel(L("在 GitHub 查看 HeyBuds","View HeyBuds on GitHub"))
+        }.buttonStyle(.plain).padding(.horizontal,12)
+    }
+}
+
+struct DonationLinks:View {
+    @ViewState private var selection=DonationOption.options[1]
+    @ViewState private var copied=false
+    var body:some View {
+        VStack(alignment:.leading,spacing:12) {
+            Text(L("请作者喝杯咖啡","Buy the developer a coffee")).font(.headline)
+            HStack(spacing:8) {
+                ForEach(DonationOption.options) { option in
+                    Button {
+                        selection=option; copied=false
+                    } label: {
+                        Text("¥\(option.amount)").font(.system(size:13,weight:.medium)).monospacedDigit().frame(maxWidth:.infinity,minHeight:28)
+                    }.buttonStyle(.plain)
+                        .background(selection == option ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.08),in:RoundedRectangle(cornerRadius:8))
+                        .overlay(RoundedRectangle(cornerRadius:8).strokeBorder(selection == option ? Color.accentColor : .clear,lineWidth:1))
+                        .accessibilityAddTraits(selection == option ? [.isSelected] : [])
+                }
+            }
+            Text(L("通过支付宝自愿支持。付款需在装有支付宝的手机上完成，可复制链接或分享到 iPhone。","Support development with Alipay. Complete payment on a phone with Alipay; copy the link or share it to your iPhone."))
+                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+            Button(L("前往支付宝付款","Continue to Alipay")+" · ¥\(selection.amount)") {
+                let url=NSWorkspace.shared.urlForApplication(toOpen:selection.appURL) == nil ? selection.codeURL : selection.appURL
+                NSWorkspace.shared.open(url)
+            }.buttonStyle(.borderedProminent).controlSize(.regular)
+            HStack {
+                Button(copied ? L("已复制","Copied") : L("复制付款链接","Copy payment link")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(selection.codeURL.absoluteString,forType:.string)
+                    copied=true
+                }
+                ShareLink(item:selection.codeURL) { Label(L("分享…","Share…"),systemImage:"square.and.arrow.up") }
+                    .id(selection.id)
+            }.controlSize(.small)
+        }.padding(16).frame(width:290)
     }
 }
 

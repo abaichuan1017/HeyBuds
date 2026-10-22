@@ -3,7 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TOP_LEVEL = (
-    '.gitignore', 'Package.swift', 'README.md', 'README_EN.md',
+    '.gitignore', 'Package.swift', 'Package.resolved', 'README.md', 'README_EN.md',
     'LICENSE', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'CONTRIBUTING.md',
 )
 DIRECTORIES = ('Sources', 'Tests', 'scripts', 'docs', 'Licenses', '.github')

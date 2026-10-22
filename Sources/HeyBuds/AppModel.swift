@@ -19,10 +19,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var notice:String?
     var noiseControlHint:String?
     var operationBusy=false
-    var checkingForUpdates=false
-    var showUpdateAlert=false
-    var updateMessage=""
-    var updateReleaseURL:URL?
+    let updater=NativeUpdater()
     var revision=0
     var onStatusChange:(() -> Void)?
     var onDeviceConnected:((DeviceCandidate) -> Void)?
@@ -335,31 +332,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func bluetoothSettings() {
         NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.BluetoothSettings")!)
     }
-    func checkForUpdates(session:URLSession = .shared) async {
-        guard !checkingForUpdates else { return }
-        checkingForUpdates=true
-        defer { checkingForUpdates=false }
-        updateReleaseURL=nil
-        do {
-            let release=try await UpdateChecker.latest(session:session)
-            guard let current=ReleaseVersion(AppIdentity.version) else { throw UpdateCheckError.invalidResponse }
-            if release.version > current {
-                updateMessage=L("发现新版本 ","New version available: ")+release.tag+L("。当前版本：",". Current version: ")+AppIdentity.version
-                updateReleaseURL=release.url
-            } else {
-                updateMessage=L("当前没有可用更新。当前版本：","No updates available. Current version: ")+AppIdentity.version
-            }
-        } catch is CancellationError { return }
-        catch {
-            updateMessage=L("暂时无法检查更新，请稍后重试，或前往 GitHub 发布页查看。","Unable to check for updates. Try again later or visit the GitHub releases page.")
-            updateReleaseURL=AppIdentity.releasesURL
-        }
-        showUpdateAlert=true
-    }
     func exportDiagnostics() {
         let panel=NSSavePanel(); panel.nameFieldStringValue="HeyBuds-diagnostics.json"
         guard panel.runModal() == .OK, let url=panel.url else { return }
-        let report:[String:Any]=["app":"HeyBuds", "version":"0.3.4", "os":ProcessInfo.processInfo.operatingSystemVersionString,
+        let report:[String:Any]=["app":"HeyBuds", "version":AppIdentity.version, "os":ProcessInfo.processInfo.operatingSystemVersionString,
             "phase":phase,"transport":transportLabel,"catalogModels":catalog.models.count,
             "productID":state.productID ?? "unknown","modelID":model?.id ?? "unknown",
             "firmware":state.firmware ?? "unknown","queries":state.observedQueries.sorted().map{String(format:"%04X",$0)},
@@ -368,7 +344,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         catch { self.error=error.localizedDescription }
     }
     func diagnosticSnapshot() -> [String:Any] {
-        var value:[String:Any]=["app":"HeyBuds","version":"0.3.4","phase":phase,"transport":transportLabel,
+        var value:[String:Any]=["app":"HeyBuds","version":AppIdentity.version,"phase":phase,"transport":transportLabel,
             "timestamp":ISO8601DateFormatter().string(from:Date()),"productID":state.productID ?? "unknown",
             "firmware":state.firmware ?? "unknown","noise":state.noise?.rawValue ?? "unknown",
             "eq":state.eq.map(Int.init) ?? -1,"spatial":state.spatial.map(Int.init) ?? -1,

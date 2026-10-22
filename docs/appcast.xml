@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>HeyBuds</title>
+    <item>
+      <title>HeyBuds 0.4.0</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.0</link>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <description format="plain-text">- 新增应用内更新，可查看下载进度、取消下载并安装重启。
+- 收紧设置页间距，版本号并入检查更新，诊断移到右下角。
+- 独立“请作者喝杯咖啡”入口，支付宝支持 5／10／20／50 元档位。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.0/HeyBuds-arm64.zip" length="2455968" type="application/octet-stream" sparkle:edSignature="9hl2A1LbJUjwBjnlTLPssUk5o1eV8qCigtBv5MPTklDVNZQ2+GrXQxE9bI3NFtcAmNPh4zNIrIs2aiWhoOTuAg=="></enclosure>
+    </item>
+  </channel>
+</rss><!-- sparkle-signatures:
+edSignature: xMfYYIWu9hzoczJqne/5gfu/IhnZEto5d+jrfjAvNV9IdeRem3Y4u6LcZOmso50IXRLRNQgvIbae0JO+tbMVCw==
+length: 1344
+-->

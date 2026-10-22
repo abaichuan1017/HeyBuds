@@ -19,7 +19,7 @@ OPPO 同时保留 RFCOMM 与 BLE GATT；新增品牌由 `BrandSession` 处理自
 
 使用 `NSStatusItem` 和 `NSPopover` 的系统开合行为，SwiftUI 管理可滚动的 360pt 面板。SDK 27 同名 State 宏在 CLT 中没有插件，代码用指向原生 `SwiftUI.State` 的类型别名选择标准属性包装器；没有改动 SDK。
 
-型号资源是 GPL 上游 JSON（X4 使用独立 EncoDeck 补充表），保留完整未知字段及固件约束。支持的功能由型号、运行时能力位与已成功解析的响应共同约束。没有添加网络 API、XPC 服务或第三方运行时。
+型号资源是 GPL 上游 JSON（X4 使用独立 EncoDeck 补充表），保留完整未知字段及固件约束。支持的功能由型号、运行时能力位与已成功解析的响应共同约束。设备控制不依赖网络。用户主动检查更新时使用 Sparkle 的原生窗口与安装辅助服务，通过签名 feed 下载并验证发行包。
 
 ## 多品牌
 

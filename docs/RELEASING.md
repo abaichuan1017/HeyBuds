@@ -1,4 +1,4 @@
-# Release checks
+# Releasing
 
 Use Apple Silicon, Swift 6.4 and the macOS 27 SDK:
 
@@ -7,15 +7,27 @@ python3 scripts/audit-source.py
 swift test
 bash scripts/build.sh
 python3 scripts/audit-app.py
+```
+
+Keep `AppIdentity.version`, `CFBundleShortVersionString` in `scripts/build.sh` and the changelog aligned. Increase `CFBundleVersion` for every release. Forks must use their own update feed and signing key.
+
+## Signed updates
+
+The application uses Sparkle's standard native interface. Update checks start when the user requests them. Automatic checks, automatic installation and system-profile reporting are disabled by default. The HTTPS feed and each archive require Ed25519 signatures, and archive verification happens before extraction.
+
+Initialize the signing account once with Sparkle's `bin/generate_keys --account HeyBuds-updates` and embed only its public key in `scripts/build.sh`. Keep the private key in the login Keychain, outside Git and archives. Prepare concise, user-facing release notes, then run:
+
+```sh
+python3 scripts/prepare-update.py --notes-file release-notes.md
 python3 scripts/package-source.py
 ```
 
-The application ZIP is `dist/HeyBuds-arm64.zip`. `releases/` contains the versioned source ZIP, source manifest and `SHA256SUMS`. Attach matching application and source ZIPs plus checksums to the version tag. Keep version fields in `AppIdentity.swift`, `PanelView.swift`, `AppModel.swift` and `scripts/build.sh` consistent; the source audit checks them.
+`prepare-update.py` signs the already-built app archive and `docs/appcast.xml`. Do not rebuild or change the archive after signing it. Commit the signed feed with the version tag, then publish the matching archive at the URL in the feed. Future releases keep the same signing key and feed URL.
 
-Release builds select only the app product, strip local/debug symbols, compact runtime JSON and icon PNG streams without changing their values or pixels, exclude reference-only resources and omit Finder metadata from the ZIP. Debug builds retain diagnostic preview and hardware-check flags. License notices stay in both distributions. `audit-app.py` checks the exact bundled files, catalog equivalence, signature, architecture and ZIP contents.
+## Publication
 
-Signing is ad-hoc unless `HEYBUDS_SIGN_IDENTITY` is supplied. Local signature validation does not mean Developer ID distribution or notarization. Record hardware results separately from protocol tests.
+Upload only `dist/HeyBuds-arm64.zip`. Use GitHub’s automatically generated “Source code (zip)” for the matching tag; do not upload a duplicate source ZIP. GitHub also provides a source tarball automatically. Source packages, manifests and checksums generated under `releases/` remain local verification outputs.
 
-`AGENTS.md` and other local agent instructions are excluded from Git tracking and the source allowlist. The X4 importer uses only the committed source excerpt. Confirm that the final source ZIP contains no instructions, backups, captures or temporary previews.
+Release notes describe changes users can see. Keep test counts, build/signing/package-audit results, local paths and process details in private maintenance records. The workflow uploads the app and source archive but does not publish a release or access the signing key.
 
-The workflow checks its runner environment before building. It audits source, runs tests, packages and checks the app, then uploads artifacts; it does not publish a release. Confirm each hosted run in Actions. Source archives use an explicit allowlist and exclude Git history, build caches, backups, captures and preferences. Normal builds require no sibling reference repositories.
+The source package includes pinned dependency metadata and required licenses. `AGENTS.md`, other local instructions, backups, captures, signing material and temporary previews are excluded. `audit-app.py` checks the bundled files, the pinned Sparkle framework, relative symlinks, catalog equivalence and archive contents.

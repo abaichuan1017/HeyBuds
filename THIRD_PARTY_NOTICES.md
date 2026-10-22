@@ -29,6 +29,17 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - Full notice: `Licenses/Realme-MIT.txt`.
 - The RFCOMM/menu bar lifecycle, T500 Pro mappings and captured protocol test fixtures informed this implementation. Circular noise buttons and equal-width ANC strength capsules are adapted from its SwiftUI panel, with the same SF Symbols. The framing parser, buffer ownership and session routing were rewritten.
 
+## Sparkle
+
+- Source: https://github.com/sparkle-project/Sparkle (2.10.0).
+- MIT / included component licenses; complete notices in `Licenses/Sparkle.txt`.
+- Provides the native update, download and installation interface. Thanks to the Sparkle contributors.
+
+## GitHub mark
+
+- Official asset: https://brand.github.com/foundations/logo (GitHub Invertocat, black PDF).
+- Used unchanged as a monochrome project-link button under GitHub's permitted linking use. GitHub trademarks remain the property of GitHub, Inc.; no endorsement is implied.
+
 ## Buds for macOS
 
 - Reference: https://github.com/GewoonJaap/oneplus-buds-macos

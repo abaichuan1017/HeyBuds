@@ -49,7 +49,7 @@ def audit():
         if old in package or old in build:
             errors.append(f'Legacy branding remains in build metadata: {old}')
     version = re.search(r'static let version="([^"]+)"', (ROOT / 'Sources/HeyBuds/AppIdentity.swift').read_text()).group(1)
-    for name in ('scripts/build.sh', 'Sources/HeyBuds/AppModel.swift', 'Sources/HeyBuds/PanelView.swift'):
+    for name in ('scripts/build.sh',):
         if version not in (ROOT / name).read_text():
             errors.append(f'Version mismatch: {name}')
     models = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/MigratedModels.json').read_text())['models']

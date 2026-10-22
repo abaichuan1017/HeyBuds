@@ -35,6 +35,14 @@ jobs:
         run: bash scripts/build.sh
       - name: Verify application and ZIP contents
         run: python3 scripts/audit-app.py
+      - name: Verify signed update feed
+        run: |
+          python3 - <<'PYCODE'
+          import plistlib, subprocess
+          with open('dist/HeyBuds.app/Contents/Info.plist', 'rb') as f:
+              info = plistlib.load(f)
+          subprocess.run(['swift', 'scripts/verify-update.swift', 'docs/appcast.xml', '-', info['SUPublicEDKey']], check=True)
+          PYCODE
       - name: Package public source
         run: python3 scripts/package-source.py
       - name: Upload build artifacts
@@ -44,6 +52,4 @@ jobs:
           path: |
             dist/HeyBuds-arm64.zip
             releases/HeyBuds-v*-source.zip
-            releases/SHA256SUMS
-            releases/source-manifest.json
           if-no-files-found: error

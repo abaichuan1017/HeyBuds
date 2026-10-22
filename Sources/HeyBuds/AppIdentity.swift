@@ -4,11 +4,9 @@ import Foundation
 /// two generations of the app from owning the same earbud control session.
 enum AppIdentity {
     static let name="HeyBuds"
-    static let version="0.3.4"
+    static let version="0.4.0"
     static let projectURL=URL(string:"https://github.com/abaichuan1017/HeyBuds")!
     static let releasesURL=projectURL.appendingPathComponent("releases/latest")
-    static let latestReleaseAPIURL=URL(string:"https://api.github.com/repos/abaichuan1017/HeyBuds/releases/latest")!
-    static let donationURL=URL(string:"https://qr.alipay.com/tsx11273jnkqrfo5occo9c1")!
     static let bundleID="local.heybuds.app"
     static let legacyBundleID="local.encobar.app"
     static let migrationKey="heybudsPreferencesMigratedV1"
