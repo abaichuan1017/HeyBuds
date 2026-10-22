@@ -43,7 +43,7 @@ Features depend on the model, firmware and device responses. See the [model list
 
 Requires an **Apple Silicon Mac running macOS 26+**.
 
-1. Download `HeyBuds-arm64.zip` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest), extract it and drag the app to Applications.
+1. Download `HeyBuds-arm64.dmg` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest), open it and drag HeyBuds to Applications.
 2. Pair and connect your earbuds in Bluetooth settings, then quit other earbud controllers.
 3. Open HeyBuds, allow Bluetooth access and select your earbuds from its menu bar icon.
 4. Use the main panel for noise control and Advanced features for sound settings. Settings includes connection pop-ups, low-battery alerts, automatic reconnection and launch at login.
@@ -66,7 +66,7 @@ bash scripts/build.sh
 open dist/HeyBuds.app
 ```
 
-Outputs: `dist/HeyBuds.app` and `dist/HeyBuds-arm64.zip`. Release builds contain the application, runtime resources and license notices. Developer tools, reference tables and documentation remain in the source tree.
+Outputs: `dist/HeyBuds.app` and `dist/HeyBuds-arm64.dmg`. Release builds contain the application, runtime resources and license notices. Developer tools, reference tables and documentation remain in the source tree.
 
 [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/abaichuan1017/HeyBuds/issues)
 

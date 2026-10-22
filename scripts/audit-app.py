@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Verify the distributable, including resource equivalence and ZIP contents."""
+"""Verify the distributable, including resource equivalence and DMG contents."""
 import json
 import plistlib
 import re
 import subprocess
 import os
-import stat
-import zipfile
+from disk_image import mounted
 from source_package import ROOT
 
 app = ROOT / 'dist/HeyBuds.app'
@@ -66,13 +65,17 @@ import base64
 assert len(base64.b64decode(info['SUPublicEDKey'], validate=True)) == 32
 assert subprocess.check_output(['lipo', '-archs', str(app / 'Contents/MacOS/HeyBuds')], text=True).strip() == 'arm64'
 subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
-archive = ROOT / 'dist/HeyBuds-arm64.zip'
-with zipfile.ZipFile(archive) as z:
-    assert z.testzip() is None
-    assert len(z.namelist()) == len(set(z.namelist())), 'Duplicate ZIP entries'
-    entries = {n for n in z.namelist() if not n.endswith('/')}
-    assert entries == {'HeyBuds.app/' + name for name in files}, 'ZIP contains extra or missing files'
+image = ROOT / 'dist/HeyBuds-arm64.dmg'
+subprocess.run(['hdiutil', 'verify', '-quiet', str(image)], check=True)
+with mounted(image) as volume:
+    contents = {p.name for p in volume.iterdir()}
+    assert contents == {'HeyBuds.app', 'Applications'}, 'Unexpected installer contents'
+    assert (volume / 'Applications').is_symlink() and os.readlink(volume / 'Applications') == '/Applications'
+    packaged = entries(volume / 'HeyBuds.app')
+    assert packaged.keys() == files.keys(), 'DMG contains extra or missing application files'
     for name, path in files.items():
-        assert z.read('HeyBuds.app/' + name) == bytes_or_link(path), name
-        assert stat.S_ISLNK(z.getinfo('HeyBuds.app/' + name).external_attr >> 16) == path.is_symlink(), name
-print(f'App audit passed: {len(files)} files, {sum(p.stat().st_size for p in files.values())} app bytes, {archive.stat().st_size} ZIP bytes.')
+        assert packaged[name].is_symlink() == path.is_symlink(), name
+        assert bytes_or_link(packaged[name]) == bytes_or_link(path), name
+        assert bool(packaged[name].stat().st_mode & 0o111) == bool(path.stat().st_mode & 0o111), name
+    subprocess.run(['codesign', '--verify', '--deep', '--strict', str(volume / 'HeyBuds.app')], check=True)
+print(f'App audit passed: {len(files)} files, {sum(p.stat().st_size for p in files.values())} app bytes, {image.stat().st_size} DMG bytes.')

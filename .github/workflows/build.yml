@@ -33,7 +33,7 @@ jobs:
         run: swift test
       - name: Build signed local application
         run: bash scripts/build.sh
-      - name: Verify application and ZIP contents
+      - name: Verify application and DMG contents
         run: python3 scripts/audit-app.py
       - name: Verify signed update feed
         run: |
@@ -50,6 +50,6 @@ jobs:
         with:
           name: HeyBuds-arm64
           path: |
-            dist/HeyBuds-arm64.zip
+            dist/HeyBuds-arm64.dmg
             releases/HeyBuds-v*-source.zip
           if-no-files-found: error

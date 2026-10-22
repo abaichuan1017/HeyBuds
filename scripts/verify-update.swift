@@ -30,7 +30,7 @@ try require(enclosures.count == 1,"Expected one application archive")
 let enclosure=enclosures[0] as! XMLElement
 let download=URLComponents(string:enclosure.attribute(forName:"url")?.stringValue ?? "")
 try require(download?.scheme == "https" && download?.host == "github.com" && download?.user == nil && download?.password == nil && download?.query == nil && download?.fragment == nil && download?.port == nil,"Unexpected download URL")
-try require(download?.path.hasPrefix("/abaichuan1017/HeyBuds/releases/download/v") == true && download?.path.hasSuffix("/HeyBuds-arm64.zip") == true,"Unexpected download project")
+try require(download?.path.hasPrefix("/abaichuan1017/HeyBuds/releases/download/v") == true && download?.path.hasSuffix("/HeyBuds-arm64.dmg") == true,"Unexpected download project")
 if arguments[2] != "-" {
     let archive=try Data(contentsOf:URL(fileURLWithPath:arguments[2]))
     try require(Int(enclosure.attribute(forName:"length")?.stringValue ?? "") == archive.count,"Archive size mismatch")

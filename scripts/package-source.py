@@ -32,9 +32,9 @@ with zipfile.ZipFile(archive) as z:
 manifest_file = output / 'source-manifest.json'
 manifest_file.write_text(json.dumps({'app': 'HeyBuds', 'version': version, 'files': manifest}, indent=2) + '\n')
 artifacts = [archive, manifest_file]
-app_zip = ROOT / 'dist/HeyBuds-arm64.zip'
-if app_zip.is_file():
-    artifacts.append(app_zip)
+app_image = ROOT / 'dist/HeyBuds-arm64.dmg'
+if app_image.is_file():
+    artifacts.append(app_image)
 checksums = '\n'.join(hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.name for p in artifacts) + '\n'
 (output / 'SHA256SUMS').write_text(checksums)
 print(f'Created {archive.relative_to(ROOT)} ({len(files)} public files).')

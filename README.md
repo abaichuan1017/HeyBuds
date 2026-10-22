@@ -43,7 +43,7 @@
 
 需要 **Apple Silicon Mac、macOS 26+ 版本**。
 
-1. 从 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.zip`，解压后将应用拖入“应用程序”。
+1. 从 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.dmg`，打开后将 HeyBuds 拖入“应用程序”。
 2. 在系统蓝牙设置中配对并连接耳机，退出其他耳机控制器。
 3. 打开 HeyBuds 并允许蓝牙访问，点击菜单栏图标选择耳机。
 4. 在主面板调节降噪，在“高级功能”调整音效；设置中可开启连接提示、低电量提醒、自动重连和登录时启动。
@@ -66,7 +66,7 @@ bash scripts/build.sh
 open dist/HeyBuds.app
 ```
 
-输出为 `dist/HeyBuds.app` 和 `dist/HeyBuds-arm64.zip`。发行构建只打包应用、运行资源与许可；开发工具、参考表和文档保留在源码中。
+输出为 `dist/HeyBuds.app` 和 `dist/HeyBuds-arm64.dmg`。发行构建只打包应用、运行资源与许可；开发工具、参考表和文档保留在源码中。
 
 [贡献指南](CONTRIBUTING.md) · [架构](docs/ARCHITECTURE.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/abaichuan1017/HeyBuds/issues)
 

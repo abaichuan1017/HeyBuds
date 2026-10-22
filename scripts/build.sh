@@ -124,6 +124,5 @@ if [[ -e dist/HeyBuds.app ]]; then
   mv dist/HeyBuds.app "dist/backups/HeyBuds-$(date +%Y%m%d-%H%M%S)-$$.app"
 fi
 mv "$app" dist/HeyBuds.app
-COPYFILE_DISABLE=1 ditto -c -k --norsrc --noextattr --noqtn --keepParent dist/HeyBuds.app "$stage/HeyBuds-arm64.zip"
-mv "$stage/HeyBuds-arm64.zip" dist/HeyBuds-arm64.zip
+python3 scripts/disk_image.py dist/HeyBuds.app dist/HeyBuds-arm64.dmg
 echo "Built: $PWD/dist/HeyBuds.app"

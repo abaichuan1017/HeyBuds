@@ -6,15 +6,15 @@ import plistlib
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-import zipfile
+from disk_image import mounted
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--notes-file', type=Path, required=True)
 args = parser.parse_args()
-archive = ROOT / 'dist/HeyBuds-arm64.zip'
-with zipfile.ZipFile(archive) as z:
-    info = plistlib.loads(z.read('HeyBuds.app/Contents/Info.plist'))
+archive = ROOT / 'dist/HeyBuds-arm64.dmg'
+with mounted(archive) as volume:
+    info = plistlib.loads((volume / 'HeyBuds.app/Contents/Info.plist').read_bytes())
 version = re.search(r'static let version="([^"]+)"', (ROOT / 'Sources/HeyBuds/AppIdentity.swift').read_text()).group(1)
 assert info['CFBundleIdentifier'] == 'local.heybuds.app' and info['CFBundleShortVersionString'] == version
 tools = ROOT / '.build/artifacts/sparkle/Sparkle/bin'
@@ -34,7 +34,7 @@ ET.SubElement(item, f'{{{ns}}}shortVersionString').text = version
 ET.SubElement(item, f'{{{ns}}}minimumSystemVersion').text = info['LSMinimumSystemVersion']
 ET.SubElement(item, 'description', {'format': 'plain-text'}).text = args.notes_file.read_text().strip()
 ET.SubElement(item, 'enclosure', {
-    'url': f'https://github.com/abaichuan1017/HeyBuds/releases/download/v{version}/HeyBuds-arm64.zip',
+    'url': f'https://github.com/abaichuan1017/HeyBuds/releases/download/v{version}/HeyBuds-arm64.dmg',
     'length': str(archive.stat().st_size), 'type': 'application/octet-stream',
     f'{{{ns}}}edSignature': signature,
 })

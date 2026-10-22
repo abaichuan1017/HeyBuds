@@ -9,13 +9,15 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
       <sparkle:version>8</sparkle:version>
       <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 新增应用内更新，可查看下载进度、取消下载并安装重启。
+      <description format="plain-text">安装：打开 DMG，将 HeyBuds 拖入“应用程序”。
+
+- 新增应用内更新，可查看下载进度、取消下载并安装重启。
 - 收紧设置页间距，版本号并入检查更新，诊断移到右下角。
 - 独立“请作者喝杯咖啡”入口，支付宝支持 5／10／20／50 元档位。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.0/HeyBuds-arm64.zip" length="2455968" type="application/octet-stream" sparkle:edSignature="9hl2A1LbJUjwBjnlTLPssUk5o1eV8qCigtBv5MPTklDVNZQ2+GrXQxE9bI3NFtcAmNPh4zNIrIs2aiWhoOTuAg=="></enclosure>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.0/HeyBuds-arm64.dmg" length="2386748" type="application/octet-stream" sparkle:edSignature="VjJcyyzqrJcJq65YoOiImOs8bE1n1hGdIT4oYNYhlCXGGIB3/24bfPyuUvYiDqzQAkCWTTgT6wqafJhQ4DTsDA=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: xMfYYIWu9hzoczJqne/5gfu/IhnZEto5d+jrfjAvNV9IdeRem3Y4u6LcZOmso50IXRLRNQgvIbae0JO+tbMVCw==
-length: 1344
+edSignature: 5aFXD1U7TwSBj8mqi8v+gnv07w6REBUke/4wE9+B5E83Y95PeEzgIJkkmImYpn5CCYgWk0V2XOrVrPxr/xLuDw==
+length: 1407
 -->
