@@ -498,13 +498,13 @@ struct PanelView: View {
     private var settingsPage:some View {
         VStack(alignment:.leading,spacing:12) {
             settingsGroup(L("常规","General")) {
-                settingPicker(L("语言","Language"),value:app.language == "en" ? "English" : "简体中文",selection:$app.language) {
-                    Text("简体中文").tag("zh"); Text("English").tag("en")
-                }
+                settingPicker(L("语言","Language"),selection:Binding(get:{app.language == "en" ? "en" : "zh"},set:{app.language=$0}),choices:[
+                    .init("zh","简体中文"),.init("en","English")
+                ])
                 Divider()
-                settingPicker(L("外观","Appearance"),value:app.appearance == "dark" ? L("深色","Dark") : app.appearance == "light" ? L("浅色","Light") : L("跟随系统","System"),selection:$app.appearance) {
-                    Text(L("跟随系统","System")).tag("system"); Text(L("浅色","Light")).tag("light"); Text(L("深色","Dark")).tag("dark")
-                }
+                settingPicker(L("外观","Appearance"),selection:Binding(get:{["light","dark"].contains(app.appearance) ? app.appearance : "system"},set:{app.appearance=$0}),choices:[
+                    .init("system",L("跟随系统","System")),.init("light",L("浅色","Light")),.init("dark",L("深色","Dark"))
+                ])
                 Divider()
                 settingToggle(L("菜单栏显示电量","Battery in menu bar"),isOn:$app.menuBattery)
                 Divider()
@@ -521,18 +521,16 @@ struct PanelView: View {
                 Divider()
                 settingToggle(L("低电量提醒","Low battery notifications"),isOn:Binding(get:{app.notifyLow},set:app.setNotifications))
                 Divider()
-                settingPicker(L("提醒阈值","Alert threshold"),value:"\(app.lowThreshold)%",selection:$app.lowThreshold) {
-                    ForEach([10,15,20,25,30],id:\.self) { Text("\($0)%").tag($0) }
-                }
+                settingPicker(L("提醒阈值","Alert threshold"),selection:$app.lowThreshold,
+                    choices:Array(Set([10,15,20,25,30,app.lowThreshold])).sorted().map { .init($0,"\($0)%") })
                     .disabled(!app.notifyLow)
             }
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.candidate == nil || app.operationBusy,value:app.overrideID.flatMap { id in app.catalog.models.first(where:{$0.id == id})?.name } ?? L("自动识别","Automatic"),selection:Binding(get:{app.overrideID ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0})) {
-                    Text(L("自动识别","Automatic")).tag("auto")
-                    ForEach(app.catalog.models.sorted(by:{$0.name < $1.name})) { Text($0.name).tag($0.id) }
-                }
+                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.candidate == nil || app.operationBusy,
+                    selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
+                    choices:[.init("auto",L("自动识别","Automatic"))]+app.catalog.models.sorted(by:{$0.name < $1.name}).map { .init($0.id,$0.name) })
             }
             UpdatesSection(app:app)
         }
@@ -550,23 +548,9 @@ struct PanelView: View {
             control()
         }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading)
     }
-    private func settingPicker<Value:Hashable,Options:View>(_ title:String,helpText:String? = nil,isDisabled:Bool = false,value:String,selection:Binding<Value>,@ViewBuilder options:() -> Options) -> some View {
+    private func settingPicker<Value:Hashable>(_ title:String,helpText:String? = nil,isDisabled:Bool = false,selection:Binding<Value>,choices:[SettingsChoice<Value>]) -> some View {
         settingRow(title,helpText:helpText) {
-            Menu {
-                Picker(title,selection:selection,content:options).pickerStyle(.inline)
-            } label: {
-                Text(value).lineLimit(1).truncationMode(.middle)
-            }.menuStyle(.borderlessButton).menuIndicator(.hidden)
-                .font(.system(size:12)).frame(width:98,height:22)
-                .padding(.leading,9).padding(.trailing,25)
-                .background(.quaternary.opacity(0.5),in:RoundedRectangle(cornerRadius:6))
-                .overlay(alignment:.trailing) {
-                    Image(systemName:"chevron.up.chevron.down").font(.system(size:9,weight:.semibold))
-                        .padding(.trailing,9).allowsHitTesting(false).accessibilityHidden(true)
-                }
-                .contentShape(Rectangle()).help(value)
-                .accessibilityLabel(title).accessibilityValue(value)
-                .disabled(isDisabled)
+            SettingsMenu(title:title,choices:choices,selection:selection,enabled:!isDisabled).frame(width:132)
         }
     }
     private func settingToggle(_ title:String,helpText:String? = nil,isOn:Binding<Bool>) -> some View {
@@ -688,7 +672,7 @@ struct SettingsLabel:View {
     @ViewState<Bool> private var showingHelp=false
     var body:some View {
         HStack(spacing:4) {
-            Text(title).fixedSize(horizontal:false,vertical:true)
+            Text(title).font(.system(size:13,weight:.regular)).fixedSize(horizontal:false,vertical:true)
             if let helpText {
                 Button { showingHelp.toggle() } label: {
                     Image(systemName:"info.circle").font(.system(size:11)).foregroundStyle(.secondary).frame(width:18,height:22)
@@ -708,9 +692,9 @@ struct SettingsActionRow:View {
     var body:some View {
         Button(action:action) {
             HStack(spacing:12) {
-                Text(title).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
+                Text(title).font(.system(size:13,weight:.regular)).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
                 Spacer(minLength:0)
-                if let detail { Text(detail).foregroundStyle(.secondary).monospacedDigit() }
+                if let detail { Text(detail).font(.system(size:13,weight:.regular)).foregroundStyle(.secondary).monospacedDigit() }
                 Image(systemName:symbol).font(.system(size:11,weight:.medium)).foregroundStyle(.secondary).frame(width:16)
             }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).contentShape(Rectangle())
         }.buttonStyle(.plain)

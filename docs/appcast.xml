@@ -4,17 +4,18 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.1</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.1</link>
-      <sparkle:version>9</sparkle:version>
-      <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.2</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.2</link>
+      <sparkle:version>10</sparkle:version>
+      <sparkle:shortVersionString>0.4.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 设置底栏合并为一排：应用名与小号许可、GitHub、诊断、退出，退出位于最右侧。
-- 捐赠改为支付宝扫码，支持 5、10、20、50 元及任意金额，点击金额即可切换对应收款码。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.1/HeyBuds-arm64.dmg" length="2396054" type="application/octet-stream" sparkle:edSignature="ns4uUQu68eMT46Je8TeP5uIyt3JX+ev9C5m/rmIOxrS7kHH0nADILorNcdpnY6ZpTiasQK3F0bnZ12qYZXU0DQ=="></enclosure>
+      <description format="plain-text">- 修复连接提示在暗色模式下的黑色边线，改用原生弹窗材质并同步明暗外观。
+- 统一设置项及下拉选项的系统字号与常规字重。
+- 下拉菜单直接移除重复标题，只保留选项和选中标记。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.2/HeyBuds-arm64.dmg" length="2393046" type="application/octet-stream" sparkle:edSignature="L1g29Jj8KltwIUczSF6v8bPvkrVE2Sqp+1FxuKw7uM1H8EXMnOGMvrfyzXzYzleruxm9PVlnk1fC73HvR5BHBw=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: +1xKLU7sHWxldG8RQWunPCG+eQIKOq08uG9EGNdMCyFNpjmCJKb/SoDQsYNUOdg4OCfsXM6AZhFQ3+53Eh9+Aw==
-length: 1323
+edSignature: ZLpg41+ZVG7dOLs97/d/NG0ZJGIQ63tBsip7WBpqxXbXQa1BTWuKdPHMZWRnbWOPhaGP3Mh+vgJCrgI7An9IDw==
+length: 1339
 -->

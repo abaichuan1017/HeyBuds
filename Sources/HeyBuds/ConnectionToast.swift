@@ -5,7 +5,9 @@ import HeyBudsBluetooth
 import HeyBudsProtocol
 
 struct ConnectionTipView:View {
-    static let size=NSSize(width:336,height:208)
+    private static let contentSize=NSSize(width:336,height:208)
+    // Keep the antialiased material edge inside the transparent window bounds.
+    static let size=NSSize(width:340,height:212)
     @Bindable var app:AppModel
     let device:DeviceCandidate?
     var preview=false
@@ -58,13 +60,16 @@ struct ConnectionTipView:View {
             }
         }
     }
-    @ViewBuilder var body:some View {
-        if reduceTransparency {
-            content.background(Color(nsColor:.windowBackgroundColor),in:RoundedRectangle(cornerRadius:28))
-        } else {
-            // System Liquid Glass owns the material, highlights and interaction.
-            content.glassEffect(.regular.interactive(),in:.rect(cornerRadius:28))
-        }
+    var body:some View {
+        content
+            .background {
+                if reduceTransparency { Color(nsColor:.windowBackgroundColor) }
+                else { ConnectionTipMaterial() }
+            }
+            .clipShape(RoundedRectangle(cornerRadius:28,style:.continuous))
+            .padding(2)
+            .font(.system(size:13,weight:.regular))
+            .preferredColorScheme(app.appearance == "dark" ? .dark : app.appearance == "light" ? .light : nil)
     }
     private var content:some View {
         ZStack(alignment:.topTrailing) {
@@ -76,7 +81,7 @@ struct ConnectionTipView:View {
                         Text(app.connecting ? L("正在读取耳机电量…","Reading battery levels…") : L("电量暂未上报","Battery not yet reported"))
                             .font(.system(size:10)).foregroundStyle(.secondary)
                     }
-                }.padding(18).frame(width:Self.size.width,height:Self.size.height)
+                }.padding(18).frame(width:Self.contentSize.width,height:Self.contentSize.height)
                     .contentShape(RoundedRectangle(cornerRadius:28))
             }.buttonStyle(.plain)
                 .accessibilityLabel(name+(preview && !connected ? L("，连接提示预览",", connection preview") : L("，已连接。打开控制面板",", connected. Open controls")))
@@ -85,7 +90,19 @@ struct ConnectionTipView:View {
                 Image(systemName:"xmark").font(.system(size:9,weight:.semibold)).foregroundStyle(.secondary).frame(width:24,height:24)
             }.buttonStyle(.plain).padding(7).accessibilityLabel(L("关闭连接提示","Dismiss connection pop-up"))
         }
-        .preferredColorScheme(app.appearance == "dark" ? .dark : app.appearance == "light" ? .light : nil)
+    }
+}
+
+private struct ConnectionTipMaterial:NSViewRepresentable {
+    func makeNSView(context:Context) -> NSVisualEffectView {
+        let view=NSVisualEffectView()
+        view.material = .popover
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ view:NSVisualEffectView,context:Context) {
+        view.appearance=NSAppearance(named:context.environment.colorScheme == .dark ? .darkAqua : .aqua)
     }
 }
 
@@ -116,6 +133,7 @@ private final class ConnectionNotificationPanel:NSPanel {
         let panel=ConnectionNotificationPanel(contentRect:NSRect(origin:.zero,size:size),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
         panel.title="HeyBuds · Connection"; panel.isReleasedWhenClosed=false
         panel.level = .statusBar; panel.isOpaque=false; panel.backgroundColor = .clear; panel.hasShadow=true
+        panel.appearance=app.appearance == "dark" ? NSAppearance(named:.darkAqua) : app.appearance == "light" ? NSAppearance(named:.aqua) : nil
         panel.hidesOnDeactivate=false; panel.isFloatingPanel=true
         panel.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
         panel.contentView=NSHostingView(rootView:ConnectionTipView(app:app,device:device,preview:preview,onOpen:onOpen,onClose:{ [weak self] in self?.dismiss() }))
@@ -123,7 +141,9 @@ private final class ConnectionNotificationPanel:NSPanel {
         let visible=screen?.visibleFrame ?? NSRect(x:0,y:0,width:1280,height:800)
         let x=min(max((anchor?.midX ?? visible.maxX-size.width/2-12)-size.width/2,visible.minX+12),visible.maxX-size.width-12)
         let y=max(visible.minY+12,(anchor?.minY ?? visible.maxY)-size.height-12)
-        let target=NSRect(origin:NSPoint(x:x,y:y),size:size)
+        let scale=screen?.backingScaleFactor ?? 1
+        let origin=NSPoint(x:(x*scale).rounded()/scale,y:(y*scale).rounded()/scale)
+        let target=NSRect(origin:origin,size:size)
         let reduceMotion=NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         panel.setFrame(reduceMotion ? target : target.offsetBy(dx:0,dy:6),display:false)
         panel.alphaValue=reduceMotion ? 1 : 0

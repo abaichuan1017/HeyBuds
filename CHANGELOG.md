@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 — 2026-10-22
+
+- Use the native popover material for connection cards, synchronize their appearance and smooth the dark-mode edges.
+- Use consistent system text sizing and regular weight for settings labels and selected values.
+- Replace nested picker menus with native popup controls containing only choices and selection marks; remove duplicate headings.
+
 ## 0.4.1 — 2026-10-22
 
 - Combine the Settings footer into one row: app name and compact license, GitHub, diagnostics and Quit at the far right.
