@@ -53,5 +53,6 @@ add('xiaomi:family','Xiaomi / Redmi','Xiaomi','xiaomi',familyOnly=True)
 for name in ['W820NB','W200BT','EDIFIER']:
  m=add('edifier:'+name,name,'EDIFIER','edifier',familyOnly=True);m['noise']=[dict(mode='off',bytes=[1]),dict(mode='anc',bytes=[2]),dict(mode='transparency',bytes=[3])];m['function']['singleBattery']=True
 out=root/'Sources/HeyBudsProtocol/Resources/MigratedModels.json';out.write_text(json.dumps(dict(source='OppoPodsManager-main',models=models),ensure_ascii=False,indent=2)+'\n')
-(root/'Sources/HeyBudsProtocol/Resources/VivoDeviceModels.json').write_bytes((src/'Assets/Vivo/Data/DeviceModels.json').read_bytes())
+(root/'docs/reference').mkdir(exist_ok=True)
+(root/'docs/reference/VivoDeviceModels.json').write_bytes((src/'Assets/Vivo/Data/DeviceModels.json').read_bytes())
 print(dict(vivoVariants=len(vivo),vivoNames=len(groups),huawei=sum(m['protocolFamily']=='huawei' for m in models),apple=sum(m['protocolFamily']=='apple' for m in models),total=len(models)))

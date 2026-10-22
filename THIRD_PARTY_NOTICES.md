@@ -9,8 +9,8 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - Frozen reference and runtime-resource fingerprints: `docs/upstream-sources.json`. A reference checkout is not required to build HeyBuds.
 - Adapted into Swift: OPOv1 framing, command capability bitmap, model catalog interpretation, noise mappings, battery/placement, feature switches, EQ, bass engine, spatial/game sound and remote device management.
 - Also adapted: vivo / iQOO GAIA profiles and capabilities, Huawei legacy/MBB framing and model/ANC/EQ tables, Xiaomi RCSP framing and public challenge-response algorithm, Edifier framing/battery/noise, and Apple plaintext advertisement/model decoding.
-- `VivoDeviceModels.json` is preserved byte-for-byte. `MigratedModels.json` is generated from the frozen upstream data and C# tables by `scripts/import-brand-models.py`; it retains vivo variants and Huawei capability declarations.
-- `DeviceModels.json`, `EqModeNames.json`, `EqModeNames.en.json` are retained upstream resources. Their original source annotations remain in the files; no independent claim is made to manufacturer artwork or trademarks.
+- `docs/reference/VivoDeviceModels.json` is preserved byte-for-byte in the source distribution. The app reads `MigratedModels.json`, generated from the frozen upstream data and C# tables by `scripts/import-brand-models.py`; it retains vivo variants and Huawei capability declarations.
+- `DeviceModels.json`, `EqModeNames.json`, `EqModeNames.en.json` are retained upstream resources. Source files preserve their original bytes; application copies use compact JSON with the same values and source annotations. No independent claim is made to manufacturer artwork or trademarks.
 
 ## Realme TWS Mac Controller
 

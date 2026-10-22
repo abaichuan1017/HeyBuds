@@ -20,9 +20,9 @@ import HeyBudsBluetooth
                 let data=try JSONSerialization.data(withJSONObject:rows,options:[.prettyPrinted,.sortedKeys])
                 FileHandle.standardOutput.write(data); print("")
             } else if args.first == "devices" {
-                for (i,device) in await Discovery.paired().enumerated() { print("\(i+1). \(device.name) · audio=\(device.audioConnected)") }
+                for (i,device) in await Discovery.paired(catalog:catalog).enumerated() { print("\(i+1). \(device.name) · audio=\(device.audioConnected)") }
             } else if args.first == "read" {
-                let devices=await Discovery.paired()
+                let devices=await Discovery.paired(catalog:catalog)
                 guard let device=devices.first(where:{$0.audioConnected}) else { throw TransportFailure.unavailable("No paired connected earbuds. Use HeyBuds.app to grant Bluetooth permission.") }
                 let transport:EarbudTransport
                 let family=catalog.family(name:device.name) ?? device.family ?? .oppo

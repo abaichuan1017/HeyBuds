@@ -112,9 +112,9 @@ struct PanelView: View {
                 .help(L("选择已配对的耳机","Select paired earbuds"))
             }
             Spacer(minLength:0)
-            ProgressView().controlSize(.small).frame(width:16,height:16)
-                .opacity(app.connecting || app.operationBusy ? 1 : 0)
-                .accessibilityHidden(!app.connecting && !app.operationBusy)
+            ZStack {
+                if app.connecting || app.operationBusy { ProgressView().controlSize(.small) }
+            }.frame(width:16,height:16)
             Button {
                 if app.ready || app.connecting { app.disconnect() } else { app.connect() }
             } label: { Image(systemName:"power").font(.system(size:14,weight:.medium)).frame(width:28,height:28) }
@@ -519,7 +519,7 @@ struct PanelView: View {
                 settingToggle(L("断线自动重连","Reconnect automatically"),isOn:$app.autoReconnect)
                 Divider()
                 settingToggle(L("登录时启动","Launch at login"),isOn:Binding(get:{app.launchAtLogin},set:app.setLogin))
-            }
+            }.onAppear { app.refreshLoginStatus() }
             settingsGroup(L("提醒","Notifications")) {
                 settingToggle(L("连接提示","Connection pop-up"),isOn:$app.connectionTips)
                 Divider()
@@ -547,7 +547,7 @@ struct PanelView: View {
             settingsGroup(L("诊断","Diagnostics")) {
                 settingAction(L("导出诊断…","Export diagnostics…"),symbol:"square.and.arrow.up") { app.exportDiagnostics() }
             }
-            Text("HeyBuds 0.3.0 · GPL-3.0-or-later")
+            Text("HeyBuds 0.3.1 · GPL-3.0-or-later")
                 .font(.system(size:10)).foregroundStyle(.secondary)
                 .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12)
         }

@@ -1,37 +1,34 @@
-# HeyBuds validation
+# Validation
 
-Checked on 2026-10-17, Asia/Shanghai. This public summary excludes local historical logs, captures, preferences and recovery files.
+Checked locally on 2026-10-22, Asia/Shanghai: Apple Silicon, macOS 27.2, Apple Swift 6.4. These results cover source, simulated sessions and packaging; complete application launch time and physical-device reconnection were not measured.
 
-## Executed locally
-
-| Check | Result and boundary |
+| Check | Result |
 | --- | --- |
-| Renamed project | Swift package, four source modules, three test targets, resource bundle, app metadata and CLI use HeyBuds / heybuds-probe |
-| Automated tests | **64 passed**: 23 protocol, 34 session and 7 presentation / preference-migration tests |
-| Isolated source archive | Extracted to a fresh temporary directory with no sibling references or build cache; all **64 tests passed again** |
-| Release build | Apple Silicon arm64, Swift 6.4, macOS 27 SDK; HeyBuds 0.3.0 application packaged successfully |
-| Signature and ZIP | Strict local ad-hoc signature validation passed; application ZIP CRC and every bundled file matched |
-| Icon | Renamed application icon is byte-identical to the approved prior icon |
-| Runtime identity | Actual app and menu bar show HeyBuds; settings show HeyBuds 0.3.0 |
-| Preference migration | Migration marker confirmed; all four recognized preferences explicitly saved by the legacy installation were preserved; existing HeyBuds settings are protected by unit tests |
-| Current device | Air5 Pro battery, wear and noise state displayed after launch; no earbud-setting writes were performed for the rename |
-| Source audit | Explicit public-file allowlist, valid JSON, catalog/resource hashes, relative Markdown links, home-path / raw-address / private-key-block checks passed |
-| GitHub preparation | Local main branch initialized; source, documentation, license, issue templates and workflow prepared. YAML parsed locally; hosted Actions has not run |
-| Reference protection | Original 235-file reference manifest rechecked locally; no reference file changed |
+| Automated tests | 65 passed: 24 protocol, 34 session, 7 presentation / preference-migration |
+| Model lookup regression | 336 names, aliases and fallback inputs produce the same results as commit `512cdf5`; all 226 catalog records remain |
+| Resource integrity | Source catalog fingerprints unchanged; original vivo table moved to `docs/reference/`; compact bundled JSON has identical values |
+| Application ZIP | 2,187,148 → 1,435,752 bytes, down 34.4% |
+| Application files | 6,162,736 → 2,721,872 bytes, down 55.8%; 12 distributable files |
+| Executable | 4,285,504 → 1,605,392 bytes; arm64, strict ad-hoc signature verification passed |
+| Icon | All image sizes, decoded PNG streams and metadata unchanged; chunk CRCs verified |
+| Release diagnostics | Developer hardware-exercise and preview code excluded from release compilation; normal redacted diagnostic export remains |
 
-Local environment was rechecked as Apple Silicon, macOS 27.2 and Apple Swift 6.4. Command Line Tools report existing missing search-directory linker warnings; linking, tests and packaging succeeded without changing the system toolchain.
+An optimized, hardware-free catalog benchmark ran 3,360 lookups over those 336 inputs: 851.26 ms before, 3.67 ms after. This measures model lookup only. Full catalog initialization remained about 34 ms and now runs away from the main actor; the panel is created on first use. Results depend on the local environment and do not measure time to Bluetooth readiness.
 
-The migration tests cover the preference allowlist, exclusion of unrelated data, preservation of current settings, one-time execution and invalid legacy values. The existing protocol and session suite remains unchanged in scope. Runtime inspection confirms current app identity and state display, not a complete hardware acceptance run.
+The package checks include source allowlisting, JSON/resource fingerprints, relative documentation links, bundled file allowlisting, runtime JSON equivalence, ZIP CRC/content equality and license preservation. The source archive is also extracted and tested without sibling reference projects or an existing build cache. Commands are in [RELEASING.md](RELEASING.md).
 
-## Not claimed
+The toolchain still prints missing search-directory linker warnings; builds and tests succeed without changing system settings. Ad-hoc signing is not notarization. No new physical-device acceptance is claimed; the earlier Air5 Pro observations do not establish compatibility with other models. See [compatibility](COMPATIBILITY.md).
 
-- No new-brand physical-device validation was performed in this rename.
-- Imported model records and mock tests are not hardware certification.
-- The app is not notarized or Developer ID signed by this local preparation.
-- The original local preparation did not create a remote repository, tag or release. Public repository creation and release publication are a separate operation; hosted CI requires its own observed result.
+## Historical Air5 Pro evidence
 
-See [compatibility](COMPATIBILITY.md), [brand scope](ALL_BRANDS.md) and [release preparation](RELEASING.md). Local recovery copies are kept outside the public package under ignored `backups/`.
+The source catalog snapshot at `512cdf5` retained these observations for OPPO Enco Air5 Pro, product ID `06C410`. They are preserved here when removing the duplicate `docs/models.json`; they were not repeated in this maintenance run. “本次” below refers to that historical observation, not 2026-10-22.
 
-## GitHub publication
-
-The public repository [abaichuan1017/HeyBuds](https://github.com/abaichuan1017/HeyBuds) was created on 2026-10-17. Version v0.3.0 is being published from the audited source and matching local release assets. Hosted CI is tracked separately and is not assumed to pass.
+- BLE 控制连接
+- 产品 ID 读取
+- 左右耳电量读取
+- 佩戴状态读取
+- 通透写入与回读
+- 深度降噪写入与回读
+- EQ 预设 2 写入与回读
+- 手机状态同步（用户确认）
+- 充电盒电量读取（本次 60%，用户确认显示正常）

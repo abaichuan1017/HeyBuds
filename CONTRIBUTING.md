@@ -9,6 +9,7 @@ Use Apple Silicon, Swift 6.4 and the macOS 27 SDK:
 ```sh
 swift test
 bash scripts/build.sh
+python3 scripts/audit-app.py
 python3 scripts/audit-source.py
 ```
 

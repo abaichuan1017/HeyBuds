@@ -91,7 +91,9 @@
     "Sources/HeyBudsProtocol/Resources/DeviceModels.json": "43e006be230af991f994c0862db749f32bf0560d5b8fe3e387ad63d23e624baf",
     "Sources/HeyBudsProtocol/Resources/EqModeNames.en.json": "6cf5469217f08ac6a914a996c0d857e06c898e84cf47b3fa5cd18bd36513b07a",
     "Sources/HeyBudsProtocol/Resources/EqModeNames.json": "1e82f5b4e2cc92e1c1806cd4b86f97f7a2e09fb15a7645be3403c545aca1758b",
-    "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "9a7becbb2780d0ab07b606d4a5d7609059346871abdf4977b2c5346b5a71ddbf",
-    "Sources/HeyBudsProtocol/Resources/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b"
+    "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "9a7becbb2780d0ab07b606d4a5d7609059346871abdf4977b2c5346b5a71ddbf"
+  },
+  "referenceResourceSHA256": {
+    "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b"
   }
 }

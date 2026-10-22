@@ -3,6 +3,21 @@ import Testing
 @testable import HeyBudsProtocol
 
 private func hex(_ string:String) -> [UInt8] { string.split(separator:" ").map { UInt8($0,radix:16)! } }
+@Test func catalogIndexesPreserveLookupPrecedenceAndAliasOrder() throws {
+    let catalog=try ModelCatalog()
+    #expect(catalog.model(productID:"06c410",name:"FreeBuds Pro 3")?.id == "06C410")
+    #expect(catalog.model(productID:"06C410",name:"AirPods Pro",override:"066452")?.id == "066452")
+    #expect(catalog.model(productID:"missing",name:"OPPO Enco Air5 Pro",override:"missing")?.id == "06C410")
+    for model in catalog.models {
+        for name in [model.name]+model.aliases {
+            let key=EarbudFamily.normalize(name)
+            let first=catalog.models.first { candidate in
+                ([candidate.name]+candidate.aliases).contains { EarbudFamily.normalize($0) == key }
+            }
+            #expect(catalog.model(productID:nil,name:name)?.id == first?.id)
+        }
+    }
+}
 @Test func migratedCatalogCoversSourceFamiliesAndDisambiguatesNames() throws {
     let c=try ModelCatalog()
     #expect(c.models.count == 226)

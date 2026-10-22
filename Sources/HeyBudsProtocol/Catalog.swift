@@ -102,6 +102,16 @@ public struct DeviceModel: Identifiable, Sendable {
 
 public struct ModelCatalog: Sendable {
     public let models: [DeviceModel]
+    private let byID: [String: DeviceModel]
+    private let byProductID: [String: DeviceModel]
+    private let byName: [String: DeviceModel]
+    private struct NameMatch: Sendable {
+        let model: DeviceModel
+        let name: String
+        let aliases: [String]
+        let tokens: Set<String>
+    }
+    private let fallbackNames: [NameMatch]
     public init() throws {
         let resourceBundle = Bundle.main.url(forResource:"HeyBuds_HeyBudsProtocol",withExtension:"bundle").flatMap(Bundle.init(url:)) ?? Bundle.module
         guard let file = resourceBundle.url(forResource: "DeviceModels", withExtension: "json"),
@@ -154,24 +164,39 @@ public struct ModelCatalog: Sendable {
         }
         models=imported
         guard Set(models.map(\.id)).count == models.count else { throw ProtocolError.invalidPayload }
-    }
-    public func model(productID: String?, name: String, override: String? = nil) -> DeviceModel? {
-        if let override, let model = models.first(where: { $0.id == override }) { return model }
-        if let productID, let model = models.first(where: { $0.id.caseInsensitiveCompare(productID) == .orderedSame }) { return model }
-        if let exact=models.first(where:{ model in ([model.name]+model.aliases).contains { EarbudFamily.normalize($0) == EarbudFamily.normalize(name) } }) { return exact }
-        // Match longest names first: FreeBuds Pro must not capture Pro 2/3/4/5.
-        let normalized=EarbudFamily.normalize(name)
-        let tokens=Set(name.lowercased().split(whereSeparator:{ !$0.isLetter && !$0.isNumber }).map(String.init))
-        return models.sorted { $0.name.count > $1.name.count }.first { model in
-            switch model.family {
-            case .vivo:
-                return tokens.contains(where:{model.aliases.map { $0.lowercased() }.contains($0)}) || normalized.contains(EarbudFamily.normalize(model.name))
-            case .huawei: return ([model.name]+model.aliases).contains { normalized.hasPrefix(EarbudFamily.normalize($0)) }
-            case .apple: return normalized.contains(EarbudFamily.normalize(model.name))
-            case .edifier: return normalized.contains(EarbudFamily.normalize(model.name))
-            default:return false
+        byID=Dictionary(uniqueKeysWithValues:models.map { ($0.id,$0) })
+        var products:[String:DeviceModel]=[:]
+        var names:[String:DeviceModel]=[:]
+        for model in models {
+            if products[model.id.lowercased()] == nil { products[model.id.lowercased()]=model }
+            for name in [model.name]+model.aliases {
+                let key=EarbudFamily.normalize(name)
+                if names[key] == nil { names[key]=model }
             }
         }
+        byProductID=products; byName=names
+        fallbackNames=models.sorted { $0.name.count > $1.name.count }.compactMap { model in
+            guard [.vivo,.huawei,.apple,.edifier].contains(model.family) else { return nil }
+            return NameMatch(model:model,name:EarbudFamily.normalize(model.name),
+                aliases:model.aliases.map(EarbudFamily.normalize),tokens:Set(model.aliases.map { $0.lowercased() }))
+        }
+    }
+    public func model(productID: String?, name: String, override: String? = nil) -> DeviceModel? {
+        if let override, let model=byID[override] { return model }
+        if let productID, let model=byProductID[productID.lowercased()] { return model }
+        // Match longest names first: FreeBuds Pro must not capture Pro 2/3/4/5.
+        let normalized=EarbudFamily.normalize(name)
+        if let exact=byName[normalized] { return exact }
+        let tokens=Set(name.lowercased().split(whereSeparator:{ !$0.isLetter && !$0.isNumber }).map(String.init))
+        return fallbackNames.first { match in
+            switch match.model.family {
+            case .vivo:
+                return !tokens.isDisjoint(with:match.tokens) || normalized.contains(match.name)
+            case .huawei: return ([match.name]+match.aliases).contains(where:normalized.hasPrefix)
+            case .apple,.edifier: return normalized.contains(match.name)
+            default:return false
+            }
+        }?.model
     }
     public func family(name:String, override:String?=nil) -> EarbudFamily? {
         model(productID:nil,name:name,override:override)?.family ?? EarbudFamily.detect(name)

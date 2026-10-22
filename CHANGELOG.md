@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 — 2026-10-22
+
+- Show the menu bar entry before background catalog loading; create the panel on first use.
+- Index model names and aliases once and reuse the catalog during discovery.
+- Reduce background discovery wakeups and omit the idle loading indicator.
+- Strip release symbols, losslessly compress the icon, compact runtime catalogs, exclude reference-only data and keep developer preview/check code in debug builds.
+- Simplify bilingual READMEs, consolidate compatibility/release notes and verify exact app/ZIP contents in CI.
+
 ## 0.3.0 — 2026-10-17
 
 - Rename EncoBar to **HeyBuds**, including the app, Swift package and modules, resources, diagnostics and `heybuds-probe`.

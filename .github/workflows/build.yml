@@ -33,6 +33,8 @@ jobs:
         run: swift test
       - name: Build signed local application
         run: bash scripts/build.sh
+      - name: Verify application and ZIP contents
+        run: python3 scripts/audit-app.py
       - name: Package public source
         run: python3 scripts/package-source.py
       - name: Upload build artifacts

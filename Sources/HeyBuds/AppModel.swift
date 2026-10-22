@@ -47,7 +47,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var appearance=UserDefaults.standard.string(forKey:"appearance") ?? "system" {
         didSet { UserDefaults.standard.set(appearance,forKey:"appearance") }
     }
-    var launchAtLogin=SMAppService.mainApp.status == .enabled
+    var launchAtLogin=false
     @ObservationIgnored private(set) var session:DeviceSession?
     @ObservationIgnored private var connectTask:Task<Void,Never>?
     @ObservationIgnored private var operationTask:Task<Void,Never>?
@@ -67,7 +67,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var history:[String]=[]
     var interactive=false { didSet { session?.interactive=interactive } }
 
-    init() throws { catalog=try ModelCatalog(); selectedID=UserDefaults.standard.string(forKey:"selectedDevice") }
+    init(catalog:ModelCatalog) { self.catalog=catalog; selectedID=UserDefaults.standard.string(forKey:"selectedDevice") }
     var candidate:DeviceCandidate? { candidates.first { $0.id == selectedID } }
     var state:DeviceState { _ = revision; return session?.state ?? DeviceState() }
     var model:DeviceModel? { _ = revision; return session?.model ?? candidate.flatMap { catalog.model(productID:nil,name:$0.name,override:overrideID) } }
@@ -125,7 +125,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             guard !Task.isCancelled else { return }
             if !self.sleeping, !self.manualDisconnect, self.candidate?.audioConnected == true { self.connect() }
             while !Task.isCancelled {
-                try? await Task.sleep(for:.seconds(8))
+                try? await Task.sleep(for:.seconds(self.interactive ? 8 : 30))
                 guard !Task.isCancelled else { return }
                 await self.rescan()
                 guard !Task.isCancelled else { return }
@@ -137,7 +137,8 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func rescan() async {
         if let scanTask { await scanTask.value; return }
         let task=Task { [weak self] in
-            let devices=await Discovery.paired()
+            guard let catalog=self?.catalog else { return }
+            let devices=await Discovery.paired(catalog:catalog)
             guard let self, !Task.isCancelled else { return }
             self.candidates=devices
             self.connectionMonitor.watch(devices)
@@ -325,15 +326,16 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func setLogin(_ enabled:Bool) {
         do { if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
         catch { self.error=error.localizedDescription }
-        launchAtLogin=SMAppService.mainApp.status == .enabled
+        refreshLoginStatus()
     }
+    func refreshLoginStatus() { launchAtLogin=SMAppService.mainApp.status == .enabled }
     func bluetoothSettings() {
         NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.BluetoothSettings")!)
     }
     func exportDiagnostics() {
         let panel=NSSavePanel(); panel.nameFieldStringValue="HeyBuds-diagnostics.json"
         guard panel.runModal() == .OK, let url=panel.url else { return }
-        let report:[String:Any]=["app":"HeyBuds", "version":"0.3.0", "os":ProcessInfo.processInfo.operatingSystemVersionString,
+        let report:[String:Any]=["app":"HeyBuds", "version":"0.3.1", "os":ProcessInfo.processInfo.operatingSystemVersionString,
             "phase":phase,"transport":transportLabel,"catalogModels":catalog.models.count,
             "productID":state.productID ?? "unknown","modelID":model?.id ?? "unknown",
             "firmware":state.firmware ?? "unknown","queries":state.observedQueries.sorted().map{String(format:"%04X",$0)},
@@ -342,7 +344,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         catch { self.error=error.localizedDescription }
     }
     func diagnosticSnapshot() -> [String:Any] {
-        var value:[String:Any]=["app":"HeyBuds","version":"0.3.0","phase":phase,"transport":transportLabel,
+        var value:[String:Any]=["app":"HeyBuds","version":"0.3.1","phase":phase,"transport":transportLabel,
             "timestamp":ISO8601DateFormatter().string(from:Date()),"productID":state.productID ?? "unknown",
             "firmware":state.firmware ?? "unknown","noise":state.noise?.rawValue ?? "unknown",
             "eq":state.eq.map(Int.init) ?? -1,"spatial":state.spatial.map(Int.init) ?? -1,

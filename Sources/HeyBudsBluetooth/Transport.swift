@@ -34,11 +34,11 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
         let bytes=withUnsafeBytes(of:&value) { Array($0) }
         return IOBluetoothSDPUUID(bytes:bytes,length:16)
     }
-    public static func paired() async -> [DeviceCandidate] {
+    public static func paired(catalog:ModelCatalog?=nil) async -> [DeviceCandidate] {
         // IOBluetooth may wait for its CoreBluetooth coordinator to initialize.
         // Keep that synchronous wait off the main actor so AppKit remains responsive.
         await Task.detached(priority:.utility) {
-            let catalog=try? ModelCatalog()
+            let catalog=catalog ?? (try? ModelCatalog())
             return (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []).compactMap { device in
                 let name=device.name ?? "Earbuds"
                 guard let address=device.addressString else { return nil }

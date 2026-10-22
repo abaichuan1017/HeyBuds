@@ -58,7 +58,8 @@ def audit():
     if len({m['id'] for m in original + models}) != 226:
         errors.append('Duplicate catalog identifiers')
     upstream = json.loads((ROOT / 'docs/upstream-sources.json').read_text())
-    for name, digest in upstream['runtimeResourceSHA256'].items():
+    resources = upstream['runtimeResourceSHA256'] | upstream['referenceResourceSHA256']
+    for name, digest in resources.items():
         if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != digest:
             errors.append(f'Upstream resource changed: {name}')
     if errors:

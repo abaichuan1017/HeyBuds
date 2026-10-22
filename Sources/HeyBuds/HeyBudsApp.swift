@@ -16,7 +16,11 @@ import HeyBudsBluetooth
     private var eventMonitor:Any?
     private var localMonitor:Any?
     private var observers:[NSObjectProtocol]=[]
+    #if DEBUG
     private var previewWindow:NSWindow?
+    #endif
+    private var launchTask:Task<Void,Never>?
+    private var showWhenReady=false
     private let connectionToast=ConnectionToastController()
     private var announcementTask:Task<Void,Never>?
     private var pendingAnnouncementID:String?
@@ -35,10 +39,25 @@ import HeyBudsBluetooth
             NSApp.terminate(nil);return
         }
         AppIdentity.migrateLegacyPreferences()
-        do { model=try AppModel() }
-        catch {
-            let alert=NSAlert(); alert.messageText="HeyBuds"; alert.informativeText=error.localizedDescription; alert.runModal(); NSApp.terminate(nil); return
+        statusItem=NSStatusBar.system.statusItem(withLength:NSStatusItem.variableLength)
+        statusItem.button?.target=self; statusItem.button?.action=#selector(togglePanel)
+        let image=NSImage(systemSymbolName:EarbudIcon.enclosure,accessibilityDescription:AppIdentity.name)
+        image?.isTemplate=true; statusItem.button?.image=image
+        showWhenReady=CommandLine.arguments.contains("--show")
+        launchTask=Task { [weak self] in
+            do {
+                let catalog=try await Task.detached(priority:.userInitiated) { try ModelCatalog() }.value
+                guard !Task.isCancelled else { return }
+                self?.finishLaunching(catalog:catalog)
+            } catch {
+                guard !Task.isCancelled else { return }
+                let alert=NSAlert(); alert.messageText=AppIdentity.name; alert.informativeText=error.localizedDescription
+                alert.runModal(); NSApp.terminate(nil)
+            }
         }
+    }
+    private func preparePanel() {
+        guard popover.contentViewController == nil else { return }
         popover.behavior = .applicationDefined; popover.animates=true; popover.delegate=self
         let hosting=NSHostingController(rootView:PanelView(app:model,onHeightChange: { [weak self] height in
             guard let self else { return }
@@ -47,8 +66,9 @@ import HeyBudsBluetooth
         }))
         hosting.sizingOptions=[.preferredContentSize]
         popover.contentViewController=hosting
-        statusItem=NSStatusBar.system.statusItem(withLength:NSStatusItem.variableLength)
-        statusItem.button?.target=self; statusItem.button?.action=#selector(togglePanel)
+    }
+    private func finishLaunching(catalog:ModelCatalog) {
+        model=AppModel(catalog:catalog)
         model.onStatusChange = { [weak self] in self?.updateStatus() }
         model.onDeviceConnected = { [weak self] device in self?.announceConnection(device) }
         model.onPreviewConnectionTip = { [weak self] in self?.previewConnectionTip() }
@@ -62,7 +82,8 @@ import HeyBudsBluetooth
             MainActor.assumeIsolated { self?.model.wake() }
         })
         updateStatus(); model.start()
-        if CommandLine.arguments.contains("--show") { togglePanel() }
+        if showWhenReady { showPanel() }
+        #if DEBUG
         // Developer-only native window for visual QA of a menu-bar accessory app.
         if CommandLine.arguments.contains("--window-preview") {
             NSApp.setActivationPolicy(.regular)
@@ -119,7 +140,9 @@ import HeyBudsBluetooth
                 }
             }
         }
+        #endif
     }
+    #if DEBUG
     private func snapshot(to url:URL) {
         guard let view=previewWindow?.contentViewController?.view ?? popover.contentViewController?.view else { return }
         view.layoutSubtreeIfNeeded(); view.displayIfNeeded()
@@ -134,6 +157,7 @@ import HeyBudsBluetooth
         value["connectionTipPresentationCount"]=connectionToast.presentationCount
         return value
     }
+    #endif
     private func updateStatus() {
         guard let button=statusItem?.button, let model else { return }
         let connected=model.knownConnectedDevices
@@ -155,17 +179,21 @@ import HeyBudsBluetooth
         button.setAccessibilityLabel("HeyBuds · \(model.status)")
         // Explicit local QA mode: expose the real AppKit visibility, without any
         // device identifiers, so hidden/reopen behavior can be verified safely.
+        #if DEBUG
         if CommandLine.arguments.contains("--live-diagnose"),
            let index=CommandLine.arguments.firstIndex(of:"--diagnose"), index+1 < CommandLine.arguments.count,
            let data=try? JSONSerialization.data(withJSONObject:diagnosticSnapshot(),options:[.prettyPrinted,.sortedKeys]) {
             try? data.write(to:URL(fileURLWithPath:CommandLine.arguments[index+1]),options:.atomic)
         }
+        #endif
     }
     @objc private func togglePanel() {
         if popover.isShown { popover.performClose(nil); return }
         showPanel()
     }
     private func showPanel() {
+        guard model != nil else { showWhenReady=true; return }
+        showWhenReady=false
         announcementTask?.cancel(); announcementTask=nil; pendingAnnouncementID=nil
         explicitAccess=true; updateStatus()
         connectionToast.dismiss(animated:false,notify:false)
@@ -175,6 +203,7 @@ import HeyBudsBluetooth
     private func presentPanel() {
         guard let button=statusItem.button else { return }
         guard !popover.isShown else { return }
+        preparePanel()
         Task { await model.rescan() }; model.interactive=true
         popover.animates = !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         popover.show(relativeTo:button.bounds,of:button,preferredEdge:.minY)
@@ -222,6 +251,7 @@ import HeyBudsBluetooth
         popover.performClose(nil); updateStatus()
     }
     func applicationWillTerminate(_ notification:Notification) {
+        launchTask?.cancel()
         announcementTask?.cancel(); connectionToast.dismiss(animated:false,notify:false)
         model?.stop()
         for observer in observers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
