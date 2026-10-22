@@ -535,7 +535,6 @@ struct PanelView: View {
                 }
             }
             UpdatesSection(app:app)
-            ProjectFooter()
         }
     }
     private func settingsGroup<Content:View>(_ title:String,@ViewBuilder content:() -> Content) -> some View {
@@ -585,16 +584,25 @@ struct PanelView: View {
                 Text(error).font(.caption).textSelection(.enabled).fixedSize(horizontal:false,vertical:true)
             }.padding(10).frame(maxWidth:.infinity,alignment:.leading).background(.orange.opacity(0.08),in:RoundedRectangle(cornerRadius:10))
         }
+        if page == .settings, let notice=app.notice {
+            Text(notice).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal:false,vertical:true)
+        }
     }
-    private var footer:some View {
+    @ViewBuilder private var footer:some View {
+        if page == .settings {
+            SettingsFooter(app:app)
+        } else {
+            standardFooter
+        }
+    }
+    private var standardFooter:some View {
         HStack(spacing:14) {
-            if page != .settings {
-                Button { page = .settings } label: {
-                    Image(systemName:"gearshape").font(.system(size:12))
-                        .frame(width:16,height:22).contentShape(Rectangle())
-                }
-                    .help(L("设置","Settings")).accessibilityLabel(L("设置","Settings"))
+            Button { page = .settings } label: {
+                Image(systemName:"gearshape").font(.system(size:12))
+                    .frame(width:16,height:22).contentShape(Rectangle())
             }
+                .help(L("设置","Settings")).accessibilityLabel(L("设置","Settings"))
             if app.ready {
                 Button { app.performRefresh() } label: {
                     Image(systemName:"arrow.clockwise").font(.system(size:11))
@@ -606,12 +614,6 @@ struct PanelView: View {
             Button { NSApplication.shared.terminate(nil) } label: {
                 Text(L("退出","Quit")).font(.system(size:11))
                     .frame(minWidth:28,minHeight:22).contentShape(Rectangle())
-            }
-            if page == .settings {
-                Button { app.exportDiagnostics() } label: {
-                    Image(systemName:"stethoscope").font(.system(size:12))
-                        .frame(width:22,height:22).contentShape(Rectangle())
-                }.help(L("导出诊断…","Export diagnostics…")).accessibilityLabel(L("导出诊断","Export diagnostics"))
             }
         }.frame(height:30)
             .overlay(alignment:.center) {
@@ -733,63 +735,109 @@ struct UpdatesSection:View {
                         Image(systemName:"chevron.right").font(.system(size:11,weight:.medium)).foregroundStyle(.secondary)
                     }.frame(minHeight:30).contentShape(Rectangle())
                 }.buttonStyle(.plain).card(verticalPadding:6)
-                    .popover(isPresented:$showingDonation,arrowEdge:.bottom) { DonationLinks() }
+                    .popover(isPresented:$showingDonation,arrowEdge:.bottom) { DonationView() }
             }
         }
     }
 }
 
-struct ProjectFooter:View {
-    private var githubImage:NSImage {
+struct SettingsFooter:View {
+    @Bindable var app:AppModel
+    @ViewState private var showingLicense=false
+    private static let githubImage:NSImage = {
         let image=NSImage(contentsOf:Bundle.module.url(forResource:"GitHub",withExtension:"pdf")!)!
         image.isTemplate=true
         return image
-    }
+    }()
     var body:some View {
-        HStack(spacing:12) {
-            Text("HeyBuds · GPL-3.0-or-later").font(.system(size:10)).foregroundStyle(.secondary)
+        HStack(spacing:10) {
+            VStack(alignment:.leading,spacing:1) {
+                Text(AppIdentity.name).font(.system(size:13,weight:.semibold)).foregroundStyle(.primary)
+                Button { showingLicense=true } label: {
+                    Text("GPL-3.0-or-later").font(.system(size:9)).foregroundStyle(.secondary)
+                }.help(L("开源许可与第三方声明","License and third-party notices"))
+                    .popover(isPresented:$showingLicense) { LicenseInfo() }
+            }.fixedSize()
             Spacer(minLength:0)
+            if app.ready {
+                Button { app.performRefresh() } label: {
+                    Image(systemName:"arrow.clockwise").font(.system(size:11)).frame(width:24,height:28)
+                }.disabled(app.operationBusy).help(L("刷新状态","Refresh state")).accessibilityLabel(L("刷新状态","Refresh state"))
+            }
             Button { NSWorkspace.shared.open(AppIdentity.projectURL) } label: {
-                Image(nsImage:githubImage).resizable().scaledToFit().frame(width:16,height:16).frame(width:26,height:26)
+                Image(nsImage:Self.githubImage).resizable().scaledToFit().frame(width:16,height:16).frame(width:24,height:28)
             }.help(L("GitHub 项目","GitHub project")).accessibilityLabel(L("在 GitHub 查看 HeyBuds","View HeyBuds on GitHub"))
-        }.buttonStyle(.plain).padding(.horizontal,12)
+            Button { app.exportDiagnostics() } label: {
+                Image(systemName:"stethoscope").font(.system(size:13)).frame(width:24,height:28)
+            }.help(L("导出诊断…","Export diagnostics…")).accessibilityLabel(L("导出诊断","Export diagnostics"))
+            Button { NSApplication.shared.terminate(nil) } label: {
+                Text(L("退出","Quit")).font(.system(size:11)).frame(minWidth:28,minHeight:28)
+            }
+        }.buttonStyle(.plain).foregroundStyle(.secondary).frame(height:32).padding(.top,3)
     }
 }
 
-struct DonationLinks:View {
-    @ViewState private var selection=DonationOption.options[1]
-    @ViewState private var copied=false
+private struct LicenseInfo:View {
     var body:some View {
-        VStack(alignment:.leading,spacing:12) {
+        VStack(alignment:.leading,spacing:10) {
+            Text(L("开源许可","Open-source license")).font(.headline)
+            Text(L("HeyBuds 代码采用 GPL-3.0-or-later。包含的第三方组件及其版权归属见第三方声明，组合发行适用 GPL 第 3 版。软件不提供担保；你可以按许可证条款复制、修改与再分发。","HeyBuds code is licensed under GPL-3.0-or-later. See the third-party notices for component copyrights; the combined distribution is under GPL version 3. This software comes without warranty. You may copy, modify and redistribute it under the license terms."))
+                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+            HStack {
+                Button(L("完整许可","Full license")) { openNotice("LICENSE") }
+                Button(L("第三方声明","Third-party notices")) { openNotice("THIRD_PARTY_NOTICES.md") }
+            }.controlSize(.small)
+        }.padding(16).frame(width:290)
+    }
+    private func openNotice(_ name:String) {
+        let local=Bundle.main.resourceURL?.appendingPathComponent(name)
+        let url=local.flatMap { FileManager.default.fileExists(atPath:$0.path) ? $0 : nil }
+            ?? AppIdentity.projectURL.appendingPathComponent("blob/main/"+name)
+        NSWorkspace.shared.open(url)
+    }
+}
+
+struct DonationView:View {
+    @ViewState private var selection:DonationOption
+    private static let codes:[URL:CGImage]=Dictionary(uniqueKeysWithValues:DonationOption.options.compactMap { option in
+        option.makeQRCode().map { (option.codeURL,$0) }
+    })
+    init(selection:DonationOption=DonationOption.options[1]) {
+        _selection=State(initialValue:selection)
+    }
+    var body:some View {
+        VStack(spacing:12) {
             Text(L("请作者喝杯咖啡","Buy the developer a coffee")).font(.headline)
-            HStack(spacing:8) {
+                .frame(maxWidth:.infinity,alignment:.leading)
+            HStack(spacing:5) {
                 ForEach(DonationOption.options) { option in
-                    Button {
-                        selection=option; copied=false
-                    } label: {
-                        Text("¥\(option.amount)").font(.system(size:13,weight:.medium)).monospacedDigit().frame(maxWidth:.infinity,minHeight:28)
+                    Button { selection=option } label: {
+                        Text(option.label).font(.system(size:12,weight:.medium)).monospacedDigit()
+                            .fixedSize().frame(maxWidth:.infinity,minHeight:28).padding(.horizontal,5)
                     }.buttonStyle(.plain)
                         .background(selection == option ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.08),in:RoundedRectangle(cornerRadius:8))
                         .overlay(RoundedRectangle(cornerRadius:8).strokeBorder(selection == option ? Color.accentColor : .clear,lineWidth:1))
                         .accessibilityAddTraits(selection == option ? [.isSelected] : [])
                 }
             }
-            Text(L("通过支付宝自愿支持。付款需在装有支付宝的手机上完成，可复制链接或分享到 iPhone。","Support development with Alipay. Complete payment on a phone with Alipay; copy the link or share it to your iPhone."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-            Button(L("前往支付宝付款","Continue to Alipay")+" · ¥\(selection.amount)") {
-                let url=NSWorkspace.shared.urlForApplication(toOpen:selection.appURL) == nil ? selection.codeURL : selection.appURL
-                NSWorkspace.shared.open(url)
-            }.buttonStyle(.borderedProminent).controlSize(.regular)
-            HStack {
-                Button(copied ? L("已复制","Copied") : L("复制付款链接","Copy payment link")) {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(selection.codeURL.absoluteString,forType:.string)
-                    copied=true
+            if let image=Self.codes[selection.codeURL] {
+                Image(image,scale:1,label:Text(L("支付宝收款码，","Alipay payment QR code, ")+selection.label))
+                    .interpolation(.none).resizable().scaledToFit()
+                    .frame(width:222,height:222).background(.white)
+            } else {
+                ContentUnavailableView(L("收款码暂不可用","Payment code unavailable"),systemImage:"qrcode")
+                    .frame(height:222)
+            }
+            VStack(spacing:4) {
+                Text(selection.label).font(.system(size:16,weight:.semibold)).monospacedDigit()
+                Text(L("请使用支付宝扫一扫","Scan with the Alipay app"))
+                    .font(.callout).foregroundStyle(.secondary)
+                if selection.amount == nil {
+                    Text(L("扫码后输入想支持的金额","Enter your preferred amount after scanning"))
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                ShareLink(item:selection.codeURL) { Label(L("分享…","Share…"),systemImage:"square.and.arrow.up") }
-                    .id(selection.id)
-            }.controlSize(.small)
-        }.padding(16).frame(width:290)
+            }
+        }.padding(16).frame(width:300)
     }
 }
 

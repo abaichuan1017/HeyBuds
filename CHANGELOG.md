@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 — 2026-10-22
+
+- Combine the Settings footer into one row: app name and compact license, GitHub, diagnostics and Quit at the far right.
+- Show Alipay QR codes for ¥5 / ¥10 / ¥20 / ¥50 and any amount, selected directly in the coffee support popover.
+
 ## 0.4.0 — 2026-10-22
 
 - Provide a DMG installer that opens directly and supports dragging HeyBuds to Applications.

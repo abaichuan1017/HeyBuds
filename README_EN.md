@@ -48,7 +48,7 @@ Requires an **Apple Silicon Mac running macOS 26+**.
 3. Open HeyBuds, allow Bluetooth access and select your earbuds from its menu bar icon.
 4. Use the main panel for noise control and Advanced features for sound settings. Settings includes connection pop-ups, low-battery alerts, automatic reconnection and launch at login.
 
-The bottom of Settings shows the version and in-app update action, followed by a separate coffee support entry. The GitHub icon opens the project, and the bottom-right diagnostic button exports a redacted report.
+The bottom of Settings shows the version and in-app update action. The separate coffee support entry displays a payment QR code for the selected amount; scan it with Alipay. The footer contains the app name and license, GitHub, redacted diagnostics and Quit.
 
 The app is not notarized. If macOS blocks it, verify the download source and choose Open Anyway in System Settings → Privacy & Security. See [Apple's instructions](https://support.apple.com/en-us/102445).
 

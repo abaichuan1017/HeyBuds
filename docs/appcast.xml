@@ -4,20 +4,17 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.0</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.0</link>
-      <sparkle:version>8</sparkle:version>
-      <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.1</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.1</link>
+      <sparkle:version>9</sparkle:version>
+      <sparkle:shortVersionString>0.4.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">安装：打开 DMG，将 HeyBuds 拖入“应用程序”。
-
-- 新增应用内更新，可查看下载进度、取消下载并安装重启。
-- 收紧设置页间距，版本号并入检查更新，诊断移到右下角。
-- 独立“请作者喝杯咖啡”入口，支付宝支持 5／10／20／50 元档位。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.0/HeyBuds-arm64.dmg" length="2386748" type="application/octet-stream" sparkle:edSignature="VjJcyyzqrJcJq65YoOiImOs8bE1n1hGdIT4oYNYhlCXGGIB3/24bfPyuUvYiDqzQAkCWTTgT6wqafJhQ4DTsDA=="></enclosure>
+      <description format="plain-text">- 设置底栏合并为一排：应用名与小号许可、GitHub、诊断、退出，退出位于最右侧。
+- 捐赠改为支付宝扫码，支持 5、10、20、50 元及任意金额，点击金额即可切换对应收款码。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.1/HeyBuds-arm64.dmg" length="2396054" type="application/octet-stream" sparkle:edSignature="ns4uUQu68eMT46Je8TeP5uIyt3JX+ev9C5m/rmIOxrS7kHH0nADILorNcdpnY6ZpTiasQK3F0bnZ12qYZXU0DQ=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 5aFXD1U7TwSBj8mqi8v+gnv07w6REBUke/4wE9+B5E83Y95PeEzgIJkkmImYpn5CCYgWk0V2XOrVrPxr/xLuDw==
-length: 1407
+edSignature: +1xKLU7sHWxldG8RQWunPCG+eQIKOq08uG9EGNdMCyFNpjmCJKb/SoDQsYNUOdg4OCfsXM6AZhFQ3+53Eh9+Aw==
+length: 1323
 -->
