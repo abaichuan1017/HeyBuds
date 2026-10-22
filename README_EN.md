@@ -70,10 +70,8 @@ Outputs: `dist/HeyBuds.app` and `dist/HeyBuds-arm64.zip`. Release builds contain
 
 [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/abaichuan1017/HeyBuds/issues)
 
-## Thanks
+## License and credits
 
-Thanks to [EncoDeck](https://github.com/TIANLI0/EncoDeck) and its contributors for publishing the OPPO Enco X4 model configuration and protocol tests used for this adaptation.
+Licensed under [GPL-3.0-or-later](LICENSE). Protocols and model data are primarily based on [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager), with references from [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller). See [third-party notices](THIRD_PARTY_NOTICES.md) for full attribution.
 
-## License
-
-[GPL-3.0-or-later](LICENSE). Protocols and model data primarily come from [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager), with references from [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller). See [third-party notices](THIRD_PARTY_NOTICES.md). HeyBuds is an independent community project, unaffiliated with the listed brands.
+HeyBuds is an independent community project, unaffiliated with the listed brands.

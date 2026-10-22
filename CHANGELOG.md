@@ -22,7 +22,11 @@
 - Recognize X4 parent/child noise reports and require a Hi-Res-off readback before enabling spatial audio. X4 adaptive noise uses the parent button; individual adaptive levels are not exposed.
 - Remove Apple / Beats catalogs and passive advertisement support; macOS provides their native integration.
 - Set the minimum deployment target to macOS 26 and update both READMEs, placing disconnected and connection pop-up previews first.
-- Keep local agent instructions out of Git tracking and source releases. Preserve the X4 source excerpt, GPL notice and thanks to EncoDeck.
+- Keep local agent instructions out of Git tracking and source releases. Preserve the X4 source excerpt and GPL notice.
+
+### Thanks
+
+Thanks to [EncoDeck](https://github.com/TIANLI0/EncoDeck) and its contributors for publishing the OPPO Enco X4 model configuration and protocol tests used for this adaptation.
 
 ## 0.3.1 — 2026-10-22
 

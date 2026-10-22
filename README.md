@@ -70,10 +70,8 @@ open dist/HeyBuds.app
 
 [贡献指南](CONTRIBUTING.md) · [架构](docs/ARCHITECTURE.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/abaichuan1017/HeyBuds/issues)
 
-## 致谢
+## 许可与致谢
 
-感谢 [EncoDeck](https://github.com/TIANLI0/EncoDeck) 项目及其贡献者公开 OPPO Enco X4 的型号配置与协议测试，为本次适配提供了依据。
+采用 [GPL-3.0-or-later](LICENSE) 许可。协议与型号资料主要来自 [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager)，并参考 [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller)。完整署名见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
-## 许可
-
-[GPL-3.0-or-later](LICENSE)。协议与型号资料主要来自 [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager)，并参考 [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller)。完整署名见[第三方声明](THIRD_PARTY_NOTICES.md)。HeyBuds 是独立社区项目，与所列品牌无隶属关系。
+HeyBuds 是独立社区项目，与所列品牌无隶属关系。
