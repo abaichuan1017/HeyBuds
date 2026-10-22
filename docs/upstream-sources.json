@@ -1,5 +1,5 @@
 {
-  "checkedDate": "2026-10-17",
+  "checkedDate": "2026-10-22",
   "upstreamProjects": [
     {
       "name": "OppoPodsManager",
@@ -16,15 +16,23 @@
       "url": "https://github.com/GewoonJaap/oneplus-buds-macos",
       "usage": "visual reference only; no source or assets included",
       "license": "PolyForm Noncommercial 1.0.0"
+    },
+    {
+      "name": "EncoDeck",
+      "url": "https://github.com/TIANLI0/EncoDeck",
+      "license": "GPL-3.0-only",
+      "commit": "ba5db26753eceacaa4ba48ab3b87067cc0ec7da4",
+      "usage": "Enco X4 configuration and public protocol fixtures",
+      "sourceFiles": {
+        "src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.g.cs": "4619aaaadbe6f316ff3e4ed1b89f6203c6d6840a404fa79d99613aa027bb38a3",
+        "src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.cs": "0b9631bb3ea92d7fb23d6f7b8a13edfdcad2934755f525353e0d5b4d7a695dae",
+        "tests/EncoDeck.Tests/Protocol/EncoX4CaptureTests.cs": "f0d308252494aa2de1a592d15de90ae80fc8b04278d584bce0249e1de0c2d9d6"
+      }
     }
   ],
   "referenceFileSHA256": {
     "OppoPodsManager-main/Assets/Oplus/Data/DeviceModels.json": "43e006be230af991f994c0862db749f32bf0560d5b8fe3e387ad63d23e624baf",
     "OppoPodsManager-main/Assets/Vivo/Data/DeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b",
-    "OppoPodsManager-main/Control/Brands/Apple/AppleAdvertisementParser.cs": "e9728339f8965f9d8426d71902e798c824d90d85136cd2ae5ea80983153a831b",
-    "OppoPodsManager-main/Control/Brands/Apple/AppleManager.cs": "867f6226b31523691c21a533d3291c28d8f570a8a4c4a9d140e5fb462c02a7d3",
-    "OppoPodsManager-main/Control/Brands/Apple/AppleManagerFactory.cs": "24e76d5c0247b53b0404ad744e3a8fe66d43f4f6be715e7a4a93e3e2dd98699a",
-    "OppoPodsManager-main/Control/Brands/Apple/AppleModels.cs": "872524131e9cab18dfbad8650a51bf61765ffec958a64d14a2bc3f8f9d1765e9",
     "OppoPodsManager-main/Control/Brands/Edifier/EdifierConstants.cs": "5d8d5a5b7b3cee973142697f6feab0270b95b59f1ddfb9168a41a6b2dc160918",
     "OppoPodsManager-main/Control/Brands/Edifier/EdifierFrameCodec.cs": "14403e54eba22159fde83be7ec67265d24887f7f6ae32bf7ae6e775555320666",
     "OppoPodsManager-main/Control/Brands/Edifier/EdifierManager.cs": "3b4d0098a6880151ca07a1529ef223a5c26bdc9d859d9f11f6df8e895b8ee4cc",
@@ -91,9 +99,12 @@
     "Sources/HeyBudsProtocol/Resources/DeviceModels.json": "43e006be230af991f994c0862db749f32bf0560d5b8fe3e387ad63d23e624baf",
     "Sources/HeyBudsProtocol/Resources/EqModeNames.en.json": "6cf5469217f08ac6a914a996c0d857e06c898e84cf47b3fa5cd18bd36513b07a",
     "Sources/HeyBudsProtocol/Resources/EqModeNames.json": "1e82f5b4e2cc92e1c1806cd4b86f97f7a2e09fb15a7645be3403c545aca1758b",
-    "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "9a7becbb2780d0ab07b606d4a5d7609059346871abdf4977b2c5346b5a71ddbf"
+    "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "b8f7fab98e28b586e3b0000fc1357acc1ad6a2edf8351cb384394a7423bbdc2a",
+    "Sources/HeyBudsProtocol/Resources/EncoDeckModels.json": "3fa94eb37f82e5ca2d8fccfa179c0d8aba0724f585403fba20214f8af8cafa06"
   },
   "referenceResourceSHA256": {
-    "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b"
+    "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b",
+    "Licenses/EncoDeck-GPL-3.0.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "docs/reference/EncoDeck-X4.cs": "707765fdcee930a46cec7cf50e14b06248282a98a9630a8da7c7d2f455c0e2d3"
   }
 }

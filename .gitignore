@@ -16,6 +16,12 @@ xcuserdata/
 *-diagnostics.json
 
 # Local settings, credentials and signing material
+AGENTS.md
+agents.md
+agent.md
+AGENT.md
+CLAUDE.md
+SKILL.md
 .env
 .env.*
 !.env.example

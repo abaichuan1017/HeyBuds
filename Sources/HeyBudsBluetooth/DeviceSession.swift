@@ -237,7 +237,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
             onDiagnostic?(String(format:"RX %04X, %d bytes",frame.command,frame.payload.count))
             if frame.command == 0x8202, frame.payload.count >= 2, frame.payload[0] == 0 {
                 let body=Array(frame.payload.dropFirst())
-                state.apply(OPOFrame(command:0x0204,payload:body),t500:model?.isT500 == true)
+                state.apply(OPOFrame(command:0x0204,payload:body),t500:model?.isT500 == true,model:model)
                 noteNotification(body)
                 onChange?(); continue
             }
@@ -249,12 +249,12 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
                 if let status=frame.payload.first, status != 0, !directPriority {
                     finish(id:p.id,result:.failure(ProtocolError.rejected(status))); continue
                 }
-                state.apply(frame,t500:model?.isT500 == true)
+                state.apply(frame,t500:model?.isT500 == true,model:model)
                 if frame.command == 0x8103 { model=catalog.model(productID:state.productID,name:name,override:overrideID) }
                 last[frame.command & ~0x8000]=Date()
                 finish(id:p.id,result:.success(frame))
             } else {
-                state.apply(frame,t500:model?.isT500 == true)
+                state.apply(frame,t500:model?.isT500 == true,model:model)
                 if frame.command == 0x0204 { noteNotification(frame.payload) }
             }
             onChange?()
@@ -308,6 +308,9 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     public func setSpatial(_ mode:UInt8) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.setSpatial(mode) }
         guard model?.spatialModes.contains(mode) == true else { throw ProtocolError.unsupported }
+        if mode > 0, model?.function["spatialHiResMutex"].enabled == true {
+            guard state.switches[0x18] == false else { throw ProtocolError.unsupported }
+        }
         if mode > 0, model?.gameBlocksSpatial == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
         return try await write(Command.setSpatial,payload:[mode],read:Command.spatial) { state.spatial == mode }
     }

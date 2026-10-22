@@ -19,7 +19,7 @@ let testLinker:[LinkerSetting] = testingFrameworks.map { [.unsafeFlags(["-F",$0,
 
 let package = Package(
     name: "HeyBuds",
-    platforms: [.macOS("27.0")],
+    platforms: [.macOS("26.0")],
     products: [.executable(name: "HeyBuds", targets: ["HeyBuds"]),
                .executable(name: "heybuds-probe", targets: ["HeyBudsProbe"])],
     targets: [

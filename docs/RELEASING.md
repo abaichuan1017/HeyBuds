@@ -16,4 +16,6 @@ Release builds select only the app product, strip local/debug symbols, compact r
 
 Signing is ad-hoc unless `HEYBUDS_SIGN_IDENTITY` is supplied. Local signature validation does not mean Developer ID distribution or notarization. Record hardware results separately from protocol tests.
 
+`AGENTS.md` and other local agent instructions are excluded from Git tracking and the source allowlist. The X4 importer uses only the committed source excerpt. Confirm that the final source ZIP contains no instructions, backups, captures or temporary previews.
+
 The workflow checks its runner environment before building. It audits source, runs tests, packages and checks the app, then uploads artifacts; it does not publish a release. Confirm each hosted run in Actions. Source archives use an explicit allowlist and exclude Git history, build caches, backups, captures and preferences. Normal builds require no sibling reference repositories.

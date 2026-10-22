@@ -15,13 +15,16 @@
 在菜单栏查看电量、切换降噪与通透、调整音效和管理多设备连接。支持中文和英文，使用系统框架，无第三方运行时、遥测或自动更新器。
 
 <table>
+  <tr><th>未连接</th><th>连接弹窗</th></tr>
+  <tr>
+    <td valign="top"><img src="docs/images/disconnected.jpg" alt="HeyBuds 未连接状态" width="300"></td>
+    <td valign="top"><img src="docs/images/connection-popup.jpg" alt="HeyBuds 连接弹窗预览（示例电量）" width="300"></td>
+  </tr>
   <tr><th>主面板</th><th>高级功能</th></tr>
   <tr>
     <td valign="top"><img src="docs/images/home.jpg" alt="HeyBuds 电量与降噪面板" width="300"></td>
     <td valign="top"><img src="docs/images/advanced.jpg" alt="HeyBuds 音效与高级功能" width="300"></td>
   </tr>
-  <tr><th colspan="2">未连接</th></tr>
-  <tr><td colspan="2" align="center"><img src="docs/images/disconnected.jpg" alt="HeyBuds 未连接状态" width="300"></td></tr>
 </table>
 
 ## 支持范围
@@ -33,13 +36,12 @@
 | HUAWEI | 电量、降噪、EQ、自定义 EQ、多设备 |
 | Xiaomi / Redmi | 系列识别、电量；低延迟需有效状态回读 |
 | EDIFIER | 支持 SPP 的系列电量及降噪 |
-| Apple / Beats | 仅明文广播状态读取 |
 
-具体功能取决于型号、固件和设备响应。目录收录不代表逐款实机验证，详见[型号清单](docs/SUPPORTED_DEVICES.md)与[兼容性说明](docs/COMPATIBILITY.md)。
+具体功能取决于型号、固件和设备响应。详见[型号清单](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md)与[兼容性说明](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md)。
 
 ## 安装与使用
 
-需要 **Apple Silicon Mac、macOS 27 或更新版本**。
+需要 **Apple Silicon Mac、macOS 26+ 版本**。
 
 1. 从 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.zip`，解压后将应用拖入“应用程序”。
 2. 在系统蓝牙设置中配对并连接耳机，退出其他耳机控制器。
@@ -65,6 +67,10 @@ open dist/HeyBuds.app
 输出为 `dist/HeyBuds.app` 和 `dist/HeyBuds-arm64.zip`。发行构建只打包应用、运行资源与许可；开发工具、参考表和文档保留在源码中。
 
 [贡献指南](CONTRIBUTING.md) · [架构](docs/ARCHITECTURE.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/abaichuan1017/HeyBuds/issues)
+
+## 致谢
+
+感谢 [EncoDeck](https://github.com/TIANLI0/EncoDeck) 项目及其贡献者公开 OPPO Enco X4 的型号配置与协议测试，为本次适配提供了依据。
 
 ## 许可
 

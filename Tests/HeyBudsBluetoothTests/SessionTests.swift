@@ -47,6 +47,59 @@ import HeyBudsProtocol
     #expect(s.model?.id == "06C410")
     #expect(s.state.batteries[.left]?.percent == 70)
 }
+@Test @MainActor func encoX4SessionConfirmsParentWritesFromChildReports() async throws {
+    let t=MockTransport()
+    var report:UInt16=8
+    t.handler = { frame in
+        switch frame.command {
+        case Command.product:return [0,0x10,0xEC,6]
+        case Command.capabilities:return [0,0xFF,0x77,0x5A,0xEE,0xEE,0x8F,0xA6,0x5F,0x17,0]
+        case Command.battery:return [0,3,1,0xC6,2,0xC6,3,70]
+        case Command.noise:return [0,1,1,UInt8(truncatingIfNeeded:report),UInt8(report>>8)]
+        case Command.setNoise:
+            let mask=UInt16(frame.payload[2]) | (frame.payload.count > 3 ? UInt16(frame.payload[3]) << 8 : 0)
+            report = [UInt16(1):8,4:0x100,0x800:0x2000][mask] ?? mask
+            return [0]
+        default:return [0]
+        }
+    }
+    let s=DeviceSession(transport:t,name:"Renamed earbuds",catalog:try ModelCatalog());defer { s.close() }
+    try await s.open()
+    #expect(s.model?.id == "06EC10")
+    _ = try await s.query(Command.noise,payload:[1,1])
+    for mode in [NoiseMode.transparency,.adaptive,.smart,.deep,.medium,.light,.off] {
+        #expect(try await s.setNoise(mode) == .confirmed)
+        #expect(s.state.noise == mode)
+        #expect(t.commands.suffix(2).map(\.command) == [Command.setNoise,Command.noise])
+    }
+}
+@Test @MainActor func encoX4SpatialRequiresHiResOffReadback() async throws {
+    let t=MockTransport()
+    var hiRes:UInt8=1, spatial:UInt8=0
+    t.handler = { frame in
+        switch frame.command {
+        case Command.product:return [0,0x10,0xEC,6]
+        case Command.capabilities:return [0]+Array(repeating:255,count:9)
+        case Command.battery:return [0,1,1,70]
+        case Command.switches:return [0,1,0x18,hiRes]
+        case Command.spatial:return [0,spatial]
+        case Command.setSpatial:spatial=frame.payload[0];return [0]
+        default:return [0]
+        }
+    }
+    let s=DeviceSession(transport:t,name:"OPPO Enco X4",catalog:try ModelCatalog());defer { s.close() }
+    try await s.open()
+    _ = try await s.query(Command.spatial)
+    for _ in 0..<2 {
+        do { _ = try await s.setSpatial(1);Issue.record("Spatial audio accepted without Hi-Res-off readback") }
+        catch { #expect(error as? ProtocolError == .unsupported) }
+        _ = try await s.query(Command.switches)
+    }
+    #expect(!t.commands.contains { $0.command == Command.setSpatial })
+    hiRes=0
+    _ = try await s.query(Command.switches)
+    #expect(try await s.setSpatial(1) == .confirmed)
+}
 @Test @MainActor func manualRefreshReadsNewCaseBatteryWithoutWaitingForPolling() async throws {
     let (s,t)=try await opened(); defer { s.close() }
     #expect(s.state.batteries[.enclosure]?.percent == 20)

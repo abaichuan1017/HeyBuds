@@ -547,7 +547,7 @@ struct PanelView: View {
             settingsGroup(L("诊断","Diagnostics")) {
                 settingAction(L("导出诊断…","Export diagnostics…"),symbol:"square.and.arrow.up") { app.exportDiagnostics() }
             }
-            Text("HeyBuds 0.3.1 · GPL-3.0-or-later")
+            Text("HeyBuds 0.3.2 · GPL-3.0-or-later")
                 .font(.system(size:10)).foregroundStyle(.secondary)
                 .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12)
         }

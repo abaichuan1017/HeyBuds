@@ -12,7 +12,7 @@ import HeyBudsBluetooth
                 let rows=catalog.models.map { model -> [String:Any] in
                     ["productID":model.id,"name":model.name,"brand":model.brand,"protocolFamily":model.family.rawValue,"aliases":model.aliases,
                      "sourceAdaptation":"imported","catalogValidation":"tested",
-                     "protocolFixtureCoverage":["06C410","064014","066452"].contains(model.id) ? "representative profile" : "catalog only",
+                     "protocolFixtureCoverage":["06C410","064014","066452","06EC10"].contains(model.id) ? "representative profile" : "catalog only",
                      "hardwareVerifiedFeatures":[String](),"noiseModes":model.noiseOptions.map { $0.mode.rawValue },
                      "eqWireIDs":model.presets.map { Int($0.id) },"spatialModes":model.spatialModes.map(Int.init),
                      "customEQBands":model.customEQFrequencies,"switches":model.features.map(\.key)]
@@ -26,8 +26,7 @@ import HeyBudsBluetooth
                 guard let device=devices.first(where:{$0.audioConnected}) else { throw TransportFailure.unavailable("No paired connected earbuds. Use HeyBuds.app to grant Bluetooth permission.") }
                 let transport:EarbudTransport
                 let family=catalog.family(name:device.name) ?? device.family ?? .oppo
-                if family == .apple { transport=AppleAdvertisementTransport(name:device.name) }
-                else if args.contains("--ble") {
+                if args.contains("--ble") {
                     guard family == .oppo else { throw ProtocolError.unsupported }
                     transport=BLETransport(name:device.name)
                 } else if let address=device.classicAddress,let service=family.serviceUUID {

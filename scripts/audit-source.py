@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import importlib.util
 from source_package import ROOT, public_files
 
 
@@ -15,7 +16,7 @@ def audit():
         rel = path.relative_to(ROOT).as_posix()
         if path.suffix in {'.p12', '.pfx', '.pem', '.key', '.log', '.trace'} or path.name.startswith('.env'):
             errors.append(f'Private file type: {rel}')
-        if path.suffix not in {'.swift', '.py', '.sh', '.md', '.json', '.yml', '.yaml', '.txt'} and path.name not in {'LICENSE', '.gitignore'}:
+        if path.suffix not in {'.swift', '.cs', '.py', '.sh', '.md', '.json', '.yml', '.yaml', '.txt'} and path.name not in {'LICENSE', '.gitignore'}:
             continue
         text = path.read_text(encoding='utf-8-sig')
         if private_path.search(text) or address.search(text):
@@ -53,9 +54,15 @@ def audit():
             errors.append(f'Version mismatch: {name}')
     models = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/MigratedModels.json').read_text())['models']
     original = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/DeviceModels.json').read_text())['whiteList']
-    if len(original) + len(models) != 226:
+    overlay = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/EncoDeckModels.json').read_text())
+    spec = importlib.util.spec_from_file_location('encodeck_import', ROOT / 'scripts/import-encodeck-x4.py')
+    importer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(importer)
+    if overlay != importer.catalog():
+        errors.append('EncoDeck X4 catalog differs from its frozen source')
+    if len(original) + len(models) + len(overlay['whiteList']) != 209:
         errors.append('Catalog record count changed without updating release scope')
-    if len({m['id'] for m in original + models}) != 226:
+    if len({m['id'] for m in original + models + overlay['whiteList']}) != 209:
         errors.append('Duplicate catalog identifiers')
     upstream = json.loads((ROOT / 'docs/upstream-sources.json').read_text())
     resources = upstream['runtimeResourceSHA256'] | upstream['referenceResourceSHA256']
@@ -69,4 +76,4 @@ def audit():
 
 if __name__ == '__main__':
     files, version = audit()
-    print(f'Public source audit passed: HeyBuds {version}, {len(files)} files, 226 catalog records.')
+    print(f'Public source audit passed: HeyBuds {version}, {len(files)} files, 209 catalog records.')

@@ -2,6 +2,7 @@
 """Verify the distributable, including resource equivalence and ZIP contents."""
 import json
 import plistlib
+import re
 import subprocess
 import zipfile
 from source_package import ROOT
@@ -14,12 +15,13 @@ actual = {p.name: p for p in bundle.rglob('*.json')}
 assert actual.keys() == expected.keys(), 'Unexpected or missing runtime catalogs'
 for name, path in actual.items():
     assert json.loads(path.read_text()) == json.loads(expected[name].read_text()), name
-for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md', 'Licenses/Realme-MIT.txt'):
+for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md', 'Licenses/Realme-MIT.txt', 'Licenses/EncoDeck-GPL-3.0.txt'):
     assert (resources / name).read_bytes() == (ROOT / name).read_bytes(), name
 allowed = {
     'Contents/Info.plist', 'Contents/MacOS/HeyBuds', 'Contents/_CodeSignature/CodeResources',
     'Contents/Resources/HeyBuds.icns', 'Contents/Resources/LICENSE',
     'Contents/Resources/THIRD_PARTY_NOTICES.md', 'Contents/Resources/Licenses/Realme-MIT.txt',
+    'Contents/Resources/Licenses/EncoDeck-GPL-3.0.txt',
     'Contents/Resources/HeyBuds_HeyBudsProtocol.bundle/Contents/Info.plist',
 } | {p.relative_to(app).as_posix() for p in actual.values()}
 files = {p.relative_to(app).as_posix(): p for p in app.rglob('*') if p.is_file()}
@@ -27,6 +29,9 @@ assert set(files) == allowed, f'Unexpected app contents: {set(files) ^ allowed}'
 with (app / 'Contents/Info.plist').open('rb') as stream:
     info = plistlib.load(stream)
 assert info['CFBundleIdentifier'] == 'local.heybuds.app'
+version = re.search(r'static let version="([^"]+)"', (ROOT / 'Sources/HeyBuds/AppIdentity.swift').read_text()).group(1)
+assert info['CFBundleShortVersionString'] == version
+assert info['LSMinimumSystemVersion'] == '26.0'
 assert info['LSUIElement'] is True
 assert subprocess.check_output(['lipo', '-archs', str(app / 'Contents/MacOS/HeyBuds')], text=True).strip() == 'arm64'
 subprocess.run(['codesign', '--verify', '--strict', str(app)], check=True)

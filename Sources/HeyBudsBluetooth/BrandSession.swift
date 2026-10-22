@@ -73,12 +73,11 @@ import HeyBudsProtocol
                 try await send(0x51,payload:[3,1],sequence:0,kind:4)
             }
             try await read(Command.battery)
-        case .apple:guard !state.batteries.isEmpty else { throw ProtocolError.invalidPayload }
         default:throw ProtocolError.unsupported
         }
         try Task.checkCancellation()
         guard generation == token else { throw ProtocolError.disconnected }
-        guard family == .apple || !state.observedQueries.isEmpty else { throw ProtocolError.invalidPayload }
+        guard !state.observedQueries.isEmpty else { throw ProtocolError.invalidPayload }
         ready=true;onChange?()
     }
     func initialize() async {
@@ -87,7 +86,7 @@ import HeyBudsProtocol
         poll=Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                try? await Task.sleep(for:.seconds(self.family == .apple ? 10 : self.interactive ? 15 : 45))
+                try? await Task.sleep(for:.seconds(self.interactive ? 15 : 45))
                 guard !Task.isCancelled,self.ready else { return }
                 await self.refresh()
             }
@@ -96,11 +95,9 @@ import HeyBudsProtocol
     func refresh() async {
         guard ready else { return }
         let token=generation
-        if family != .apple {
-            for command in [Command.battery,Command.noise,Command.equalizer,Command.spatial,Command.switches,Command.wear,Command.firmware,Command.hosts] where canQuery(command) {
-                guard !Task.isCancelled,ready,generation == token else { return }
-                try? await read(command)
-            }
+        for command in [Command.battery,Command.noise,Command.equalizer,Command.spatial,Command.switches,Command.wear,Command.firmware,Command.hosts] where canQuery(command) {
+            guard !Task.isCancelled,ready,generation == token else { return }
+            try? await read(command)
         }
         let stale=state.batteries.filter { Date().timeIntervalSince($0.value.updatedAt) >= 120 }.map(\.key)
         for slot in stale { state.batteries[slot]=nil }
@@ -117,7 +114,7 @@ import HeyBudsProtocol
     var supportsSpatialAudio:Bool { !model.spatialModes.isEmpty && state.spatial != nil }
     func canQuery(_ command:UInt16) -> Bool {
         switch command {
-        case Command.battery:return family != .apple && (family != .huawei || model.raw["sourceCapabilities"]["SupportsRfcommBattery"].enabled)
+        case Command.battery:return family != .huawei || model.raw["sourceCapabilities"]["SupportsRfcommBattery"].enabled
         case Command.noise:return !model.noiseOptions.isEmpty && (family != .huawei || model.raw["sourceCapabilities"]["SupportsAncStateReadback"].enabled)
         case Command.equalizer:return !model.presets.isEmpty || !model.customEQFrequencies.isEmpty
         case Command.customEQ:return !model.customEQFrequencies.isEmpty
@@ -222,16 +219,6 @@ import HeyBudsProtocol
         guard let p=pending,p.id == id else { return };pending=nil;deadline?.cancel();deadline=nil;p.continuation.resume(with:result)
     }
     private func receive(_ data:Data) {
-        if family == .apple {
-            guard let value=AppleAdvertisement.parse(data) else { return }
-            if let identified=catalog.models.first(where:{$0.id == value.modelID}) {
-                guard model.raw["protocolFamily"].text == nil || model.id == "apple:unknown" || model.id == identified.id else { return }
-                model=identified
-            }
-            state.productID=value.modelID;state.batteries=value.batteries;state.placement=value.placement
-            if model.singleBattery { state.batteries[.right]=nil;state.batteries[.enclosure]=nil }
-            onChange?();return
-        }
         for frame in codec.feed(data) {
             onDiagnostic?(String(format:"%@ RX %04X, %d bytes",family.rawValue,frame.command,frame.payload.count))
             if family == .huawei,frame.command == 0x2B31,collectingHosts,let row=BrandState.huaweiHost(frame.payload) {

@@ -1,12 +1,14 @@
 # 完整型号清单 / Supported devices
 
-以下型号根据当前应用目录整理，同名产品 ID 已合并，特别版名称保留。功能因型号和固件而异，尚未逐款实机验证。AirPods 与 Beats 仅支持读取状态。
+以下型号根据当前应用目录整理，同名产品 ID 已合并，特别版名称保留。功能因型号和固件而异，尚未逐款实机验证。
 
-This list follows the current app catalog. Duplicate display names are merged and special editions are retained. Features vary by model and firmware; inclusion does not mean hardware verification. AirPods and Beats support status reading only.
+This list follows the current app catalog. Duplicate display names are merged and special editions are retained. Features vary by model and firmware; inclusion does not mean hardware verification.
 
 [返回首页 / Back to README](../README.md) · [兼容性说明 / Compatibility](COMPATIBILITY.md)
 
 ## OPPO
+
+- OPPO Enco X4
 
 - OPPO Enco Air4s
 - OPPO Enco R5
@@ -222,30 +224,6 @@ This list follows the current app catalog. Duplicate display names are merged an
 - HUAWEI FreeArc
 - HUAWEI Eyewear
 - HUAWEI Eyewear 2
-
-## Apple AirPods
-
-- AirPods 1
-- AirPods Max
-- AirPods Pro
-- AirPods 2
-- AirPods 3
-- AirPods Pro 2
-- AirPods 4
-- AirPods 4 ANC
-- AirPods Max USB-C
-- AirPods Pro 2 USB-C
-- AirPods Pro 3
-
-## Beats
-
-- Beats Fit Pro
-- Powerbeats Pro
-- Beats X
-- Beats Flex
-- Beats Solo 3
-- Beats Studio 3
-- Powerbeats 3
 
 ## EDIFIER
 

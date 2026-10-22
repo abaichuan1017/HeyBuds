@@ -20,10 +20,9 @@ private func hex(_ string:String) -> [UInt8] { string.split(separator:" ").map {
 }
 @Test func migratedCatalogCoversSourceFamiliesAndDisambiguatesNames() throws {
     let c=try ModelCatalog()
-    #expect(c.models.count == 226)
+    #expect(c.models.count == 209)
     #expect(c.models.filter { $0.family == .vivo }.count == 43)
     #expect(c.models.filter { $0.family == .huawei }.count == 24)
-    #expect(c.models.filter { $0.family == .apple }.count == 18)
     #expect(c.models.filter { $0.family == .vivo }.reduce(0) { $0+$1.raw["sourceEntries"].elements.count } == 87)
     for n in ["FreeBuds Pro 2","FreeBuds Pro 3","FreeBuds Pro 4","FreeBuds Pro 5"] {
         #expect(c.model(productID:nil,name:n+" (test)")?.name == "HUAWEI "+n)
@@ -31,7 +30,9 @@ private func hex(_ string:String) -> [UInt8] { string.split(separator:" ").map {
     #expect(c.family(name:"DPD2321A LE") == .vivo)
     #expect(c.family(name:"my Redmi Buds") == .xiaomi)
     #expect(c.family(name:"W820NB Plus") == .edifier)
-    #expect(c.family(name:"AirPods Pro") == .apple)
+    #expect(c.family(name:"AirPods Pro") == nil)
+    #expect(c.family(name:"Beats Fit Pro") == nil)
+    #expect(!c.models.contains { $0.id.hasPrefix("apple:") })
     #expect(c.family(name:"Soundcore Liberty Air") == nil)
     #expect(c.family(name:"Keyboard") == nil)
     let tws3e=try #require(c.model(productID:nil,name:"vivo TWS 3e"))
@@ -122,18 +123,6 @@ private func hex(_ string:String) -> [UInt8] { string.split(separator:" ").map {
     let host=BrandState.huaweiHost(row)?.host
     #expect(host?.address == [1,2,3,4,5,6] && host?.preferred == true && host?.audioActive == true)
 }
-@Test func applePlaintextBatteryMappingAndRejection() {
-    var bytes:[UInt8]=[0x4C,0,7,0x19,1,0x14,0x20,0x20,0xF5,0x48,0,0,0]+Array(repeating:0,count:16)
-    let parsed=AppleAdvertisement.parse(Data(bytes))
-    #expect(parsed?.modelID == "apple:1420")
-    #expect(parsed?.batteries[.left]?.percent == 50)
-    #expect(parsed?.batteries[.right] == nil)
-    #expect(parsed?.batteries[.enclosure]?.percent == 80 && parsed?.batteries[.enclosure]?.charging == true)
-    bytes[0]=1;#expect(AppleAdvertisement.parse(Data(bytes)) == nil)
-    bytes[0]=0x4C;bytes[2]=0x12;#expect(AppleAdvertisement.parse(Data(bytes)) == nil)
-    #expect(AppleAdvertisement.parse(Data(bytes.prefix(12))) == nil)
-}
-
 @Test func xiaomiAuthMatchesIndependentUpstreamRoundFunctionVectors() throws {
     #expect(try XiaomiAuth.response([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) == [224, 205, 103, 156, 132, 213, 183, 32, 79, 23, 165, 217, 35, 67, 90, 104])
     #expect(try XiaomiAuth.response([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == [215, 170, 85, 59, 84, 215, 123, 176, 201, 219, 112, 252, 201, 89, 164, 5])

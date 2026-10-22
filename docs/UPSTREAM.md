@@ -5,9 +5,12 @@ HeyBuds preserves upstream license notices and uses public file fingerprints in 
 | Reference | License | Use |
 | --- | --- | --- |
 | [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager) | GPL-3.0-or-later | Brand protocols, capability/model tables, state and command semantics |
+| [EncoDeck](https://github.com/TIANLI0/EncoDeck) | GPL-3.0-only | X4 configuration and public protocol fixtures at `ba5db26753eceacaa4ba48ab3b87067cc0ec7da4` |
 | [Realme TWS Mac Controller](https://github.com/anikket-b/Realme-TWS-Mac-Controller) | MIT | T500 Pro mappings, captured fixtures, menu bar / RFCOMM reference; full notice in Licenses |
 | [Buds for macOS](https://github.com/GewoonJaap/oneplus-buds-macos) | PolyForm Noncommercial 1.0.0 | Visual reference only; no code or assets copied |
 
 The retained OPPO model/EQ resources and [`docs/reference/VivoDeviceModels.json`](reference/VivoDeviceModels.json) are byte-identical to the frozen source files. `MigratedModels.json` is generated from the reference tables and retains vivo variants and Huawei capability declarations. `scripts/import-brand-models.py` is an optional maintainer tool; it requires a sibling `OppoPodsManager-main` checkout matching the fingerprints. The original vivo table is reference-only; the app reads the normalized entries in `MigratedModels.json`. Normal builds use the committed resources and require no reference projects.
+
+For X4, `docs/reference/EncoDeck-X4.cs` preserves the exact `06EC10` entry and source version (`117006008`) from [EncoDeck's generated catalog](https://github.com/TIANLI0/EncoDeck/blob/ba5db26753eceacaa4ba48ab3b87067cc0ec7da4/src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.g.cs). The excerpt header identifies the extraction; unrelated model entries are omitted. Run `python3 scripts/import-encodeck-x4.py` to reproduce `EncoDeckModels.json`. File hashes and the frozen commit are recorded in `upstream-sources.json`; the original OPPO/EQ resources remain unchanged. The upstream Windows hardware report is separate from HeyBuds macOS validation.
 
 The `airpods.pro` icon and system materials are provided by macOS; the generator and full third-party notice are included. Brand names identify interoperability, not endorsement or affiliation.

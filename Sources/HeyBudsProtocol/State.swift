@@ -86,7 +86,7 @@ public struct DeviceState: Sendable {
         }
     }
 
-    public mutating func applyNoise(_ payload: [UInt8], t500: Bool) {
+    public mutating func applyNoise(_ payload: [UInt8], t500: Bool, model:DeviceModel? = nil) {
         if t500 {
             guard payload.count >= 3, payload[0] == 1 else { return }
             noise = [UInt8(1):.off,2:.transparency,4:.light,8:.deep,0x10:.medium,0x20:.smart][payload[2]]
@@ -96,13 +96,16 @@ public struct DeviceState: Sendable {
         if p.first == 0 || p.first == 3 { p.removeFirst() }
         guard p.count >= 4, p[1] == 1 else { return }
         let code = UInt16(p[2]) | UInt16(p[3]) << 8
-        guard let mode: NoiseMode = [UInt16(8):.off,2:.smart,0x80:.smart,0x40:.light,0x20:.medium,
-                                     0x10:.deep,0x100:.transparency,4:.transparency,0x800:.adaptive][code] else { return }
+        let mode:NoiseMode?
+        if let model, model.function["noiseReportModes"] != .null { mode=model.reportedNoise(mask:code) }
+        else { mode = [UInt16(8):.off,2:.smart,0x80:.smart,0x40:.light,0x20:.medium,
+                       0x10:.deep,0x100:.transparency,4:.transparency,0x800:.adaptive][code] }
+        guard let mode else { return }
         if p[0] == 4 { noise = .smart; liveNoise = mode }
         else { noise = mode; liveNoise = nil }
     }
 
-    public mutating func apply(_ frame: OPOFrame, t500: Bool = false) {
+    public mutating func apply(_ frame: OPOFrame, t500: Bool = false, model:DeviceModel? = nil) {
         let p = frame.payload
         if validResponse(frame) { observedQueries.insert(frame.command & ~0x8000) }
         switch frame.command {
@@ -124,7 +127,7 @@ public struct DeviceState: Sendable {
                 } else { firmware=text; firmwareRevision=Int(text) }
             }
         case 0x8106: applyBattery(p,response:true,t500:t500)
-        case 0x810C: applyNoise(p,t500:t500)
+        case 0x810C: applyNoise(p,t500:t500,model:model)
         case 0x810F: if p.count >= 2, p[0] == 0 { eq=p[1] }
         case 0x812A: if p.count >= 2, p[0] == 0 { spatial=p[1] }
         case 0x810D:
@@ -153,7 +156,7 @@ public struct DeviceState: Sendable {
             switch type {
             case 1: applyBattery(body,response:false,t500:t500)
             case 2: applyPlacement(body,response:false,t500:t500)
-            case 3: applyNoise(body,t500:t500)
+            case 3: applyNoise(body,t500:t500,model:model)
             default: break
             }
         case 0x0504: if let v=p.last { eq=v }

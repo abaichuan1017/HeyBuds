@@ -15,13 +15,16 @@ A lightweight, native macOS menu bar companion
 Check battery levels, switch noise modes, adjust sound and manage connected devices. Available in Chinese and English. Uses system frameworks, with no third-party runtime, telemetry or self-updater.
 
 <table>
+  <tr><th>Disconnected</th><th>Connection pop-up</th></tr>
+  <tr>
+    <td valign="top"><img src="docs/images/disconnected.jpg" alt="HeyBuds disconnected state" width="300"></td>
+    <td valign="top"><img src="docs/images/connection-popup.jpg" alt="HeyBuds connection pop-up preview (sample battery levels)" width="300"></td>
+  </tr>
   <tr><th>Main panel</th><th>Advanced features</th></tr>
   <tr>
     <td valign="top"><img src="docs/images/home.jpg" alt="HeyBuds battery and noise controls" width="300"></td>
     <td valign="top"><img src="docs/images/advanced.jpg" alt="HeyBuds sound settings and advanced features" width="300"></td>
   </tr>
-  <tr><th colspan="2">Disconnected</th></tr>
-  <tr><td colspan="2" align="center"><img src="docs/images/disconnected.jpg" alt="HeyBuds disconnected state" width="300"></td></tr>
 </table>
 
 ## Compatibility
@@ -33,13 +36,12 @@ Check battery levels, switch noise modes, adjust sound and manage connected devi
 | HUAWEI | Battery, noise control, EQ, custom EQ, connected devices |
 | Xiaomi / Redmi | Family detection and battery; low latency requires valid state readback |
 | EDIFIER | Battery and noise control for supported SPP families |
-| Apple / Beats | Unencrypted advertisement status only |
 
-Features depend on the model, firmware and device responses. Catalog inclusion does not mean hardware verification. See the [model list](docs/SUPPORTED_DEVICES.md) and [compatibility notes](docs/COMPATIBILITY.md).
+Features depend on the model, firmware and device responses. See the [model list](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md) and [compatibility notes](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md).
 
 ## Install and use
 
-Requires an **Apple Silicon Mac running macOS 27 or later**.
+Requires an **Apple Silicon Mac running macOS 26+**.
 
 1. Download `HeyBuds-arm64.zip` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest), extract it and drag the app to Applications.
 2. Pair and connect your earbuds in Bluetooth settings, then quit other earbud controllers.
@@ -65,6 +67,10 @@ open dist/HeyBuds.app
 Outputs: `dist/HeyBuds.app` and `dist/HeyBuds-arm64.zip`. Release builds contain the application, runtime resources and license notices. Developer tools, reference tables and documentation remain in the source tree.
 
 [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Validation](docs/VALIDATION.md) · [Changelog](CHANGELOG.md) · [Report an issue](https://github.com/abaichuan1017/HeyBuds/issues)
+
+## Thanks
+
+Thanks to [EncoDeck](https://github.com/TIANLI0/EncoDeck) and its contributors for publishing the OPPO Enco X4 model configuration and protocol tests used for this adaptation.
 
 ## License
 

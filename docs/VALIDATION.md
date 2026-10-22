@@ -1,5 +1,15 @@
 # Validation
 
+## 0.3.2 scope — 2026-10-22
+
+Added Enco X4 (`06EC10`) from the frozen EncoDeck configuration, removed the 18 Apple / Beats records and advertisement backend, and lowered the deployment target to macOS 26. The resulting catalog contains 209 records. X4 tests replay EncoDeck public fixtures and simulate write/readback sessions; no X4 hardware acceptance on macOS is claimed.
+
+The connection pop-up image is rendered from the native view in its reduced-transparency appearance, with a simulated session and sample battery levels. Existing main/advanced/disconnected images are retained. Temporary screenshot fixtures are excluded from the public source.
+
+Final automated checks: 68 tests passed (27 protocol, 34 session, 7 presentation/preferences). Source audit passed with 209 records; the signed arm64 app contains 14 files, and the application ZIP contains exactly the same bytes and license notices. The executable deployment target is 26.0; this run used macOS 27.2, so runtime testing on macOS 26 remains pending. No physical X4 or sleep/reconnection checks were performed. The source ZIP was independently extracted and audited, then all 68 tests passed without sibling reference projects or an existing build cache.
+
+## Historical 0.3.1 checks
+
 Checked locally on 2026-10-22, Asia/Shanghai: Apple Silicon, macOS 27.2, Apple Swift 6.4. These results cover source, simulated sessions and packaging; complete application launch time and physical-device reconnection were not measured.
 
 | Check | Result |

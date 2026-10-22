@@ -1,6 +1,6 @@
 # Contributing to HeyBuds
 
-Read [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md) and [compatibility](docs/COMPATIBILITY.md) first.
+Read [architecture](docs/ARCHITECTURE.md) and [compatibility](docs/COMPATIBILITY.md) first.
 
 ## Development
 

@@ -8,9 +8,19 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - License: GPL-3.0-or-later. Copyright belongs to the upstream contributors.
 - Frozen reference and runtime-resource fingerprints: `docs/upstream-sources.json`. A reference checkout is not required to build HeyBuds.
 - Adapted into Swift: OPOv1 framing, command capability bitmap, model catalog interpretation, noise mappings, battery/placement, feature switches, EQ, bass engine, spatial/game sound and remote device management.
-- Also adapted: vivo / iQOO GAIA profiles and capabilities, Huawei legacy/MBB framing and model/ANC/EQ tables, Xiaomi RCSP framing and public challenge-response algorithm, Edifier framing/battery/noise, and Apple plaintext advertisement/model decoding.
+- Also adapted: vivo / iQOO GAIA profiles and capabilities, Huawei legacy/MBB framing and model/ANC/EQ tables, Xiaomi RCSP framing and public challenge-response algorithm, and Edifier framing/battery/noise.
 - `docs/reference/VivoDeviceModels.json` is preserved byte-for-byte in the source distribution. The app reads `MigratedModels.json`, generated from the frozen upstream data and C# tables by `scripts/import-brand-models.py`; it retains vivo variants and Huawei capability declarations.
 - `DeviceModels.json`, `EqModeNames.json`, `EqModeNames.en.json` are retained upstream resources. Source files preserve their original bytes; application copies use compact JSON with the same values and source annotations. No independent claim is made to manufacturer artwork or trademarks.
+
+## EncoDeck
+
+- Source: https://github.com/TIANLI0/EncoDeck
+- Frozen commit: `ba5db26753eceacaa4ba48ab3b87067cc0ec7da4` (1.0.1).
+- License: GPL-3.0-only. Copyright belongs to the EncoDeck contributors; full license in `Licenses/EncoDeck-GPL-3.0.txt`.
+- Thanks to EncoDeck and its contributors for publishing the OPPO Enco X4 configuration and public protocol fixtures.
+- `docs/reference/EncoDeck-X4.cs` retains only the exact X4 entry and catalog version from `src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.g.cs`. `scripts/import-encodeck-x4.py` converts it into `EncoDeckModels.json`, preserving its model-specific facts. Existing OppoPodsManager resource bytes are unchanged except for the separately generated multi-brand catalog, from which Apple / Beats entries were removed.
+- Public X4 frame fixtures from `tests/EncoDeck.Tests/Protocol/EncoX4CaptureTests.cs` are adapted in `Tests/HeyBudsProtocolTests/EncoX4Tests.swift`, which retains GPL-3.0-only attribution. No personal device lists, manufacturer artwork or binaries are copied.
+- HeyBuds-authored code remains GPL-3.0-or-later; the included EncoDeck material is GPL-3.0-only, and the combined distribution is under GPL version 3.
 
 ## Realme TWS Mac Controller
 

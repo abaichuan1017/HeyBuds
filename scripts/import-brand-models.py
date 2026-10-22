@@ -46,8 +46,6 @@ for route,name,body in re.findall(r'\[HuaweiRoute\.(\w+)\] = new\("([^"]+)",\s*(
   ids=[5,1,2,9] if route in ['FreeBudsPro3','FreeBudsPro4','FreeBudsPro5'] else [1,2,3] if route in ['FreeBudsPro2','FreeBudsStudio'] else [1,2,3,9]
   m['presets']=[dict(id=i,zh=z,en=e) for i,z,e in zip(ids,['默认','重低音','高音增强','人声'],['Default','Bass boost','Treble boost','Voice'])]
  if route in ['FreeBuds6I','FreeBudsPro3','FreeBudsPro4','FreeBudsPro5','FreeBuds7I','FreeArc','FreeLacePro2']:f.update(customEqualizer=True,customEqFrequency=[31,62,125,250,500,1000,2000,4000,8000,16000],customEqMax=3,customEqMinimum=-60,customEqMaximum=60)
-for hexid,name in re.findall(r'\[0x([A-Fa-f0-9]+)\] = "([^"]+)"',read('Control/Brands/Apple/AppleModels.cs').split('ColorNames')[0]):
- m=add('apple:'+hexid.upper(),name,'Apple','apple');m['function']['singleBattery']='Max' in name or any(s in name for s in ['Beats X','Beats Flex','Beats Solo','Beats Studio','Powerbeats 3'])
 # Xiaomi has a family matcher, no model catalog. Preserve that distinction.
 add('xiaomi:family','Xiaomi / Redmi','Xiaomi','xiaomi',familyOnly=True)
 for name in ['W820NB','W200BT','EDIFIER']:
@@ -55,4 +53,4 @@ for name in ['W820NB','W200BT','EDIFIER']:
 out=root/'Sources/HeyBudsProtocol/Resources/MigratedModels.json';out.write_text(json.dumps(dict(source='OppoPodsManager-main',models=models),ensure_ascii=False,indent=2)+'\n')
 (root/'docs/reference').mkdir(exist_ok=True)
 (root/'docs/reference/VivoDeviceModels.json').write_bytes((src/'Assets/Vivo/Data/DeviceModels.json').read_bytes())
-print(dict(vivoVariants=len(vivo),vivoNames=len(groups),huawei=sum(m['protocolFamily']=='huawei' for m in models),apple=sum(m['protocolFamily']=='apple' for m in models),total=len(models)))
+print(dict(vivoVariants=len(vivo),vivoNames=len(groups),huawei=sum(m['protocolFamily']=='huawei' for m in models),total=len(models)))

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 — 2026-10-22
+
+- Add OPPO Enco X4 (`06EC10`) and its Enco Bohr alias from EncoDeck, with the model's noise modes, EQ presets, ten-band custom EQ and existing sound/device controls.
+- Recognize X4 parent/child noise reports and require a Hi-Res-off readback before enabling spatial audio. X4 adaptive noise uses the parent button; individual adaptive levels are not exposed.
+- Remove Apple / Beats catalogs and passive advertisement support; macOS provides their native integration.
+- Set the minimum deployment target to macOS 26 and update both READMEs, placing disconnected and connection pop-up previews first.
+- Keep local agent instructions out of Git tracking and source releases. Preserve the X4 source excerpt, GPL notice and thanks to EncoDeck.
+
 ## 0.3.1 — 2026-10-22
 
 - Show the menu bar entry before background catalog loading; create the panel on first use.

@@ -120,24 +120,3 @@ public enum BrandState {
         return (Int(count),Int(index),RemoteHost(address:address,name:name,type:0,connection:connection > 0 ? 2 : 0,flags:flags))
     }
 }
-
-public struct AppleAdvertisement:Sendable {
-    public let modelID:String
-    public let batteries:[BatterySlot:BatteryReading]
-    public let placement:[BatterySlot:UInt8]
-    /// CoreBluetooth manufacturer bytes include the little-endian company ID.
-    /// Accept the plaintext proximity message only; never reinterpret encrypted payloads.
-    public static func parse(_ manufacturer:Data) -> AppleAdvertisement? {
-        let bytes=Array(manufacturer)
-        guard bytes.count >= 13,bytes[0] == 0x4C,bytes[1] == 0 else { return nil }
-        let p=Array(bytes.dropFirst(2))
-        guard p[0] == 0x07,p[1] >= 11,Int(p[1])+2 <= p.count,p[2] == 1 else { return nil }
-        let primaryLeft=p[5] & 0x20 != 0,inCase=p[5] & 0x40 != 0,flipped = !primaryLeft
-        let levels:[UInt8]=[flipped ? p[6]>>4 : p[6]&15,flipped ? p[6]&15 : p[6]>>4,p[7]&15]
-        let flags=p[7]>>4,charging=[flags & (flipped ? 2 : 1) != 0,flags & (flipped ? 1 : 2) != 0,flags & 4 != 0]
-        var batteries:[BatterySlot:BatteryReading]=[:]
-        for (i,slot) in BatterySlot.allCases.enumerated() where levels[i] != 15 { batteries[slot]=BatteryReading(percent:min(100,Int(levels[i])*10),charging:charging[i]) }
-        let xor=primaryLeft != inCase,leftWorn=p[5] & (xor ? 8 : 2) != 0,rightWorn=p[5] & (xor ? 2 : 8) != 0
-        return AppleAdvertisement(modelID:String(format:"apple:%02X%02X",p[3],p[4]),batteries:batteries,placement:[.left:leftWorn ? 3 : 1,.right:rightWorn ? 3 : 1])
-    }
-}

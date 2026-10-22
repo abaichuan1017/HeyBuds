@@ -175,29 +175,3 @@ import HeyBudsProtocol
     try await Task.sleep(for:.milliseconds(30));s.close();await task.value
     #expect(!s.ready && s.state.batteries.isEmpty && s.state.observedQueries.isEmpty)
 }
-
-@MainActor private final class AdvertisementRadio:EarbudTransport {
-    var onEvent:((TransportEvent)->Void)?
-    let label="BLE advertisement"
-    var writes=0
-    var bytes=Data([0x4C,0,7,0x19,1,0x14,0x20,0x20,0x75,0x48,0,0,0]+Array(repeating:UInt8(0),count:16))
-    func open() async throws { onEvent?(.data(bytes)) }
-    func close() {}
-    func send(_ bytes:Data) async throws { writes += 1;throw ProtocolError.unsupported }
-}
-@Test @MainActor func appleSessionsArePassiveAndAllControlsRemainDisabled() async throws {
-    let t=AdvertisementRadio(),s=DeviceSession(transport:t,name:"AirPods Pro 2",catalog:try ModelCatalog())
-    defer { s.close() };try await s.open()
-    #expect(s.ready && s.model?.id == "apple:1420")
-    #expect(s.state.batteries[.left]?.percent == 50 && s.state.batteries[.right]?.percent == 70)
-    for command in Command.allowedWrites { #expect(!s.canWrite(command)) }
-    do { _ = try await s.setNoise(.off);Issue.record("An Apple control was sent") } catch { #expect(error as? ProtocolError == .unsupported) }
-    #expect(t.writes == 0)
-    s.close();#expect(s.state.batteries.isEmpty)
-}
-@Test @MainActor func appleSessionRejectsAnotherKnownModelAdvertisement() async throws {
-    let t=AdvertisementRadio(),s=DeviceSession(transport:t,name:"AirPods 1",catalog:try ModelCatalog())
-    defer { s.close() }
-    do { try await s.open();Issue.record("Another earbud model was accepted") } catch { #expect(error as? ProtocolError == .invalidPayload) }
-    #expect(!s.ready && s.state.batteries.isEmpty && t.writes == 0)
-}

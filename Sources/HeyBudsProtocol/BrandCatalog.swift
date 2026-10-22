@@ -2,11 +2,10 @@
 import Foundation
 
 public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
-    case oppo, vivo, huawei, xiaomi, edifier, apple
+    case oppo, vivo, huawei, xiaomi, edifier
     public static func normalize(_ name:String) -> String { name.lowercased().filter { $0.isLetter || $0.isNumber } }
     public static func detect(_ name:String) -> EarbudFamily? {
         let n=normalize(name)
-        if ["airpods","beats","powerbeats"].contains(where:n.contains) { return .apple }
         if ["oppo","enco","oneplus","realme"].contains(where:n.contains) { return .oppo }
         if n.hasPrefix("vivotws") || n.hasPrefix("iqootws") || n == "vivoheadphones" || n == "iqooheadphones" { return .vivo }
         if ["huawei","freebuds","freeclip","freearc","freelace","eyewear"].contains(where:n.hasPrefix) { return .huawei }
@@ -21,7 +20,6 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         case .huawei:return "00001101-0000-1000-8000-00805F9B34FB"
         case .xiaomi:return "00001101-0000-1000-8000-008584D01810"
         case .edifier:return "EDF00000-EDFE-DFED-FEDF-EDFEDFEDFEDF"
-        case .apple:return nil
         }
     }
 }

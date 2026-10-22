@@ -71,6 +71,11 @@ public struct DeviceModel: Identifiable, Sendable {
     public var customEQMinimum: Int8 { Int8(exactly:function["customEqMinimum"].int ?? -6) ?? -6 }
     public var customEQMaximum: Int8 { Int8(exactly:function["customEqMaximum"].int ?? 6) ?? 6 }
     public var isT500: Bool { id == "066452" }
+    public func reportedNoise(mask:UInt16) -> NoiseMode? {
+        guard mask.nonzeroBitCount == 1,
+              let value=function["noiseReportModes"][String(mask.trailingZeroBitCount)].text else { return nil }
+        return NoiseMode(rawValue:value)
+    }
     public var spatialModes: [UInt8] { function["spatialTypes"].elements.compactMap { $0.int.flatMap(UInt8.init(exactly:)) } }
     public var customEQFrequencies: [UInt16] {
         let f = function["customEqFrequency"].elements.compactMap { $0.int.flatMap(UInt16.init(exactly:)) }
@@ -115,13 +120,15 @@ public struct ModelCatalog: Sendable {
     public init() throws {
         let resourceBundle = Bundle.main.url(forResource:"HeyBuds_HeyBudsProtocol",withExtension:"bundle").flatMap(Bundle.init(url:)) ?? Bundle.module
         guard let file = resourceBundle.url(forResource: "DeviceModels", withExtension: "json"),
+              let encoFile = resourceBundle.url(forResource: "EncoDeckModels", withExtension: "json"),
               let zhFile = resourceBundle.url(forResource: "EqModeNames", withExtension: "json"),
               let enFile = resourceBundle.url(forResource: "EqModeNames.en", withExtension: "json") else { throw ProtocolError.invalidPayload }
         let decoder = JSONDecoder()
         let raw = try decoder.decode(JSONValue.self, from: Data(contentsOf: file))
+        let enco = try decoder.decode(JSONValue.self, from: Data(contentsOf: encoFile))
         let zh = try decoder.decode(JSONValue.self, from: Data(contentsOf: zhFile))["mapping"]
         let en = try decoder.decode(JSONValue.self, from: Data(contentsOf: enFile))["mapping"]
-        var imported = raw["whiteList"].elements.compactMap { entry -> DeviceModel? in
+        var imported = (raw["whiteList"].elements + enco["whiteList"].elements).compactMap { entry -> DeviceModel? in
             guard let id = entry["id"].text, let name = entry["name"].text else { return nil }
             var noise: [NoiseOption] = []
             if id == "066452" {
@@ -132,7 +139,8 @@ public struct ModelCatalog: Sendable {
                 for parent in entry["function"]["noiseReductionMode"].elements {
                     guard let type = parent["modeType"].int, let mode = NoiseMode.from(type:type) else { continue }
                     let children = parent["childrenMode"].elements
-                    let nodes = children.count > 1 ? children : [parent]
+                    let usesParent = mode != .anc && entry["function"]["noiseReportModes"] != .null
+                    let nodes = !usesParent && children.count > 1 ? children : [parent]
                     for node in nodes {
                         guard let index = node["protocolIndex"].int, (0...15).contains(index),
                               let kind = node["modeType"].int, let leaf = NoiseMode.from(type:kind) else { continue }
@@ -151,7 +159,7 @@ public struct ModelCatalog: Sendable {
                 // Retain mobile version conditions in raw JSON; don't claim a source baseline newer than Melody 16.8.1.
                 if let required=item["minAppVersion"].int, required > 16_008_001 { return nil }
                 guard eqSeen.insert(wire).inserted else { return nil }
-                return EQPreset(id:wire,chinese:zh[String(type)].text ?? "EQ \(wire)",english:en[String(type)].text ?? "EQ \(wire)",minimumFirmware:item["minFirmVersion"].int)
+                return EQPreset(id:wire,chinese:item["chinese"].text ?? zh[String(type)].text ?? "EQ \(wire)",english:item["english"].text ?? en[String(type)].text ?? "EQ \(wire)",minimumFirmware:item["minFirmVersion"].int)
             }
             return DeviceModel(raw:entry,id:id,name:name,brand:entry["brand"].text ?? "OPPO",
                 aliases:entry["children"].elements.compactMap { $0["name"].text },noiseOptions:noise,presets:presets)
@@ -176,7 +184,7 @@ public struct ModelCatalog: Sendable {
         }
         byProductID=products; byName=names
         fallbackNames=models.sorted { $0.name.count > $1.name.count }.compactMap { model in
-            guard [.vivo,.huawei,.apple,.edifier].contains(model.family) else { return nil }
+            guard [.vivo,.huawei,.edifier].contains(model.family) else { return nil }
             return NameMatch(model:model,name:EarbudFamily.normalize(model.name),
                 aliases:model.aliases.map(EarbudFamily.normalize),tokens:Set(model.aliases.map { $0.lowercased() }))
         }
@@ -193,7 +201,7 @@ public struct ModelCatalog: Sendable {
             case .vivo:
                 return !tokens.isDisjoint(with:match.tokens) || normalized.contains(match.name)
             case .huawei: return ([match.name]+match.aliases).contains(where:normalized.hasPrefix)
-            case .apple,.edifier: return normalized.contains(match.name)
+            case .edifier: return normalized.contains(match.name)
             default:return false
             }
         }?.model

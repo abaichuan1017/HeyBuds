@@ -186,13 +186,12 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             }
             var errors:[String]=[]
             let family=self.catalog.family(name:candidate.name,override:override) ?? candidate.family ?? .oppo
-            let kinds=family == .apple ? ["Advertisement"] : family == .oppo ? ["RFCOMM","BLE"] : ["RFCOMM"]
+            let kinds=family == .oppo ? ["RFCOMM","BLE"] : ["RFCOMM"]
             for kind in kinds {
                 guard !Task.isCancelled, self.connectionToken == token, !self.sleeping, !self.manualDisconnect else { return }
                 do {
                     let transport:EarbudTransport
-                    if family == .apple { transport=AppleAdvertisementTransport(name:candidate.name) }
-                    else if kind == "RFCOMM",let address=candidate.classicAddress,let service=family.serviceUUID { transport=try RFCOMMTransport(address:address,serviceUUID:service) }
+                    if kind == "RFCOMM",let address=candidate.classicAddress,let service=family.serviceUUID { transport=try RFCOMMTransport(address:address,serviceUUID:service) }
                     else if family == .oppo { transport=BLETransport(name:candidate.name) }
                     else { throw ProtocolError.unsupported }
                     let s=DeviceSession(transport:transport,name:candidate.name,catalog:self.catalog,overrideID:override,family:family,localHostAddress:IOBluetoothHostController.default()?.addressAsString().split(whereSeparator:{$0 == ":" || $0 == "-"}).compactMap { UInt8($0,radix:16) })
@@ -335,7 +334,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func exportDiagnostics() {
         let panel=NSSavePanel(); panel.nameFieldStringValue="HeyBuds-diagnostics.json"
         guard panel.runModal() == .OK, let url=panel.url else { return }
-        let report:[String:Any]=["app":"HeyBuds", "version":"0.3.1", "os":ProcessInfo.processInfo.operatingSystemVersionString,
+        let report:[String:Any]=["app":"HeyBuds", "version":"0.3.2", "os":ProcessInfo.processInfo.operatingSystemVersionString,
             "phase":phase,"transport":transportLabel,"catalogModels":catalog.models.count,
             "productID":state.productID ?? "unknown","modelID":model?.id ?? "unknown",
             "firmware":state.firmware ?? "unknown","queries":state.observedQueries.sorted().map{String(format:"%04X",$0)},
@@ -344,7 +343,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         catch { self.error=error.localizedDescription }
     }
     func diagnosticSnapshot() -> [String:Any] {
-        var value:[String:Any]=["app":"HeyBuds","version":"0.3.1","phase":phase,"transport":transportLabel,
+        var value:[String:Any]=["app":"HeyBuds","version":"0.3.2","phase":phase,"transport":transportLabel,
             "timestamp":ISO8601DateFormatter().string(from:Date()),"productID":state.productID ?? "unknown",
             "firmware":state.firmware ?? "unknown","noise":state.noise?.rawValue ?? "unknown",
             "eq":state.eq.map(Int.init) ?? -1,"spatial":state.spatial.map(Int.init) ?? -1,

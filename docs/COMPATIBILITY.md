@@ -4,16 +4,24 @@
 
 | 后端 | 目录记录 | 实现范围 |
 | --- | --- | --- |
-| OPPO / OnePlus / realme | 137 个产品 ID：56 / 32 / 49 | RFCOMM / BLE、电量、降噪、EQ、空间与游戏音效、多设备 |
+| OPPO / OnePlus / realme | 138 个产品 ID：57 / 32 / 49 | RFCOMM / BLE、电量、降噪、EQ、空间与游戏音效、多设备 |
 | vivo / iQOO | 43 个显示型号，保留 87 条原始配置与项目代号 | GAIA、电量、佩戴、固件、降噪、EQ、游戏、空间音频、查找、多设备 |
 | HUAWEI | 24 个型号路由及别名 | Legacy TLV、电量、降噪、EQ、10 段自定义 EQ、游戏、多设备 |
 | Xiaomi / Redmi | 1 条系列规则 | RCSP 电量；低延迟配置需有效状态回读 |
 | EDIFIER | W820NB / W200BT / EDIFIER，共 3 条规则 | SPP 电量及降噪；纯 BLE 型号未接入 |
-| Apple / Beats | 18 个广播型号映射 | 明文广播电量、充电、佩戴；只读 |
 
-合计 226 条记录，包含产品 ID、显示型号和系列规则，不等于 226 款实机通过。完整名称见[型号清单](SUPPORTED_DEVICES.md)；机器可读目录可运行 `swift run heybuds-probe catalog` 生成，不在文档中重复存储。
+合计 209 条记录，包含产品 ID、显示型号和系列规则，不等于 209 款实机通过。完整名称见[型号清单](SUPPORTED_DEVICES.md)；机器可读目录可运行 `swift run heybuds-probe catalog` 生成，不在文档中重复存储。
 
-原始资源与指纹见[上游来源](UPSTREAM.md)。vivo 原表保留在 `docs/reference/VivoDeviceModels.json`，归一化目录保留所有 `sourceEntries`；华为能力来自 `HuaweiModels.cs`，Apple 映射来自 `AppleModels.cs`。导入工具为 `scripts/import-brand-models.py`。
+原始资源与指纹见[上游来源](UPSTREAM.md)。vivo 原表保留在 `docs/reference/VivoDeviceModels.json`，归一化目录保留所有 `sourceEntries`；华为能力来自 `HuaweiModels.cs`。导入工具为 `scripts/import-brand-models.py`。
+
+Apple / Beats 由 macOS 原生管理，已从本应用移除。
+
+## OPPO Enco X4
+
+- 产品 ID `06EC10`，别名 `OPPO Enco Bohr`；配置来自 [EncoDeck](https://github.com/TIANLI0/EncoDeck)，具体提交与指纹见[上游来源](UPSTREAM.md)。
+- 已接入关闭、通透、自适应及智能／深度／中度／轻度降噪、5 个 EQ 预设和 10 段自定义 EQ；既有空间、游戏音效及多设备功能按配置与有效回读开放。
+- 自适应使用父级模式，不单独提供“更少／标准／更多噪音”档位。开启空间音频前，必须读到 Hi-Res 已关闭；可先在手机端关闭 Hi-Res 后刷新。
+- 本次验证包含上游公开帧重放和模拟会话；未在 HeyBuds/macOS 上完成 X4 实机验收。EncoDeck 的 Windows 实机报告不等于本应用的实机结果。
 
 ## 功能限制
 
@@ -22,7 +30,6 @@
 - vivo TWS 3e 的强制双连不提供开关；其他 vivo 型号没有使能状态回读时保留未知，不用设备列表推断开关。
 - 华为标准 SPP 必须结合型号识别和有效响应，不使用猜测通道。未解释的 MBB 分片不作为设置状态。
 - 小米配置字段仍需实机核对；通用 ACK 不视为设置成功。
-- Apple 广播必须能绑定所选设备的名称；匿名、加密或无法区分的广播不显示为当前电量。macOS 不保证持续提供可读广播。
 - OTA、解除配对、健康测量、依赖手机服务及上游未开放的功能不属于当前范围。
 
 ## 证据与验收

@@ -4,7 +4,7 @@ import Foundation
 /// two generations of the app from owning the same earbud control session.
 enum AppIdentity {
     static let name="HeyBuds"
-    static let version="0.3.1"
+    static let version="0.3.2"
     static let bundleID="local.heybuds.app"
     static let legacyBundleID="local.encobar.app"
     static let migrationKey="heybudsPreferencesMigratedV1"

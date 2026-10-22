@@ -89,6 +89,7 @@ public enum FeatureCodec {
         var ids:[UInt8]=[5,6,0x28]
         ids += model?.features.map(\.switchID) ?? []
         if model?.spatialModes.isEmpty == false { ids.append(0x1B) }
+        if model?.function["spatialHiResMutex"].enabled == true { ids.append(0x18) }
         if model?.function["bassEngineSupport"].enabled == true { ids.append(0x1D) }
         if model?.gameTypes.isEmpty == false { ids.append(0x27) }
         let unique=Array(Set(ids)).sorted()

@@ -34,9 +34,9 @@ private func bytes(_ string:String) -> [UInt8] { string.split(separator:" ").map
     state.apply(OPOFrame(command:0x0204,payload:[1,1,3,0x7F]))
     #expect(state.batteries[.enclosure] == nil)
 }
-@Test func entire137ModelCatalogAndOriginalIDs() throws {
+@Test func entire138ModelCatalogAndOriginalIDs() throws {
     let catalog=try ModelCatalog()
-    #expect(catalog.models.filter { $0.family == .oppo }.count == 137)
+    #expect(catalog.models.filter { $0.family == .oppo }.count == 138)
     #expect(Set(catalog.models.map(\.id)).count == catalog.models.count)
     for model in catalog.models {
         #expect(!model.name.isEmpty)
