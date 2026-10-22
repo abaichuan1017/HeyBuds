@@ -17,9 +17,11 @@ Check battery levels, switch noise modes, adjust sound and manage connected devi
 <table>
   <tr><th>Main panel</th><th>Advanced features</th></tr>
   <tr>
-    <td valign="top"><img src="docs/images/home.png" alt="HeyBuds battery and noise controls" width="300"></td>
-    <td valign="top"><img src="docs/images/advanced.png" alt="HeyBuds sound settings and advanced features" width="300"></td>
+    <td valign="top"><img src="docs/images/home.jpg" alt="HeyBuds battery and noise controls" width="300"></td>
+    <td valign="top"><img src="docs/images/advanced.jpg" alt="HeyBuds sound settings and advanced features" width="300"></td>
   </tr>
+  <tr><th colspan="2">Disconnected</th></tr>
+  <tr><td colspan="2" align="center"><img src="docs/images/disconnected.jpg" alt="HeyBuds disconnected state" width="300"></td></tr>
 </table>
 
 ## Compatibility

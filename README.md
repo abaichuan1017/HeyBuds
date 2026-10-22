@@ -17,9 +17,11 @@
 <table>
   <tr><th>主面板</th><th>高级功能</th></tr>
   <tr>
-    <td valign="top"><img src="docs/images/home.png" alt="HeyBuds 电量与降噪面板" width="300"></td>
-    <td valign="top"><img src="docs/images/advanced.png" alt="HeyBuds 音效与高级功能" width="300"></td>
+    <td valign="top"><img src="docs/images/home.jpg" alt="HeyBuds 电量与降噪面板" width="300"></td>
+    <td valign="top"><img src="docs/images/advanced.jpg" alt="HeyBuds 音效与高级功能" width="300"></td>
   </tr>
+  <tr><th colspan="2">未连接</th></tr>
+  <tr><td colspan="2" align="center"><img src="docs/images/disconnected.jpg" alt="HeyBuds 未连接状态" width="300"></td></tr>
 </table>
 
 ## 支持范围
