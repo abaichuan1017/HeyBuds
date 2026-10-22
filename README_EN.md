@@ -48,6 +48,8 @@ Requires an **Apple Silicon Mac running macOS 26+**.
 3. Open HeyBuds, allow Bluetooth access and select your earbuds from its menu bar icon.
 4. Use the main panel for noise control and Advanced features for sound settings. Settings includes connection pop-ups, low-battery alerts, automatic reconnection and launch at login.
 
+Diagnostics in Settings includes manual update checking, the GitHub project link, donations and redacted diagnostic export.
+
 The app is not notarized. If macOS blocks it, verify the download source and choose Open Anyway in System Settings → Privacy & Security. See [Apple's instructions](https://support.apple.com/en-us/102445).
 
 If your earbuds are missing, check their system Bluetooth connection, then choose Refresh devices. Use the bottom refresh button for missing readings. When upgrading from EncoBar, quit the old app first; preferences migrate automatically.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3 — 2026-10-22
+
+- Add manual update checking, the GitHub project link and a text-only donation link to Diagnostics.
+- Compare stable release versions numerically, show update-check failures clearly and open downloads only at the user's request.
+
 ## 0.3.2 — 2026-10-22
 
 - Add OPPO Enco X4 (`06EC10`) and its Enco Bohr alias from EncoDeck, with the model's noise modes, EQ presets, ten-band custom EQ and existing sound/device controls.

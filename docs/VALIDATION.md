@@ -1,44 +1,18 @@
 # Validation
 
-## 0.3.2 scope — 2026-10-22
+## 0.3.3 — 2026-10-22
 
-Added Enco X4 (`06EC10`) from the frozen EncoDeck configuration, removed the 18 Apple / Beats records and advertisement backend, and lowered the deployment target to macOS 26. The resulting catalog contains 209 records. X4 tests replay EncoDeck public fixtures and simulate write/readback sessions; no X4 hardware acceptance on macOS is claimed.
+- 72 automated tests passed: 27 protocol, 34 session and 11 presentation/preferences/update checks.
+- New update checks cover numeric version ordering, stable-release and project-URL validation, HTTP failures and the user-facing results.
+- The native Diagnostics section was rendered and inspected. Donation uses a text link; no payment image or QR code is bundled.
+- The arm64 release build, strict signature verification, runtime-resource equivalence and exact ZIP-content checks passed.
+- A live latest-release query succeeded. The source archive was independently extracted, audited and tested: all 72 tests passed.
+- Detailed local maintenance records and temporary visual fixtures are excluded from public source.
 
-The connection pop-up image is rendered from the native view in its reduced-transparency appearance, with a simulated session and sample battery levels. Existing main/advanced/disconnected images are retained. Temporary screenshot fixtures are excluded from the public source.
+## Hardware and platform limits
 
-Final automated checks: 68 tests passed (27 protocol, 34 session, 7 presentation/preferences). Source audit passed with 209 records; the signed arm64 app contains 14 files, and the application ZIP contains exactly the same bytes and license notices. The executable deployment target is 26.0; this run used macOS 27.2, so runtime testing on macOS 26 remains pending. No physical X4 or sleep/reconnection checks were performed. The source ZIP was independently extracted and audited, then all 68 tests passed without sibling reference projects or an existing build cache.
+Enco Air5 Pro has historical read/write observations. X4 coverage uses public EncoDeck frames and simulated sessions; it has not completed HeyBuds/macOS hardware acceptance. This update adds no new hardware claim.
 
-## Historical 0.3.1 checks
+The deployment target is macOS 26.0. Checks ran on macOS 27.2 with Swift 6.4; macOS 26 runtime acceptance remains pending. Ad-hoc signing is not Developer ID signing or notarization.
 
-Checked locally on 2026-10-22, Asia/Shanghai: Apple Silicon, macOS 27.2, Apple Swift 6.4. These results cover source, simulated sessions and packaging; complete application launch time and physical-device reconnection were not measured.
-
-| Check | Result |
-| --- | --- |
-| Automated tests | 65 passed: 24 protocol, 34 session, 7 presentation / preference-migration |
-| Model lookup regression | 336 names, aliases and fallback inputs produce the same results as commit `512cdf5`; all 226 catalog records remain |
-| Resource integrity | Source catalog fingerprints unchanged; original vivo table moved to `docs/reference/`; compact bundled JSON has identical values |
-| Application ZIP | 2,187,148 → 1,435,752 bytes, down 34.4% |
-| Application files | 6,162,736 → 2,721,872 bytes, down 55.8%; 12 distributable files |
-| Executable | 4,285,504 → 1,605,392 bytes; arm64, strict ad-hoc signature verification passed |
-| Icon | All image sizes, decoded PNG streams and metadata unchanged; chunk CRCs verified |
-| Release diagnostics | Developer hardware-exercise and preview code excluded from release compilation; normal redacted diagnostic export remains |
-
-An optimized, hardware-free catalog benchmark ran 3,360 lookups over those 336 inputs: 851.26 ms before, 3.67 ms after. This measures model lookup only. Full catalog initialization remained about 34 ms and now runs away from the main actor; the panel is created on first use. Results depend on the local environment and do not measure time to Bluetooth readiness.
-
-The package checks include source allowlisting, JSON/resource fingerprints, relative documentation links, bundled file allowlisting, runtime JSON equivalence, ZIP CRC/content equality and license preservation. The source archive is also extracted and tested without sibling reference projects or an existing build cache. Commands are in [RELEASING.md](RELEASING.md).
-
-The toolchain still prints missing search-directory linker warnings; builds and tests succeed without changing system settings. Ad-hoc signing is not notarization. No new physical-device acceptance is claimed; the earlier Air5 Pro observations do not establish compatibility with other models. See [compatibility](COMPATIBILITY.md).
-
-## Historical Air5 Pro evidence
-
-The source catalog snapshot at `512cdf5` retained these observations for OPPO Enco Air5 Pro, product ID `06C410`. They are preserved here when removing the duplicate `docs/models.json`; they were not repeated in this maintenance run. “本次” below refers to that historical observation, not 2026-10-22.
-
-- BLE 控制连接
-- 产品 ID 读取
-- 左右耳电量读取
-- 佩戴状态读取
-- 通透写入与回读
-- 深度降噪写入与回读
-- EQ 预设 2 写入与回读
-- 手机状态同步（用户确认）
-- 充电盒电量读取（本次 60%，用户确认显示正常）
+Build commands are in [RELEASING.md](RELEASING.md); model and capability limits are in [COMPATIBILITY.md](COMPATIBILITY.md).

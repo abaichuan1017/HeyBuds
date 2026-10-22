@@ -544,10 +544,8 @@ struct PanelView: View {
                     .font(.system(size:11)).foregroundStyle(.secondary)
                     .fixedSize(horizontal:false,vertical:true).padding(.top,9).padding(.bottom,2)
             }
-            settingsGroup(L("诊断","Diagnostics")) {
-                settingAction(L("导出诊断…","Export diagnostics…"),symbol:"square.and.arrow.up") { app.exportDiagnostics() }
-            }
-            Text("HeyBuds 0.3.2 · GPL-3.0-or-later")
+            DiagnosticsSection(app:app)
+            Text("HeyBuds 0.3.3 · GPL-3.0-or-later")
                 .font(.system(size:10)).foregroundStyle(.secondary)
                 .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12)
         }
@@ -589,10 +587,7 @@ struct PanelView: View {
         }
     }
     private func settingAction(_ title:String,symbol:String,action:@escaping () -> Void) -> some View {
-        Button(action:action) {
-            settingRow(title) { Image(systemName:symbol).font(.system(size:11,weight:.medium)).foregroundStyle(.secondary).frame(width:16) }
-                .contentShape(Rectangle())
-        }.buttonStyle(.plain)
+        SettingsActionRow(title:title,symbol:symbol,action:action)
     }
     @ViewBuilder private var messages:some View {
         if let error=app.error {
@@ -665,6 +660,45 @@ struct PanelView: View {
     }
     private func infoRow(_ name:String,_ value:String) -> some View {
         HStack(alignment:.top) { Text(name).foregroundStyle(.secondary); Spacer(minLength:10); Text(value).multilineTextAlignment(.trailing).textSelection(.enabled) }
+    }
+}
+
+struct SettingsActionRow:View {
+    let title:String, symbol:String
+    let action:() -> Void
+    var body:some View {
+        Button(action:action) {
+            HStack(spacing:12) {
+                Text(title).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
+                Spacer(minLength:0)
+                Image(systemName:symbol).font(.system(size:11,weight:.medium)).foregroundStyle(.secondary).frame(width:16)
+            }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).padding(.vertical,2).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+    }
+}
+
+struct DiagnosticsSection:View {
+    @Bindable var app:AppModel
+    var body:some View {
+        VStack(alignment:.leading,spacing:6) {
+            Text(L("诊断","Diagnostics")).font(.system(size:11,weight:.semibold)).foregroundStyle(.secondary).padding(.horizontal,12)
+            VStack(alignment:.leading,spacing:0) {
+                SettingsActionRow(title:app.checkingForUpdates ? L("正在检查…","Checking…") : L("检查更新","Check for updates"),symbol:"arrow.down.circle") {
+                    Task { await app.checkForUpdates() }
+                }.disabled(app.checkingForUpdates)
+                Divider()
+                SettingsActionRow(title:L("GitHub 项目地址","GitHub project"),symbol:"arrow.up.right.square") { NSWorkspace.shared.open(AppIdentity.projectURL) }
+                Divider()
+                SettingsActionRow(title:L("捐赠","Donate"),symbol:"heart") { NSWorkspace.shared.open(AppIdentity.donationURL) }
+                Divider()
+                SettingsActionRow(title:L("导出诊断…","Export diagnostics…"),symbol:"square.and.arrow.up") { app.exportDiagnostics() }
+            }.card()
+        }.alert(L("检查更新","Check for updates"),isPresented:$app.showUpdateAlert) {
+            if let url=app.updateReleaseURL {
+                Button(L("前往发布页","Open releases")) { NSWorkspace.shared.open(url) }
+            }
+            Button(L("好","OK"),role:.cancel) { }
+        } message: { Text(app.updateMessage) }
     }
 }
 
