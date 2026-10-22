@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3 — 2026-10-22
+
+- Fix switches briefly turning dark or bright when opening Settings by removing the whole-panel page transition.
+
 ## 0.4.2 — 2026-10-22
 
 - Use the native popover material for connection cards, synchronize their appearance and smooth the dark-mode edges.

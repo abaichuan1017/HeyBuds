@@ -72,7 +72,7 @@ struct PanelView: View {
         .frame(width:360,height:min(contentHeight,maxHeight))
         .background(reduceTransparency ? Color(nsColor:.windowBackgroundColor) : Color.clear)
         .preferredColorScheme(app.appearance == "dark" ? .dark : app.appearance == "light" ? .light : nil)
-        .animation(reduceMotion ? nil : .snappy(duration:0.25),value:page)
+        // Keep page replacement immediate to avoid flashing newly inserted switches.
         .animation(reduceMotion ? nil : .smooth(duration:0.25),value:app.ready)
         .sheet(item:$editEQ) { entry in EQEditor(app:app,entry:entry) { editEQ=nil } }
         .alert(L("查找耳机","Find earbuds"),isPresented:$findConfirmation) {
