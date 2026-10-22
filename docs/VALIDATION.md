@@ -1,10 +1,11 @@
 # Validation
 
-## 0.3.3 — 2026-10-22
+## 0.3.4 — 2026-10-22
 
 - 72 automated tests passed: 27 protocol, 34 session and 11 presentation/preferences/update checks.
-- New update checks cover numeric version ordering, stable-release and project-URL validation, HTTP failures and the user-facing results.
-- The native Diagnostics section was rendered and inspected. Donation uses a text link; no payment image or QR code is bundled.
+- Update checks cover numeric version ordering, stable-release and project-URL validation, HTTP failures and the user-facing results.
+- Native navigation and information-help components were rendered and inspected.
+- Diagnostics includes manual update checking, the GitHub project and a text-only donation link. No payment image or QR code is bundled.
 - The arm64 release build, strict signature verification, runtime-resource equivalence and exact ZIP-content checks passed.
 - A live latest-release query succeeded. The source archive was independently extracted, audited and tested: all 72 tests passed.
 - Detailed local maintenance records and temporary visual fixtures are excluded from public source.

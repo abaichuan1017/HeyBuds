@@ -210,7 +210,10 @@ import HeyBudsBluetooth
         popover.contentViewController?.view.window?.makeKey()
         eventMonitor=NSEvent.addGlobalMonitorForEvents(matching:[.leftMouseDown,.rightMouseDown]) { [weak self] _ in self?.popover.performClose(nil) }
         localMonitor=NSEvent.addLocalMonitorForEvents(matching:.keyDown) { [weak self] event in
-            if event.keyCode == 53 { self?.popover.performClose(nil); return nil }; return event
+            guard event.keyCode == 53,let self,
+                  let panelWindow=self.popover.contentViewController?.view.window,
+                  event.window === panelWindow else { return event }
+            self.popover.performClose(nil); return nil
         }
     }
     func popoverDidClose(_ notification:Notification) {

@@ -262,11 +262,7 @@ struct PanelView: View {
         }.padding(.vertical,6)
     }
     private var navigationHeader:some View {
-        HStack(spacing:8) {
-            Button { page = page == .device ? .settings : .home } label: { Image(systemName:"chevron.left").fontWeight(.semibold).frame(width:24,height:24) }
-                .buttonStyle(.plain).accessibilityLabel(L("返回","Back"))
-            Text(pageTitle).font(.system(size:16,weight:.semibold)); Spacer()
-        }
+        PanelNavigationHeader(title:pageTitle) { page = page == .device ? .settings : .home }
     }
     private var pageTitle:String {
         switch page {
@@ -511,10 +507,7 @@ struct PanelView: View {
                 Divider()
                 settingToggle(L("菜单栏显示电量","Battery in menu bar"),isOn:$app.menuBattery)
                 Divider()
-                settingToggle(L("后台运行","Background mode"),isOn:$app.backgroundMode)
-                Text(L("未连接已识别耳机时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no recognized earbuds are connected. Reopen HeyBuds to access settings."))
-                    .font(.system(size:11)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal:false,vertical:true).padding(.bottom,8)
+                settingToggle(L("后台运行","Background mode"),helpText:L("未连接已识别耳机时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no recognized earbuds are connected. Reopen HeyBuds to access settings."),isOn:$app.backgroundMode)
                 Divider()
                 settingToggle(L("断线自动重连","Reconnect automatically"),isOn:$app.autoReconnect)
                 Divider()
@@ -535,17 +528,13 @@ struct PanelView: View {
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),value:app.overrideID.flatMap { id in app.catalog.models.first(where:{$0.id == id})?.name } ?? L("自动识别","Automatic"),selection:Binding(get:{app.overrideID ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0})) {
+                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.candidate == nil || app.operationBusy,value:app.overrideID.flatMap { id in app.catalog.models.first(where:{$0.id == id})?.name } ?? L("自动识别","Automatic"),selection:Binding(get:{app.overrideID ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0})) {
                     Text(L("自动识别","Automatic")).tag("auto")
                     ForEach(app.catalog.models.sorted(by:{$0.name < $1.name})) { Text($0.name).tag($0.id) }
-                }.disabled(app.candidate == nil || app.operationBusy)
-                Divider()
-                Text(L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."))
-                    .font(.system(size:11)).foregroundStyle(.secondary)
-                    .fixedSize(horizontal:false,vertical:true).padding(.top,9).padding(.bottom,2)
+                }
             }
             DiagnosticsSection(app:app)
-            Text("HeyBuds 0.3.3 · GPL-3.0-or-later")
+            Text("HeyBuds 0.3.4 · GPL-3.0-or-later")
                 .font(.system(size:10)).foregroundStyle(.secondary)
                 .frame(maxWidth:.infinity,alignment:.leading).padding(.horizontal,12)
         }
@@ -556,15 +545,15 @@ struct PanelView: View {
             VStack(alignment:.leading,spacing:0,content:content).card()
         }.frame(maxWidth:.infinity,alignment:.leading)
     }
-    private func settingRow<Control:View>(_ title:String,@ViewBuilder control:() -> Control) -> some View {
+    private func settingRow<Control:View>(_ title:String,helpText:String? = nil,@ViewBuilder control:() -> Control) -> some View {
         HStack(spacing:12) {
-            Text(title).fixedSize(horizontal:false,vertical:true).layoutPriority(1)
+            SettingsLabel(title:title,helpText:helpText)
             Spacer(minLength:0)
             control()
         }.frame(maxWidth:.infinity,minHeight:30,alignment:.leading).padding(.vertical,2)
     }
-    private func settingPicker<Value:Hashable,Options:View>(_ title:String,value:String,selection:Binding<Value>,@ViewBuilder options:() -> Options) -> some View {
-        settingRow(title) {
+    private func settingPicker<Value:Hashable,Options:View>(_ title:String,helpText:String? = nil,isDisabled:Bool = false,value:String,selection:Binding<Value>,@ViewBuilder options:() -> Options) -> some View {
+        settingRow(title,helpText:helpText) {
             Menu {
                 Picker(title,selection:selection,content:options).pickerStyle(.inline)
             } label: {
@@ -579,10 +568,11 @@ struct PanelView: View {
                 }
                 .contentShape(Rectangle()).help(value)
                 .accessibilityLabel(title).accessibilityValue(value)
+                .disabled(isDisabled)
         }
     }
-    private func settingToggle(_ title:String,isOn:Binding<Bool>) -> some View {
-        settingRow(title) {
+    private func settingToggle(_ title:String,helpText:String? = nil,isOn:Binding<Bool>) -> some View {
+        settingRow(title,helpText:helpText) {
             Toggle(title,isOn:isOn).labelsHidden().toggleStyle(.switch).controlSize(.small).fixedSize()
         }
     }
@@ -641,10 +631,7 @@ struct PanelView: View {
     private func featureToggle(_ feature:FeatureDefinition,title:String,detail:String?,symbol:String? = nil) -> some View {
         HStack(spacing:9) {
             if let symbol { Image(systemName:symbol).frame(width:18).foregroundStyle(.secondary) }
-            VStack(alignment:.leading,spacing:3) {
-                Text(title)
-                if let detail { Text(detail).font(.system(size:11)).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
-            }
+            SettingsLabel(title:title,helpText:detail)
             Spacer(minLength:12)
             if app.state.switches[feature.switchID] != nil {
                 Toggle(title,isOn:Binding(get:{app.state.switches[feature.switchID] ?? false},set:{ enabled in app.perform { try await $0.setFeature(feature,enabled:enabled) } }))
@@ -660,6 +647,50 @@ struct PanelView: View {
     }
     private func infoRow(_ name:String,_ value:String) -> some View {
         HStack(alignment:.top) { Text(name).foregroundStyle(.secondary); Spacer(minLength:10); Text(value).multilineTextAlignment(.trailing).textSelection(.enabled) }
+    }
+}
+
+struct PanelNavigationHeader:View {
+    let title:String
+    let onBack:() -> Void
+    var body:some View {
+        HStack(spacing:10) {
+            Button(action:onBack) {
+                Image(systemName:"chevron.left").font(.system(size:12,weight:.semibold)).frame(width:24,height:24)
+            }.buttonStyle(.glass).buttonBorderShape(.circle)
+                .help(L("返回","Back")).accessibilityLabel(L("返回","Back"))
+            Text(title).font(.system(size:16,weight:.semibold))
+            Spacer(minLength:0)
+        }
+    }
+}
+
+struct SettingsHelpText:View {
+    let title:String, text:String
+    var body:some View {
+        VStack(alignment:.leading,spacing:8) {
+            Text(title).font(.system(size:13,weight:.semibold))
+            Text(text).font(.system(size:12)).fixedSize(horizontal:false,vertical:true)
+        }.frame(width:240,alignment:.leading).padding(14)
+    }
+}
+
+struct SettingsLabel:View {
+    let title:String
+    var helpText:String? = nil
+    @ViewState<Bool> private var showingHelp=false
+    var body:some View {
+        HStack(spacing:4) {
+            Text(title).fixedSize(horizontal:false,vertical:true)
+            if let helpText {
+                Button { showingHelp.toggle() } label: {
+                    Image(systemName:"info.circle").font(.system(size:11)).foregroundStyle(.secondary).frame(width:18,height:22)
+                }.buttonStyle(.plain).help(helpText)
+                    .accessibilityLabel(title+L("说明"," information"))
+                    .accessibilityHint(L("显示此设置的说明。","Show information about this setting."))
+                    .popover(isPresented:$showingHelp,arrowEdge:.top) { SettingsHelpText(title:title,text:helpText) }
+            }
+        }.layoutPriority(1)
     }
 }
 
@@ -768,7 +799,10 @@ private struct EQEditor:View {
     var body:some View {
         VStack(alignment:.leading,spacing:14) {
             Text(L("自定义均衡器","Custom equalizer")).font(.headline)
-            TextField(L("预设名称","Preset name"),text:$name)
+            VStack(alignment:.leading,spacing:6) {
+                SettingsLabel(title:L("预设名称","Preset name"),helpText:L("名称仅支持中文、英文字母和数字。","Use Chinese characters, letters and numbers for names."))
+                TextField(L("预设名称","Preset name"),text:$name).labelsHidden()
+            }
             ScrollView {
                 VStack(spacing:10) {
                     ForEach(entry.frequencies.indices,id:\.self) { i in
@@ -781,7 +815,6 @@ private struct EQEditor:View {
                     }
                 }
             }.frame(maxHeight:320)
-            Text(L("名称仅支持中文、英文字母和数字。","Use Chinese characters, letters and numbers for names.")).font(.caption).foregroundStyle(.secondary)
             if let error=app.error { Text(error).font(.caption).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true) }
             HStack {
                 Button(L("取消","Cancel"),action:dismiss); Spacer()

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4 — 2026-10-22
+
+- Use circular glass back buttons across secondary pages.
+- Move setting explanations into clickable information buttons beside their labels, with hover help and accessible descriptions. Keep help available when the model selector is disabled.
+
 ## 0.3.3 — 2026-10-22
 
 - Add manual update checking, the GitHub project link and a text-only donation link to Diagnostics.
