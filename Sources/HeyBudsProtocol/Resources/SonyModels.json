@@ -1,0 +1,22 @@
+{
+  "models": [
+    {
+      "id": "sony:wf-1000xm5", "name": "WF-1000XM5", "brand": "Sony", "protocolFamily": "sony",
+      "children": [{"name": "Sony WF-1000XM5"}],
+      "noise": [{"mode": "off", "bytes": [0]}, {"mode": "anc", "bytes": [1]}, {"mode": "transparency", "bytes": [2]}],
+      "function": {"singleBattery": false}
+    },
+    {
+      "id": "sony:wh-1000xm5", "name": "WH-1000XM5", "brand": "Sony", "protocolFamily": "sony",
+      "children": [{"name": "Sony WH-1000XM5"}],
+      "noise": [{"mode": "off", "bytes": [0]}, {"mode": "anc", "bytes": [1]}, {"mode": "transparency", "bytes": [2]}],
+      "function": {"singleBattery": true}
+    },
+    {
+      "id": "sony:wh-ch720n", "name": "WH-CH720N", "brand": "Sony", "protocolFamily": "sony",
+      "children": [{"name": "Sony WH-CH720N"}],
+      "noise": [{"mode": "off", "bytes": [0]}, {"mode": "anc", "bytes": [1]}, {"mode": "transparency", "bytes": [2]}],
+      "function": {"singleBattery": true}
+    }
+  ]
+}

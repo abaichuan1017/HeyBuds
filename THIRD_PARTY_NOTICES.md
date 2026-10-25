@@ -29,6 +29,12 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - Full notice: `Licenses/Realme-MIT.txt`.
 - The RFCOMM/menu bar lifecycle, T500 Pro mappings and captured protocol test fixtures informed this implementation. Circular noise buttons and equal-width ANC strength capsules are adapted from its SwiftUI panel, with the same SF Symbols. The framing parser, buffer ownership and session routing were rewritten.
 
+## Sony MDR references
+
+- [SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient), [SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge) and [HeadBridge](https://github.com/herenickname/HeadBridge) informed the handwritten Swift MDR framing, V2 handshake, function discovery, battery and noise-control implementation. MIT notices and copyrights are preserved in `Licenses/Sony-MIT.txt`.
+- [Sony Device Center](https://github.com/marconvcm/sony-device-center) was used to cross-check model profiles and V2 payloads. No C++ client or binary is bundled.
+- Exact revisions and source fingerprints are recorded in `docs/upstream-sources.json`. Only the three named V2 models are enabled; upstream support reports do not establish HeyBuds hardware compatibility. Manufacturer applications, extracted metadata, artwork and raw device captures are not included.
+
 ## Sparkle
 
 - Source: https://github.com/sparkle-project/Sparkle (2.10.0).
@@ -46,4 +52,4 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - Upstream license: PolyForm Noncommercial 1.0.0.
 - Used as a visual/information-architecture reference only. No source code or assets from that project are included. Shared Bluetooth protocol constants describe interoperability, not a copied implementation.
 
-No affiliation with OPPO, OnePlus, realme, vivo, iQOO, Huawei, Xiaomi, Redmi, Edifier or Apple. The app icon combines the original blue gradient background with Apple's `airpods.pro` SF Symbol, the same system asset used by the menu bar. SF Symbols and system materials are provided by macOS.
+No affiliation with OPPO, OnePlus, realme, vivo, iQOO, Huawei, Xiaomi, Redmi, Edifier, Sony or Apple. The app icon combines the original blue gradient background with Apple's `airpods.pro` SF Symbol, the same system asset used by the menu bar. SF Symbols and system materials are provided by macOS.

@@ -9,8 +9,9 @@
 | HUAWEI | 24 个型号路由及别名 | Legacy TLV、电量、降噪、EQ、10 段自定义 EQ、游戏、多设备 |
 | Xiaomi / Redmi | 1 条系列规则 | RCSP 电量；低延迟配置需有效状态回读 |
 | EDIFIER | W820NB / W200BT / EDIFIER，共 3 条规则 | SPP 电量及降噪；纯 BLE 型号未接入 |
+| Sony | WF-1000XM5 / WH-1000XM5 / WH-CH720N，共 3 个型号 | MDR V2 RFCOMM、电量、降噪、通透强度和语音聚焦；待实机验证 |
 
-合计 209 条记录，包含产品 ID、显示型号和系列规则，不等于 209 款实机通过。完整名称见[型号清单](SUPPORTED_DEVICES.md)；机器可读目录可运行 `swift run heybuds-probe catalog` 生成，不在文档中重复存储。
+合计 212 条记录，包含产品 ID、显示型号和系列规则，不等于 212 款实机通过。完整名称见[型号清单](SUPPORTED_DEVICES.md)；机器可读目录可运行 `swift run heybuds-probe catalog` 生成，不在文档中重复存储。
 
 原始资源与指纹见[上游来源](UPSTREAM.md)。vivo 原表保留在 `docs/reference/VivoDeviceModels.json`，归一化目录保留所有 `sourceEntries`；华为能力来自 `HuaweiModels.cs`。导入工具为 `scripts/import-brand-models.py`。
 
@@ -22,6 +23,14 @@ Apple / Beats 由 macOS 原生管理，已从本应用移除。
 - 已接入关闭、通透、自适应及智能／深度／中度／轻度降噪、5 个 EQ 预设和 10 段自定义 EQ；既有空间、游戏音效及多设备功能按配置与有效回读开放。
 - 自适应使用父级模式，不单独提供“更少／标准／更多噪音”档位。开启空间音频前，必须读到 Hi-Res 已关闭；可先在手机端关闭 Hi-Res 后刷新。
 - 本次验证包含上游公开帧重放和模拟会话；未在 HeyBuds/macOS 上完成 X4 实机验收。EncoDeck 的 Windows 实机报告不等于本应用的实机结果。
+
+## Sony 首批型号
+
+- WF-1000XM5 分别读取左右耳和充电盒电量；WH-1000XM5、WH-CH720N 使用单电池显示。设备未报告或无法确定的电量保持未知。
+- 连接仅使用 MDR V2 专用服务，确认 V2 Table 1 握手、耳机返回的型号及功能后开放控制；Sony 型号自动识别，不接受手动覆盖。V1 设备和其他 Sony 型号不在本次支持范围。
+- 接入关闭、降噪、通透，以及 1–20 级通透强度和语音聚焦。写入后需要新的完整状态回读，ACK 不代表设置成功；耳机报告功能暂不可用时禁用控制。
+- Sony EQ、DSEE、Speak-to-Chat、触控、查找和多设备管理尚未接入；不沿用其他品牌命令。既有品牌功能保持原有实现。
+- 三个型号均已实现并经过模拟协议验证，HeyBuds/macOS 的实机兼容性仍待验证。上游型号记录不是本应用的实机结果。
 
 ## 功能限制
 

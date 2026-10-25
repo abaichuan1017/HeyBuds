@@ -36,6 +36,7 @@
 | HUAWEI | 电量、降噪、EQ、自定义 EQ、多设备 |
 | Xiaomi / Redmi | 系列识别、电量；低延迟需有效状态回读 |
 | EDIFIER | 支持 SPP 的系列电量及降噪 |
+| Sony | WF-1000XM5 / WH-1000XM5 / WH-CH720N：电量、降噪、通透强度与语音聚焦；待实机验证 |
 
 具体功能取决于型号、固件和设备响应。详见[型号清单](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md)与[兼容性说明](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md)。
 

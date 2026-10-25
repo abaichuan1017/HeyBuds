@@ -164,11 +164,13 @@ public struct ModelCatalog: Sendable {
             return DeviceModel(raw:entry,id:id,name:name,brand:entry["brand"].text ?? "OPPO",
                 aliases:entry["children"].elements.compactMap { $0["name"].text },noiseOptions:noise,presets:presets)
         }
-        guard let migratedFile=resourceBundle.url(forResource:"MigratedModels",withExtension:"json") else { throw ProtocolError.invalidPayload }
-        let migrated=try decoder.decode(JSONValue.self,from:Data(contentsOf:migratedFile))
-        for entry in migrated["models"].elements {
-            guard let model=DeviceModel.migrated(entry) else { throw ProtocolError.invalidPayload }
-            imported.append(model)
+        for resource in ["MigratedModels","SonyModels"] {
+            guard let file=resourceBundle.url(forResource:resource,withExtension:"json") else { throw ProtocolError.invalidPayload }
+            let migrated=try decoder.decode(JSONValue.self,from:Data(contentsOf:file))
+            for entry in migrated["models"].elements {
+                guard let model=DeviceModel.migrated(entry) else { throw ProtocolError.invalidPayload }
+                imported.append(model)
+            }
         }
         models=imported
         guard Set(models.map(\.id)).count == models.count else { throw ProtocolError.invalidPayload }
@@ -211,7 +213,7 @@ public struct ModelCatalog: Sendable {
         model(productID:nil,name:name)?.family ?? EarbudFamily.detect(name)
     }
     public func validOverride(_ id:String?,family:EarbudFamily?) -> String? {
-        guard let id,let family,byID[id]?.family == family else { return nil }
+        guard let id,let family,family != .sony,byID[id]?.family == family else { return nil }
         return id
     }
     public func routingFamily(name:String,services:Set<EarbudFamily>) -> EarbudFamily? {

@@ -36,6 +36,7 @@ Check battery levels, switch noise modes, adjust sound and manage connected devi
 | HUAWEI | Battery, noise control, EQ, custom EQ, connected devices |
 | Xiaomi / Redmi | Family detection and battery; low latency requires valid state readback |
 | EDIFIER | Battery and noise control for supported SPP families |
+| Sony | WF-1000XM5 / WH-1000XM5 / WH-CH720N: battery, noise control, ambient level and focus on voice; hardware verification pending |
 
 Features depend on the model, firmware and device responses. See the [model list](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md) and [compatibility notes](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md).
 

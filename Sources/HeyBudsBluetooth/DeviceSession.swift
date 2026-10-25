@@ -20,15 +20,16 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
 
 @MainActor public final class DeviceSession {
     private var opoState=DeviceState()
-    public private(set) var state:DeviceState { get { brandSession?.state ?? opoState } set { opoState=newValue } }
+    public private(set) var state:DeviceState { get { sonySession?.state ?? brandSession?.state ?? opoState } set { opoState=newValue } }
     private var opoModel:DeviceModel?
-    public private(set) var model:DeviceModel? { get { brandSession?.model ?? opoModel } set { opoModel=newValue } }
+    public private(set) var model:DeviceModel? { get { if let sonySession { return sonySession.model };return brandSession?.model ?? opoModel } set { opoModel=newValue } }
     private var opoReady=false
-    public private(set) var ready:Bool { get { brandSession?.ready ?? opoReady } set { opoReady=newValue } }
+    public private(set) var ready:Bool { get { sonySession?.ready ?? brandSession?.ready ?? opoReady } set { opoReady=newValue } }
     private var brandSession:BrandSession?
+    private var sonySession:SonySession?
     public var onChange: (() -> Void)?
     public var onClose: ((String?) -> Void)?
-    public var interactive=false { didSet { brandSession?.interactive=interactive } }
+    public var interactive=false { didSet { brandSession?.interactive=interactive;sonySession?.interactive=interactive } }
     public var onDiagnostic: ((String) -> Void)?
     private let catalog: ModelCatalog
     private let name: String
@@ -55,7 +56,13 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         self.overrideID=catalog.validOverride(overrideID,family:selectedFamily)
         model=catalog.model(productID:nil,name:name,override:self.overrideID)
         if model?.family != selectedFamily { model=nil }
-        if let selectedFamily, selectedFamily != .oppo {
+        if selectedFamily == .sony {
+            let backend=SonySession(transport:transport,name:name,catalog:catalog)
+            sonySession=backend
+            backend.onChange={ [weak self] in self?.onChange?() }
+            backend.onClose={ [weak self] reason in self?.onClose?(reason) }
+            backend.onDiagnostic={ [weak self] line in self?.onDiagnostic?(line) }
+        } else if let selectedFamily, selectedFamily != .oppo {
             let backend=BrandSession(transport:transport,name:name,catalog:catalog,family:selectedFamily,overrideID:self.overrideID,localHostAddress:localHostAddress)
             brandSession=backend
             backend.onChange={ [weak self] in self?.onChange?() }
@@ -65,6 +72,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     }
     public func open() async throws {
         guard family != nil else { throw ProtocolError.unsupported }
+        if let sonySession { try await sonySession.open();return }
         if let brandSession { try await brandSession.open();return }
         let token=generation
         transport.onEvent = { [weak self] event in
@@ -91,6 +99,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         ready=true; onChange?()
     }
     public func initialize() async {
+        if let sonySession { await sonySession.initialize();return }
         if let brandSession { await brandSession.initialize();return }
         let token=generation
         await subscribe()
@@ -103,6 +112,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         startPolling()
     }
     public func setModelOverride(_ id:String?) {
+        if sonySession != nil { return }
         guard id == nil || catalog.validOverride(id,family:family) != nil else { return }
         if let brandSession { brandSession.setModelOverride(id);return }
         let selected=catalog.model(productID:state.productID,name:name,override:id)
@@ -110,12 +120,14 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         overrideID=id; model=selected; onChange?()
     }
     public var supportsSpatialAudio: Bool {
+        if sonySession != nil { return false }
         if let brandSession { return brandSession.supportsSpatialAudio }
         guard model?.spatialModes.isEmpty == false else { return false }
         if let commands=state.supportedCommands { return commands.isSuperset(of:[Command.spatial,Command.setSpatial]) }
         return state.spatial != nil
     }
     public var availableFeatures:[FeatureDefinition] {
+        if sonySession != nil { return [] }
         if let brandSession { return brandSession.availableFeatures }
         guard let model else { return [] }
         var features=model.features
@@ -125,6 +137,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return features
     }
     public func canQuery(_ command:UInt16) -> Bool {
+        if let sonySession { return sonySession.canQuery(command) }
         if let brandSession { return brandSession.canQuery(command) }
         if [Command.product,Command.capabilities,Command.battery,Command.switches].contains(command) { return true }
         if let supported=state.supportedCommands { return supported.contains(command) }
@@ -145,6 +158,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func canWrite(_ command:UInt16, reading:UInt16?=nil) -> Bool {
+        if let sonySession { return sonySession.canWrite(command,reading:reading) }
         if let brandSession { return brandSession.canWrite(command,reading:reading) }
         guard ready, model != nil else { return false }
         if model?.isT500 == true, command == Command.setNoise { return state.noise != nil }
@@ -154,6 +168,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return reading.map { state.observedQueries.contains($0) } ?? false
     }
     public func refresh() async {
+        if let sonySession { await sonySession.refresh();return }
         if let brandSession { await brandSession.refresh();return }
         guard ready, !Task.isCancelled else { return }
         // Re-read all three battery slots immediately, even if a recent partial
@@ -212,6 +227,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return try await request(command,payload:payload,timeout:timeout)
     }
     private func request(_ command:UInt16, payload:[UInt8]=[], timeout:Double=2.5,beforeSend:(() -> Void)?=nil) async throws -> OPOFrame {
+        guard family == .oppo else { throw ProtocolError.unsupported }
         let token=generation
         try await gate.acquire(); defer { gate.release() }
         try Task.checkCancellation()
@@ -268,6 +284,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func close() {
+        if let sonySession { sonySession.close();return }
         if let brandSession { brandSession.close();return }
         ready=false; generation=UUID(); poll?.cancel(); poll=nil
         pending?.exchange.cancel(); pending=nil
@@ -290,6 +307,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return .confirmed
     }
     public func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
+        if let sonySession { return try await sonySession.setNoise(mode) }
         if let brandSession { return try await brandSession.setNoise(mode) }
         guard let option=model?.noiseOptions.first(where:{$0.mode == mode}) else { throw ProtocolError.unsupported }
         if model?.isT500 == true {
@@ -315,6 +333,10 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         guard model?.presets.contains(where:{$0.id == id && $0.available(firmware:state.firmwareRevision)}) == true || state.customEQ.contains(where:{$0.id == id}) else { throw ProtocolError.unsupported }
         if model?.gameBlocksEQ == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
         return try await write(Command.setEQ,payload:[id],read:Command.equalizer) { $0.eq == id }
+    }
+    public func setSonyAmbient(level:Int,focusOnVoice:Bool) async throws -> WriteOutcome {
+        guard let sonySession else { throw ProtocolError.unsupported }
+        return try await sonySession.setAmbient(level:level,focusOnVoice:focusOnVoice)
     }
     public func setSpatial(_ mode:UInt8) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.setSpatial(mode) }

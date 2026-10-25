@@ -151,9 +151,25 @@ struct PanelView: View {
             }.card()
         }
     }
-    private var noiseCard:some View {
-        noiseModeButtons.card().accessibilityElement(children:.contain)
-            .accessibilityLabel(L("降噪控制","Noise control"))
+    @ViewBuilder private var noiseCard:some View {
+        if app.model?.family == .sony {
+            VStack(spacing:10) {
+                noiseModeButtons
+                if let noise=app.state.sonyNoise,noise.mode == .transparency {
+                    Divider()
+                    settingPicker(L("通透强度","Ambient level"),selection:Binding(get:{noise.ambientLevel},set:{ level in
+                        app.perform { try await $0.setSonyAmbient(level:level,focusOnVoice:noise.focusOnVoice) }
+                    }),choices:(1...20).map { .init($0,String($0)) })
+                    settingToggle(L("语音聚焦","Focus on voice"),isOn:Binding(get:{noise.focusOnVoice},set:{ voice in
+                        app.perform { try await $0.setSonyAmbient(level:noise.ambientLevel,focusOnVoice:voice) }
+                    }))
+                }
+            }.card().disabled(!app.canWrite(Command.setNoise,reading:Command.noise))
+                .accessibilityElement(children:.contain).accessibilityLabel(L("降噪控制","Noise control"))
+        } else {
+            noiseModeButtons.card().accessibilityElement(children:.contain)
+                .accessibilityLabel(L("降噪控制","Noise control"))
+        }
     }
     private var noiseModeButtons:some View {
         let options=app.model?.noiseOptions ?? []
@@ -532,7 +548,7 @@ struct PanelView: View {
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily == nil || app.operationBusy,
+                settingPicker(L("设备型号","Device model"),helpText:app.connectionFamily == .sony ? L("Sony 型号以耳机返回的信息自动识别。","Sony models are identified from information returned by the headphones.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily == nil || app.connectionFamily == .sony || app.operationBusy,
                     selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
                     choices:[.init("auto",L("自动识别","Automatic"))]+app.overrideModels.map { .init($0.id,$0.name) })
             }

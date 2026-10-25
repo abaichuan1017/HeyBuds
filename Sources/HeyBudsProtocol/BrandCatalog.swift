@@ -2,7 +2,7 @@
 import Foundation
 
 public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
-    case oppo, vivo, huawei, xiaomi, edifier
+    case oppo, vivo, huawei, xiaomi, edifier, sony
     public static func normalize(_ name:String) -> String { name.lowercased().filter { $0.isLetter || $0.isNumber } }
     public static func detect(_ name:String) -> EarbudFamily? {
         let n=normalize(name)
@@ -11,6 +11,7 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         if ["huawei","freebuds","freeclip","freearc","freelace","eyewear"].contains(where:n.hasPrefix) { return .huawei }
         if ["xiaomi","redmi","mibuds","mitrue","flipbuds","miair","air2se","air2pro"].contains(where:n.contains) { return .xiaomi }
         if ["edifier","w820nb","w200bt","漫步者"].contains(where:n.contains) { return .edifier }
+        if SonyProtocol.modelNames.contains(where:{n == normalize($0) || n == normalize("Sony "+$0)}) { return .sony }
         return nil
     }
     public var serviceUUID:String? {
@@ -20,6 +21,7 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         case .huawei:return "00001101-0000-1000-8000-00805F9B34FB"
         case .xiaomi:return "00001101-0000-1000-8000-008584D01810"
         case .edifier:return "EDF00000-EDFE-DFED-FEDF-EDFEDFEDFEDF"
+        case .sony:return SonyProtocol.serviceV2
         }
     }
 }

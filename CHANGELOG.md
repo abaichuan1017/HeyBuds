@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.7 — 2026-10-25
+
+- Add initial Sony WF-1000XM5, WH-1000XM5 and WH-CH720N support for battery, noise cancellation and ambient sound.
+- Add ambient sound levels 1–20 and Focus on Voice for these Sony models. Real-device verification remains pending.
+- Thanks to [SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient), [SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge), [HeadBridge](https://github.com/herenickname/HeadBridge) and [Sony Device Center](https://github.com/marconvcm/sony-device-center) for Sony protocol and model references.
+
 ## 0.4.6 — 2026-10-25
 
 - Fix noise, equalizer and sound settings being reported as successful without a valid response from the earbuds.

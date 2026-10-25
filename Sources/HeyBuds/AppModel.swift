@@ -363,7 +363,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             guard let identifier=lowAlerts.notificationID(device:device,slot:slot,reading:value,threshold:lowThreshold) else { continue }
             let content=UNMutableNotificationContent()
             content.title="HeyBuds"
-            let part=slot == .left ? L("左耳","Left earbud") : slot == .right ? L("右耳","Right earbud") : L("充电盒","Case")
+            let part=model?.family == .sony && model?.singleBattery == true ? L("耳机","Headphones") : slot == .left ? L("左耳","Left earbud") : slot == .right ? L("右耳","Right earbud") : L("充电盒","Case")
             content.body="\(part) · \(value.percent)%"; content.sound = .default
             UNUserNotificationCenter.current().add(UNNotificationRequest(identifier:identifier,content:content,trigger:nil))
         }

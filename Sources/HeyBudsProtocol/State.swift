@@ -51,6 +51,7 @@ public struct DeviceState: Sendable {
     public var placement: [BatterySlot:UInt8] = [:]
     public var noise: NoiseMode?
     public var liveNoise: NoiseMode?
+    public var sonyNoise: SonyNoiseState?
     public var eq: UInt8?
     public var spatial: UInt8?
     public var switches: [UInt8:Bool] = [:]

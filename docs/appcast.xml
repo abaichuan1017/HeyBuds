@@ -4,20 +4,19 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.6</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.6</link>
-      <sparkle:version>14</sparkle:version>
-      <sparkle:shortVersionString>0.4.6</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.7</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.7</link>
+      <sparkle:version>15</sparkle:version>
+      <sparkle:shortVersionString>0.4.7</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 修复部分降噪、均衡器及音效设置在未收到有效回读时显示成功的问题。
-- 修复快速连续操作时的连接冲突，改善取消操作和断线重连的稳定性。
-- 修复切换耳机后忙碌状态异常，并在断连或切换设备时关闭失效的 EQ 编辑窗口。
-- 仅允许选择与当前耳机兼容的型号，避免型号设置导致连接失败。
-- 修复切换不同耳机时漏报低电量的问题。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.6/HeyBuds-arm64.dmg" length="2422787" type="application/octet-stream" sparkle:edSignature="467itAAPrQarOeV0U86E9Gmjlh/mfLLfoAFjZ2+MZG5zkIg27QgnnMgbOghR5DE/6nR+EdvF3Y3rJ9zK5LjpAQ=="></enclosure>
+      <description format="plain-text">- 新增 Sony WF-1000XM5、WH-1000XM5、WH-CH720N 的初步支持，可查看电量并切换关闭、降噪和通透模式。
+- 为这三个型号增加 1–20 级通透强度和语音聚焦控制。实机兼容性仍待验证。
+
+感谢 [SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge)、[HeadBridge](https://github.com/herenickname/HeadBridge) 和 [Sony Device Center](https://github.com/marconvcm/sony-device-center) 提供 Sony 协议与型号参考。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.7/HeyBuds-arm64.dmg" length="2460320" type="application/octet-stream" sparkle:edSignature="3gO8FgjuEeBxdCMsAnpgKgToKK8N45r4JT/Mk1eHW0mwyDcd18ImPnqpcMLD1NWvUu3XIgdCIGAXLhz00HcjCw=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: d9YB+dqD+xh5hCg7Uv0vI946+hto2L+5OnwJ7lT3HgwxP9Asiuixb0RvfIaQeEJUVeWGA1jEr5IGYVYOkKzfAg==
-length: 1544
+edSignature: CH9aKL5aFADnAbncplVR6FjoG4kqAsjP9JpSk0E/Uubq7igkcB05yN+7phAbE+jqQRp+fiRJ0D76s0L1V5lwCw==
+length: 1634
 -->

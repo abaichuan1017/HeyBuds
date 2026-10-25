@@ -1,5 +1,5 @@
 {
-  "checkedDate": "2026-10-22",
+  "checkedDate": "2026-10-25",
   "upstreamProjects": [
     {
       "name": "OppoPodsManager",
@@ -27,6 +27,55 @@
         "src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.g.cs": "4619aaaadbe6f316ff3e4ed1b89f6203c6d6840a404fa79d99613aa027bb38a3",
         "src/EncoDeck.Protocol/Oppo/Models/OppoCatalog.cs": "0b9631bb3ea92d7fb23d6f7b8a13edfdcad2934755f525353e0d5b4d7a695dae",
         "tests/EncoDeck.Tests/Protocol/EncoX4CaptureTests.cs": "f0d308252494aa2de1a592d15de90ae80fc8b04278d584bce0249e1de0c2d9d6"
+      }
+    },
+    {
+      "name": "SonyHeadphonesClient",
+      "url": "https://github.com/mos9527/SonyHeadphonesClient",
+      "license": "MIT",
+      "commit": "8f4808cb635f5a176df0b7b5aea959818be5129e",
+      "usage": "Sony MDR interoperability reference for the handwritten Swift V2 subset; no manufacturer resources or generated metadata vendored",
+      "sourceFiles": {
+        "libmdr/src/HeadphonesV2.cpp": "287b725e33aa012a36611caf28d92db4ce8ecd27d820d4055b67241d2f488630",
+        "libmdr/src/HeadphonesV2T1.cpp": "d7548d6116d628e370779dda2fe3aa4321f434dafe1fadc3e70521728dbe1712",
+        "libmdr/src/Headphones.cpp": "612ab4c8b81967430aca8689bc9c1222718363e3c718a9f9826b996653248558",
+        "tests/ABI.c": "f1ab8893684d226c1ff2ab237bf42637b2b1f6ff9b8b031216377749e0113e7c",
+        "docs/device-support/WF-1000XM5.md": "5fcdd22008a75aeb57400ccf849196827a25e78b6d47a9d1d93dfde8a569f7e5",
+        "docs/device-support/WH-1000XM5.md": "86a735330e8df0b28e7468358819018e765b0004daaf1101f201385ad9b81f31",
+        "docs/device-support/WH-CH720N.md": "c9478759dd4f3289d499d33b5a925a4a8c87836a6113624ceb4ac33fb62bf707"
+      }
+    },
+    {
+      "name": "SonyBridge",
+      "url": "https://github.com/AmitRajput-Dev/SonyBridge",
+      "license": "MIT",
+      "commit": "8c81a2775a76097f4938fbc835411bd59088014c",
+      "usage": "Sony MDR interoperability reference for the handwritten Swift V2 subset; no manufacturer resources or generated metadata vendored",
+      "sourceFiles": {
+        "Client/CommandSerializer.cpp": "546ac912259ff05e9b6b7e214eaa0073d5a31b72223472613842912783929eb6",
+        "Client/BluetoothWrapper.cpp": "86d8b6721b3a702324f2f0a7e087585e353f08cbcb16818efc7af970c60a7675",
+        "Client/Headphones.cpp": "d627fea933fee6c8a04c83a71cda8899b65cb64f8914ae2e89615e8fc96cb1a4"
+      }
+    },
+    {
+      "name": "HeadBridge",
+      "url": "https://github.com/herenickname/HeadBridge",
+      "license": "MIT",
+      "commit": "940e7e797bf4f75eeefce8d99fb3883ec23b0a39",
+      "usage": "Sony MDR interoperability reference for the handwritten Swift V2 subset; no manufacturer resources or generated metadata vendored",
+      "sourceFiles": {
+        "Sources/HeadBridge/Providers/Sony/SonyMDRProtocol.swift": "ab7d35eaa771769a0bc376b91845c8c4fcc9c7de9896894297dc642d55d57455"
+      }
+    },
+    {
+      "name": "sony-device-center",
+      "url": "https://github.com/marconvcm/sony-device-center",
+      "license": "MIT",
+      "commit": "0bf98223c1ba402dd6c5136c21e6ab35482e4390",
+      "usage": "Sony MDR interoperability reference for the handwritten Swift V2 subset; no manufacturer resources or generated metadata vendored",
+      "sourceFiles": {
+        "libs/sony-protocol/src/ProtocolV2.cpp": "376429a8f80df56f90c7739f1498b5d8398faa71b5fa7de51d60c23f28e4d4c5",
+        "libs/sony-protocol/src/DeviceProfileRegistry.cpp": "250af5207714ccad351ed9dfa7de808b1f8e4c6374f8ded1c7c0e1445e3c094a"
       }
     }
   ],
@@ -100,7 +149,8 @@
     "Sources/HeyBudsProtocol/Resources/EqModeNames.en.json": "6cf5469217f08ac6a914a996c0d857e06c898e84cf47b3fa5cd18bd36513b07a",
     "Sources/HeyBudsProtocol/Resources/EqModeNames.json": "1e82f5b4e2cc92e1c1806cd4b86f97f7a2e09fb15a7645be3403c545aca1758b",
     "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "b8f7fab98e28b586e3b0000fc1357acc1ad6a2edf8351cb384394a7423bbdc2a",
-    "Sources/HeyBudsProtocol/Resources/EncoDeckModels.json": "3fa94eb37f82e5ca2d8fccfa179c0d8aba0724f585403fba20214f8af8cafa06"
+    "Sources/HeyBudsProtocol/Resources/EncoDeckModels.json": "3fa94eb37f82e5ca2d8fccfa179c0d8aba0724f585403fba20214f8af8cafa06",
+    "Sources/HeyBudsProtocol/Resources/SonyModels.json": "d0dfac070222999930275c50bbdb2d2ff5b4331430ed33573fbbe914dae95264"
   },
   "referenceResourceSHA256": {
     "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b",

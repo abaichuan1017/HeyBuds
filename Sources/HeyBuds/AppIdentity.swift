@@ -4,7 +4,7 @@ import Foundation
 /// two generations of the app from owning the same earbud control session.
 enum AppIdentity {
     static let name="HeyBuds"
-    static let version="0.4.6"
+    static let version="0.4.7"
     static let projectURL=URL(string:"https://github.com/abaichuan1017/HeyBuds")!
     static let releasesURL=projectURL.appendingPathComponent("releases/latest")
     static let bundleID="local.heybuds.app"

@@ -16,7 +16,7 @@ actual = {p.name: p for p in bundle.rglob('*.json')}
 assert actual.keys() == expected.keys(), 'Unexpected or missing runtime catalogs'
 for name, path in actual.items():
     assert json.loads(path.read_text()) == json.loads(expected[name].read_text()), name
-for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md', 'Licenses/Realme-MIT.txt', 'Licenses/EncoDeck-GPL-3.0.txt', 'Licenses/Sparkle.txt'):
+for name in ('LICENSE', 'THIRD_PARTY_NOTICES.md', 'Licenses/Realme-MIT.txt', 'Licenses/EncoDeck-GPL-3.0.txt', 'Licenses/Sparkle.txt', 'Licenses/Sony-MIT.txt'):
     assert (resources / name).read_bytes() == (ROOT / name).read_bytes(), name
 allowed = {
     'Contents/Info.plist', 'Contents/MacOS/HeyBuds', 'Contents/_CodeSignature/CodeResources',
@@ -24,6 +24,7 @@ allowed = {
     'Contents/Resources/THIRD_PARTY_NOTICES.md', 'Contents/Resources/Licenses/Realme-MIT.txt',
     'Contents/Resources/Licenses/EncoDeck-GPL-3.0.txt',
     'Contents/Resources/Licenses/Sparkle.txt',
+    'Contents/Resources/Licenses/Sony-MIT.txt',
     'Contents/Resources/HeyBuds_HeyBuds.bundle/Contents/Info.plist',
     'Contents/Resources/HeyBuds_HeyBuds.bundle/Contents/Resources/GitHub.pdf',
     'Contents/Resources/HeyBuds_HeyBudsProtocol.bundle/Contents/Info.plist',

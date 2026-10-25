@@ -241,3 +241,11 @@ This list follows the current app catalog. Duplicate display names are merged an
 - realme Cobble Speaker
 - realme Pocket Speaker
 - realme Brick Speaker
+
+## Sony
+
+- WF-1000XM5
+- WH-1000XM5
+- WH-CH720N
+
+已接入电量、降噪及通透控制，待 HeyBuds/macOS 实机验证。Battery and noise control are implemented; hardware verification is pending. See [compatibility](COMPATIBILITY.md).

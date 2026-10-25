@@ -37,3 +37,5 @@ OPPO 同时保留 RFCOMM 与 BLE GATT；新增品牌由 `BrandSession` 处理自
 先显示菜单栏入口，在后台读取型号目录，首次打开面板时才创建 SwiftUI 视图。型号 ID、名称和别名在加载时建立索引；后台设备查找复用同一份目录。登录项状态仅在进入设置时读取，空闲时不创建加载动画。蓝牙事件继续触发去抖后的查找，补偿查找在面板打开时每 8 秒、后台每 30 秒执行一次；手动刷新仍立即执行。
 
 发行包仅包含应用、五份紧凑 JSON、无损压缩图标和许可。原始 vivo 表保留在 `docs/reference/`；诊断预览与硬件演练入口仅编入 debug 构建。蓝牙协议握手等待、请求超时和设备响应确认保持协议要求。
+
+Sony uses an independent MDR V2 session over its dedicated RFCOMM service. The session verifies Table 1, device-reported identity and advertised functions before querying or controlling the three supported profiles. Requests wait for both transport completion and a matching ACK/response; reply and notification ACKs share a serialized writer. Timeouts and cancellations retire the connection to prevent late one-bit sequence traffic from satisfying later requests. Noise writes require fresh, settled readback. Sony battery subtypes distinguish single, left/right and case readings, including threshold-bearing variants. Other brands retain their existing transports and session paths.
