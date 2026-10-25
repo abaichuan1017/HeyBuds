@@ -12,8 +12,11 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
 
 @MainActor @Observable final class AppModel {
     let catalog:ModelCatalog
+    @ObservationIgnored private let defaults:UserDefaults
+    @ObservationIgnored private let services:AppServices
+    private(set) var sessionID=UUID()
     var candidates:[DeviceCandidate]=[]
-    var selectedID:String? { didSet { UserDefaults.standard.set(selectedID,forKey:"selectedDevice") } }
+    var selectedID:String? { didSet { defaults.set(selectedID,forKey:"selectedDevice") } }
     var phase="idle"
     var error:String?
     var notice:String?
@@ -24,29 +27,29 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var onStatusChange:(() -> Void)?
     var onDeviceConnected:((DeviceCandidate) -> Void)?
     var onPreviewConnectionTip:(() -> Void)?
-    var backgroundMode=UserDefaults.standard.bool(forKey:"backgroundMode") {
-        didSet { UserDefaults.standard.set(backgroundMode,forKey:"backgroundMode"); onStatusChange?() }
+    var backgroundMode:Bool {
+        didSet { defaults.set(backgroundMode,forKey:"backgroundMode"); onStatusChange?() }
     }
-    var connectionTips=UserDefaults.standard.object(forKey:"connectionTips") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(connectionTips,forKey:"connectionTips"); onStatusChange?() }
+    var connectionTips:Bool {
+        didSet { defaults.set(connectionTips,forKey:"connectionTips"); onStatusChange?() }
     }
-    var language=UserDefaults.standard.string(forKey:"language") ?? "zh" {
-        didSet { UserDefaults.standard.set(language,forKey:"language"); revision += 1; onStatusChange?() }
+    var language:String {
+        didSet { defaults.set(language,forKey:"language"); revision += 1; onStatusChange?() }
     }
-    var menuBattery=UserDefaults.standard.bool(forKey:"menuBattery") {
-        didSet { UserDefaults.standard.set(menuBattery,forKey:"menuBattery"); onStatusChange?() }
+    var menuBattery:Bool {
+        didSet { defaults.set(menuBattery,forKey:"menuBattery"); onStatusChange?() }
     }
-    var autoReconnect=UserDefaults.standard.object(forKey:"autoReconnect") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(autoReconnect,forKey:"autoReconnect") }
+    var autoReconnect:Bool {
+        didSet { defaults.set(autoReconnect,forKey:"autoReconnect") }
     }
-    var notifyLow=UserDefaults.standard.bool(forKey:"notifyLow") {
-        didSet { UserDefaults.standard.set(notifyLow,forKey:"notifyLow") }
+    var notifyLow:Bool {
+        didSet { defaults.set(notifyLow,forKey:"notifyLow") }
     }
-    var lowThreshold=UserDefaults.standard.object(forKey:"lowThreshold") as? Int ?? 20 {
-        didSet { UserDefaults.standard.set(lowThreshold,forKey:"lowThreshold") }
+    var lowThreshold:Int {
+        didSet { defaults.set(lowThreshold,forKey:"lowThreshold") }
     }
-    var appearance=UserDefaults.standard.string(forKey:"appearance") ?? "system" {
-        didSet { UserDefaults.standard.set(appearance,forKey:"appearance") }
+    var appearance:String {
+        didSet { defaults.set(appearance,forKey:"appearance") }
     }
     var launchAtLogin=false
     @ObservationIgnored private(set) var session:DeviceSession?
@@ -54,21 +57,33 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var operationTask:Task<Void,Never>?
     @ObservationIgnored private var monitorTask:Task<Void,Never>?
     @ObservationIgnored private var scanTask:Task<Void,Never>?
-    @ObservationIgnored private let connectionMonitor=BluetoothConnectionMonitor()
     @ObservationIgnored private var connectionEventTask:Task<Void,Never>?
     @ObservationIgnored private var connectionPresence=ConnectionPresence()
     @ObservationIgnored private var recognizedProductIDs:[String:String]=[:]
     @ObservationIgnored private var retryTask:Task<Void,Never>?
     @ObservationIgnored private var connectionToken=UUID()
+    @ObservationIgnored private var operationToken=UUID()
+    @ObservationIgnored private var retryToken=UUID()
     @ObservationIgnored private var audioCloseTask:Task<Void,Never>?
     @ObservationIgnored private var manualDisconnect=false
     @ObservationIgnored private var sleeping=false
     @ObservationIgnored private var retry=0
-    @ObservationIgnored private var alertSlots:Set<BatterySlot>=[]
+    @ObservationIgnored private var lowAlerts=LowBatteryAlerts()
     @ObservationIgnored private var history:[String]=[]
     var interactive=false { didSet { session?.interactive=interactive } }
 
-    init(catalog:ModelCatalog) { self.catalog=catalog; selectedID=UserDefaults.standard.string(forKey:"selectedDevice") }
+    init(catalog:ModelCatalog,defaults:UserDefaults = .standard,services:AppServices?=nil) {
+        self.catalog=catalog;self.defaults=defaults;self.services=services ?? AppServices()
+        selectedID=defaults.string(forKey:"selectedDevice")
+        backgroundMode=defaults.bool(forKey:"backgroundMode")
+        connectionTips=defaults.object(forKey:"connectionTips") as? Bool ?? true
+        language=defaults.string(forKey:"language") ?? "zh"
+        menuBattery=defaults.bool(forKey:"menuBattery")
+        autoReconnect=defaults.object(forKey:"autoReconnect") as? Bool ?? true
+        notifyLow=defaults.bool(forKey:"notifyLow")
+        lowThreshold=defaults.object(forKey:"lowThreshold") as? Int ?? 20
+        appearance=defaults.string(forKey:"appearance") ?? "system"
+    }
     var candidate:DeviceCandidate? { candidates.first { $0.id == selectedID } }
     var state:DeviceState { _ = revision; return session?.state ?? DeviceState() }
     var model:DeviceModel? { _ = revision; return session?.model ?? candidate.flatMap { catalog.model(productID:nil,name:$0.name,override:overrideID) } }
@@ -83,18 +98,32 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         guard !sleeping else { return [] }
         return candidates.filter { device in
             device.audioConnected && ((device.id == selectedID && session?.model != nil)
-                || catalog.family(name:device.name,override:UserDefaults.standard.string(forKey:"model.\(device.id)")) != nil || device.family != nil)
+                || catalog.family(name:device.name) != nil || device.family != nil)
         }
     }
     var presets:[EQPreset] { model?.presets.filter { $0.available(firmware:state.firmwareRevision) } ?? [] }
     var features:[FeatureDefinition] { _ = revision; return session?.availableFeatures ?? model?.features ?? [] }
     var supportsSpatialAudio:Bool { _ = revision; return session?.supportsSpatialAudio == true }
+    var connectionFamily:EarbudFamily? { candidate.flatMap { $0.family ?? catalog.family(name:$0.name) } }
+    var overrideModels:[DeviceModel] { catalog.models.filter { $0.family == connectionFamily }.sorted { $0.name < $1.name } }
+    private var storedOverrideID:String? {
+        _ = revision
+        return selectedID.flatMap { defaults.string(forKey:"model.\($0)") }
+    }
+    var overrideWarning:String? {
+        guard let stored=storedOverrideID,catalog.validOverride(stored,family:connectionFamily) == nil else { return nil }
+        return L("已忽略与当前协议不匹配的旧型号设置，请重新选择。","The saved model does not match this device’s protocol and was ignored. Choose a compatible model.")
+    }
     var overrideID:String? {
-        get { guard let selectedID else { return nil }; return UserDefaults.standard.string(forKey:"model.\(selectedID)") }
+        get { catalog.validOverride(storedOverrideID,family:connectionFamily) }
         set {
             guard let selectedID else { return }
-            UserDefaults.standard.set(newValue,forKey:"model.\(selectedID)"); session?.setModelOverride(newValue); revision += 1
-            if ready { disconnect(audio:false); connect() }
+            guard newValue == nil || catalog.validOverride(newValue,family:connectionFamily) != nil else {
+                error=L("请选择同一协议家族的型号。","Choose a model from the same protocol family.");return
+            }
+            defaults.set(newValue,forKey:"model.\(selectedID)");revision += 1
+            if ready || connecting { disconnect(audio:false);connect() }
+            else { session?.setModelOverride(newValue) }
         }
     }
     var status:String {
@@ -108,7 +137,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         }
     }
     func start() {
-        connectionMonitor.onChange = { [weak self] in
+        services.monitor?.onChange = { [weak self] in
             guard let self, !self.sleeping else { return }
             self.connectionEventTask?.cancel()
             self.connectionEventTask=Task { [weak self] in
@@ -139,10 +168,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         if let scanTask { await scanTask.value; return }
         let task=Task { [weak self] in
             guard let catalog=self?.catalog else { return }
-            let devices=await Discovery.paired(catalog:catalog)
+            let devices=await self?.services.discover(catalog) ?? []
             guard let self, !Task.isCancelled else { return }
             self.candidates=devices
-            self.connectionMonitor.watch(devices)
+            self.services.monitor?.watch(devices)
             if !self.ready, !self.connecting {
                 if self.candidate?.audioConnected != true,
                    let next=ConnectionPresence.preferredID(connectedIDs:self.knownConnectedDevices.map(\.id),selectedID:self.selectedID) {
@@ -170,32 +199,26 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func connect() {
         guard !connecting, !sleeping else { return }
         guard let candidate else { error=L("先在系统蓝牙设置中配对耳机。","Pair your earbuds in Bluetooth settings first."); return }
-        let competitors=["local.buds.menubar","com.aniketbudhwani.budsbar"].contains {
-            !NSRunningApplication.runningApplications(withBundleIdentifier:$0).isEmpty
-        }
-        if competitors { error=L("请先退出另一个耳机控制器，再连接 HeyBuds。","Quit the other earbud controller before connecting HeyBuds."); return }
-        retryTask?.cancel(); retryTask=nil; connectTask?.cancel(); session?.close(); session=nil
+        guard let family=connectionFamily else { error=L("无法识别耳机控制协议。","The earbud control protocol could not be identified.");return }
+        if services.hasCompetitor() { error=L("请先退出另一个耳机控制器，再连接 HeyBuds。","Quit the other earbud controller before connecting HeyBuds."); return }
+        cancelRetry();connectTask?.cancel();invalidateOperation();sessionID=UUID();session?.close();session=nil
         let token=UUID(); connectionToken=token
         manualDisconnect=false; error=nil; notice=nil; noiseControlHint=nil; phase="connecting"; onStatusChange?()
         let override=overrideID
         connectTask=Task { [weak self] in
             guard let self else { return }
+            defer { if self.connectionToken == token { self.connectTask=nil } }
             await self.audioCloseTask?.value
             guard !Task.isCancelled, self.connectionToken == token else { return }
             if !candidate.audioConnected, let address=candidate.classicAddress {
-                _ = await Task.detached { IOBluetoothDevice(addressString:address)?.openConnection() }.value
+                await self.services.openAudio(address)
             }
             var errors:[String]=[]
-            let family=self.catalog.family(name:candidate.name,override:override) ?? candidate.family ?? .oppo
             let kinds=family == .oppo ? ["RFCOMM","BLE"] : ["RFCOMM"]
             for kind in kinds {
                 guard !Task.isCancelled, self.connectionToken == token, !self.sleeping, !self.manualDisconnect else { return }
                 do {
-                    let transport:EarbudTransport
-                    if kind == "RFCOMM",let address=candidate.classicAddress,let service=family.serviceUUID { transport=try RFCOMMTransport(address:address,serviceUUID:service) }
-                    else if family == .oppo { transport=BLETransport(name:candidate.name) }
-                    else { throw ProtocolError.unsupported }
-                    let s=DeviceSession(transport:transport,name:candidate.name,catalog:self.catalog,overrideID:override,family:family,localHostAddress:IOBluetoothHostController.default()?.addressAsString().split(whereSeparator:{$0 == ":" || $0 == "-"}).compactMap { UInt8($0,radix:16) })
+                    let s=try self.services.makeSession(candidate,family,kind,override,self.catalog)
                     self.session=s
                     s.interactive=self.interactive
                     s.onChange = { [weak self,weak s] in
@@ -205,7 +228,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                     }
                     s.onClose = { [weak self,weak s] reason in
                         guard let self, self.session === s else { return }
-                        self.phase="idle"; self.error=reason; self.revision += 1; self.onStatusChange?(); self.scheduleReconnect()
+                        self.invalidateOperation();self.sessionID=UUID()
+                        self.phase="idle"; self.error=reason; self.revision += 1; self.onStatusChange?()
+                        // The connection loop owns fallback while open() is in progress.
+                        if self.connectTask == nil { self.scheduleReconnect() }
                     }
                     s.onDiagnostic = { [weak self] line in
                         guard let self else { return }
@@ -213,8 +239,9 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                     }
                     try await s.open()
                     guard !Task.isCancelled, self.connectionToken == token else { s.close(); return }
-                    self.phase="ready"; self.retry=0; self.revision += 1; self.onStatusChange?()
+                    self.cancelRetry();self.phase="ready"; self.retry=0; self.revision += 1; self.onStatusChange?()
                     await s.initialize()
+                    if self.connectionToken == token,!self.ready { self.scheduleReconnect() }
                     return
                 } catch {
                     guard !Task.isCancelled, self.connectionToken == token else { return }
@@ -228,26 +255,39 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             self.scheduleReconnect()
         }
     }
+    private func cancelRetry() {
+        retryToken=UUID();retryTask?.cancel();retryTask=nil
+    }
     private func scheduleReconnect() {
-        guard autoReconnect, !manualDisconnect, !sleeping, retryTask == nil else { return }
+        guard autoReconnect,!manualDisconnect,!sleeping,!ready,retryTask == nil else { return }
         retry += 1
         let delay=min(60,pow(2,Double(min(retry,6))))
+        let token=UUID(),connection=connectionToken,device=selectedID
+        retryToken=token
         retryTask=Task { [weak self] in
-            try? await Task.sleep(for:.seconds(delay)); guard !Task.isCancelled, let self else { return }
+            guard let self else { return }
+            do { try await self.services.delay(.seconds(delay)) } catch { return }
+            guard !Task.isCancelled,self.retryToken == token else { return }
             await self.rescan()
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled,self.retryToken == token else { return }
             self.retryTask=nil
-            guard self.autoReconnect, !self.sleeping, !self.manualDisconnect else { return }
+            guard self.autoReconnect,!self.sleeping,!self.manualDisconnect,!self.ready,!self.connecting,
+                  self.connectionToken == connection else { return }
+            // Discovery may select a different connected device. It gets a new attempt.
+            if self.selectedID != device { self.retry=0 }
             if self.candidate?.audioConnected == true { self.connect() }
         }
     }
+    private func invalidateOperation() {
+        operationToken=UUID();operationTask?.cancel();operationTask=nil;operationBusy=false
+    }
     func disconnect(audio:Bool=true) {
-        manualDisconnect=true; retryTask?.cancel(); retryTask=nil; connectTask?.cancel(); connectTask=nil
+        manualDisconnect=true;cancelRetry();connectTask?.cancel();connectTask=nil
         connectionToken=UUID()
-        operationTask?.cancel(); operationTask=nil; operationBusy=false
+        invalidateOperation();sessionID=UUID()
         session?.close(); session=nil; phase="idle"; revision += 1; notice=nil; noiseControlHint=nil; onStatusChange?()
         if audio, let address=candidate?.classicAddress {
-            audioCloseTask=Task.detached { _ = IOBluetoothDevice(addressString:address)?.closeConnection() }
+            audioCloseTask=Task { [services] in await services.closeAudio(address) }
         }
     }
     func sleep() { sleeping=true; connectionEventTask?.cancel(); disconnect(audio:false); phase="sleeping"; updateConnectionPresence() }
@@ -258,16 +298,18 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     }
     @ObservationIgnored private var suspendedBeforeSleep=false
     func willSleep() { suspendedBeforeSleep=manualDisconnect; sleep() }
-    func stop() { monitorTask?.cancel(); scanTask?.cancel(); connectionEventTask?.cancel(); connectionMonitor.stop(); disconnect(audio:false) }
+    func stop() { monitorTask?.cancel(); scanTask?.cancel(); connectionEventTask?.cancel(); services.monitor?.stop(); disconnect(audio:false) }
     func perform(noiseControl:Bool=false,_ operation:@escaping (DeviceSession) async throws -> WriteOutcome) {
         guard !operationBusy, ready, let session else { return }
+        let token=UUID();operationToken=token
         operationBusy=true; error=nil; notice=nil; noiseControlHint=nil
         operationTask=Task { [weak self,weak session] in
-            guard let self, let session else { return }
-            defer { self.operationBusy=false }
+            guard let self else { return }
+            defer { if self.operationToken == token { self.operationBusy=false;self.operationTask=nil } }
+            guard let session,!Task.isCancelled,self.operationToken == token,self.session === session else { return }
             do {
                 let result=try await operation(session)
-                guard self.session === session, !Task.isCancelled else { return }
+                guard self.session === session,self.operationToken == token,!Task.isCancelled else { return }
                 let feedback=result == .confirmed ? L("已从耳机确认","Confirmed by earbuds") : L("请求已发送，设备未提供状态回读","Request sent; device provides no readback")
                 if noiseControl {
                     // The confirmed selection already conveys success. Keep any ACK-only
@@ -276,7 +318,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                 } else { self.notice=feedback }
             } catch is CancellationError { }
             catch {
-                guard self.session === session else { return }
+                guard self.session === session,self.operationToken == token,!Task.isCancelled else { return }
                 if noiseControl, let hint=self.noiseWearHint(for:error) {
                     self.noiseControlHint=hint
                 } else {
@@ -297,8 +339,13 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     }
     func performRefresh() {
         guard let session, ready, !operationBusy else { return }
-        operationBusy=true
-        operationTask=Task { [weak self] in await session.refresh(); self?.operationBusy=false }
+        let token=UUID();operationToken=token;operationBusy=true
+        operationTask=Task { [weak self] in
+            guard let self else { return }
+            defer { if self.operationToken == token { self.operationBusy=false;self.operationTask=nil } }
+            guard !Task.isCancelled,self.operationToken == token,self.session === session else { return }
+            await session.refresh()
+        }
     }
     func canWrite(_ command:UInt16, reading:UInt16?=nil) -> Bool { !operationBusy && session?.canWrite(command,reading:reading) == true }
     func setNotifications(_ enabled:Bool) {
@@ -311,16 +358,14 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         }
     }
     private func maybeNotify() {
-        guard ready, notifyLow else { return }
-        for (slot,value) in state.batteries where Date().timeIntervalSince(value.updatedAt) < 120 {
-            if value.percent > lowThreshold+5 || value.charging { alertSlots.remove(slot); continue }
-            guard value.percent <= lowThreshold, !alertSlots.contains(slot) else { continue }
-            alertSlots.insert(slot)
+        guard ready,notifyLow,let device=selectedID else { return }
+        for (slot,value) in state.batteries {
+            guard let identifier=lowAlerts.notificationID(device:device,slot:slot,reading:value,threshold:lowThreshold) else { continue }
             let content=UNMutableNotificationContent()
             content.title="HeyBuds"
             let part=slot == .left ? L("左耳","Left earbud") : slot == .right ? L("右耳","Right earbud") : L("充电盒","Case")
             content.body="\(part) · \(value.percent)%"; content.sound = .default
-            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier:"low-\(slot.rawValue)",content:content,trigger:nil))
+            UNUserNotificationCenter.current().add(UNNotificationRequest(identifier:identifier,content:content,trigger:nil))
         }
     }
     func setLogin(_ enabled:Bool) {

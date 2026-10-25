@@ -207,6 +207,20 @@ public struct ModelCatalog: Sendable {
         }?.model
     }
     public func family(name:String, override:String?=nil) -> EarbudFamily? {
-        model(productID:nil,name:name,override:override)?.family ?? EarbudFamily.detect(name)
+        // Model overrides select capabilities, never the wire protocol.
+        model(productID:nil,name:name)?.family ?? EarbudFamily.detect(name)
+    }
+    public func validOverride(_ id:String?,family:EarbudFamily?) -> String? {
+        guard let id,let family,byID[id]?.family == family else { return nil }
+        return id
+    }
+    public func routingFamily(name:String,services:Set<EarbudFamily>) -> EarbudFamily? {
+        // A proprietary service is stronger evidence than a personal nickname.
+        // Standard SPP alone cannot identify Huawei.
+        let specific=services.subtracting([.huawei])
+        if specific.count == 1 { return specific.first }
+        let named=family(name:name)
+        if specific.isEmpty { return named }
+        return named.flatMap { specific.contains($0) ? $0 : nil }
     }
 }

@@ -25,7 +25,7 @@ import HeyBudsBluetooth
                 let devices=await Discovery.paired(catalog:catalog)
                 guard let device=devices.first(where:{$0.audioConnected}) else { throw TransportFailure.unavailable("No paired connected earbuds. Use HeyBuds.app to grant Bluetooth permission.") }
                 let transport:EarbudTransport
-                let family=catalog.family(name:device.name) ?? device.family ?? .oppo
+                guard let family=device.family ?? catalog.family(name:device.name) else { throw ProtocolError.unsupported }
                 if args.contains("--ble") {
                     guard family == .oppo else { throw ProtocolError.unsupported }
                     transport=BLETransport(name:device.name)

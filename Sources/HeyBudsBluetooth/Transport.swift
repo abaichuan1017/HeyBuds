@@ -42,11 +42,10 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
             return (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []).compactMap { device in
                 let name=device.name ?? "Earbuds"
                 guard let address=device.addressString else { return nil }
-                let override=UserDefaults.standard.string(forKey:"model.\(address)")
-                let family=catalog?.family(name:name,override:override) ?? EarbudFamily.allCases.first { family in
-                    // Standard SPP alone does not identify Huawei.
+                let services=Set(EarbudFamily.allCases.filter { family in
                     family != .huawei && family.serviceUUID.map { device.getServiceRecord(for:uuid($0)) != nil } == true
-                }
+                })
+                let family=catalog?.routingFamily(name:name,services:services)
                 guard let family else { return nil }
                 return DeviceCandidate(id:address,name:name,audioConnected:device.isConnected(),classicAddress:address,family:family)
             }.sorted { $0.audioConnected == $1.audioConnected ? $0.name < $1.name : $0.audioConnected }

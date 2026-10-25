@@ -11,7 +11,9 @@ import HeyBudsProtocol
     private let serviceUUID:String
     private var channel: IOBluetoothRFCOMMChannel?
     private var opening: CheckedContinuation<Void,Error>?
-    private var writing: CheckedContinuation<Void,Error>?
+    private var writing: TransportWrite?
+    private var writeSequence:UInt=0
+    private var writeRefcon:UnsafeMutableRawPointer?
     private var writeBuffer: NSData?
     private var timeout: Task<Void,Never>?
     private var sdpPoll:Task<Void,Never>?
@@ -93,21 +95,26 @@ import HeyBudsProtocol
         for start in stride(from:0,to:bytes.count,by:mtu) {
             try Task.checkCancellation()
             let fragment=bytes.subdata(in:start..<min(bytes.count,start+mtu)) as NSData
-            try await withCheckedThrowingContinuation { (continuation:CheckedContinuation<Void,Error>) in
-                writeBuffer=fragment; writing=continuation
-                let result=channel.writeAsync(UnsafeMutableRawPointer(mutating:fragment.bytes),length:UInt16(fragment.length),refcon:nil)
+            let write=TransportWrite()
+            writeSequence = writeSequence == UInt.max ? 1 : writeSequence+1
+            let refcon=UnsafeMutableRawPointer(bitPattern:writeSequence)
+            writing=write;writeBuffer=fragment;writeRefcon=refcon
+            defer { if writing === write { writing=nil;writeBuffer=nil;writeRefcon=nil } }
+            try await write.wait(abort:{ [weak self] error in
+                self?.close();self?.onEvent?(.closed(error.localizedDescription))
+            },start:{
+                let result=channel.writeAsync(UnsafeMutableRawPointer(mutating:fragment.bytes),length:UInt16(fragment.length),refcon:refcon)
                 if result != kIOReturnSuccess {
-                    writing=nil; writeBuffer=nil
-                    continuation.resume(throwing:TransportFailure.unavailable("RFCOMM write failed (\(result))"))
+                    write.finish(.failure(TransportFailure.unavailable("RFCOMM write failed (\(result))")))
                 }
-            }
+            })
+            guard !isClosing, channel === self.channel else { throw ProtocolError.disconnected }
         }
     }
     public func rfcommChannelWriteComplete(_ channel: IOBluetoothRFCOMMChannel!, refcon: UnsafeMutableRawPointer!, status error: IOReturn) {
-        guard channel === self.channel else { return }
-        let c=writing; writing=nil; writeBuffer=nil
-        if error == kIOReturnSuccess { c?.resume() }
-        else { c?.resume(throwing:TransportFailure.unavailable("RFCOMM write completion failed (\(error))")) }
+        guard !isClosing,channel === self.channel,refcon == writeRefcon else { return }
+        if error == kIOReturnSuccess { writing?.finish(.success(())) }
+        else { writing?.finish(.failure(TransportFailure.unavailable("RFCOMM write completion failed (\(error))"))) }
     }
     public func rfcommChannelData(_ channel: IOBluetoothRFCOMMChannel!, data pointer: UnsafeMutableRawPointer!, length: Int) {
         guard !isClosing, channel === self.channel, let pointer, length > 0 else { return }
@@ -121,7 +128,7 @@ import HeyBudsProtocol
         isClosing=true; timeout?.cancel(); timeout=nil; sdpPoll?.cancel(); sdpPoll=nil; channelOpening=false
         channel?.setDelegate(nil); channel?.close(); channel=nil
         let o=opening; opening=nil; o?.resume(throwing:ProtocolError.disconnected)
-        let w=writing; writing=nil; w?.resume(throwing:ProtocolError.disconnected)
-        writeBuffer=nil
+        let w=writing; writing=nil; w?.finish(.failure(ProtocolError.disconnected))
+        writeBuffer=nil;writeRefcon=nil
     }
 }

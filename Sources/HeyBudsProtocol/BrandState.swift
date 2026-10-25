@@ -64,15 +64,12 @@ public enum BrandState {
             case 0x2B4A:
                 guard fields[1]?.first == 1,let selected=fields[2]?.first else { return false }
                 state.eq=selected;observed=Command.equalizer
-                if let custom=fields[8],custom.count % 36 == 0 {
-                    var entries:[CustomEQEntry]=[]
-                    for offset in stride(from:0,to:custom.count,by:36) where (0x64...0x66).contains(custom[offset]) && custom[offset+1] == 10 {
-                        let name=String(bytes:custom[offset+12..<offset+36].prefix(while:{$0 != 0}),encoding:.utf8) ?? ""
-                        let gains=custom[offset+2..<offset+12].map { Int8(bitPattern:$0) }
-                        guard gains.allSatisfy({(-60...60).contains($0)}) else { continue }
-                        entries.append(CustomEQEntry(id:custom[offset],name:name,selected:selected == custom[offset],minimum:-60,maximum:60,frequencies:model.customEQFrequencies,gains:gains))
-                    };state.customEQ=entries
-                };state.observedQueries.insert(Command.customEQ)
+                // An ordinary EQ response does not establish that custom slots
+                // were read. Missing/corrupt slot data must preserve the last list.
+                if let custom=fields[8],let entries=huaweiCustomEntries(custom,selected:selected,model:model) {
+                    state.customEQ=entries
+                    state.observedQueries.insert(Command.customEQ)
+                }
             case 0x2B03:
                 for (type,slot):(UInt8,BatterySlot) in [(8,.left),(9,.right)] {
                     if let value=fields[type]?.first,value <= 1 { state.placement[slot]=value == 1 ? 3 : 1 }
@@ -95,6 +92,19 @@ public enum BrandState {
         }
         if let observed { state.observedQueries.insert(observed) }
         return observed != nil
+    }
+    private static func huaweiCustomEntries(_ bytes:[UInt8],selected:UInt8,model:DeviceModel) -> [CustomEQEntry]? {
+        guard bytes.count % 36 == 0, model.customEQFrequencies.count == 10 else { return nil }
+        var entries:[CustomEQEntry]=[]
+        for offset in stride(from:0,to:bytes.count,by:36) {
+            guard (0x64...0x66).contains(bytes[offset]),bytes[offset+1] == 10,
+                  !entries.contains(where:{$0.id == bytes[offset]}),
+                  let name=String(bytes:bytes[offset+12..<offset+36].prefix(while:{$0 != 0}),encoding:.utf8) else { return nil }
+            let gains=bytes[offset+2..<offset+12].map { Int8(bitPattern:$0) }
+            guard gains.allSatisfy({(-60...60).contains($0)}) else { return nil }
+            entries.append(CustomEQEntry(id:bytes[offset],name:name,selected:selected == bytes[offset],minimum:-60,maximum:60,frequencies:model.customEQFrequencies,gains:gains))
+        }
+        return entries
     }
     private static func setBattery(_ value:UInt8,slot:BatterySlot,charging:Bool,state:inout DeviceState) {
         state.batteries[slot]=value <= 100 ? BatteryReading(percent:Int(value),charging:charging) : nil

@@ -63,7 +63,7 @@ import HeyBudsProtocol
         default:return [0]
         }
     }
-    let s=DeviceSession(transport:t,name:"Renamed earbuds",catalog:try ModelCatalog());defer { s.close() }
+    let s=DeviceSession(transport:t,name:"Renamed earbuds",catalog:try ModelCatalog(),family:.oppo);defer { s.close() }
     try await s.open()
     #expect(s.model?.id == "06EC10")
     _ = try await s.query(Command.noise,payload:[1,1])
@@ -164,7 +164,7 @@ import HeyBudsProtocol
 @Test @MainActor func unknownModelIsReadOnly() async throws {
     let t=MockTransport()
     t.handler = { frame in frame.command == Command.product ? [0,0xFF,0xFF,0xFF] : frame.command == Command.capabilities ? [0,255,255] : [0,1,1,50] }
-    let s=DeviceSession(transport:t,name:"Unknown buds",catalog:try ModelCatalog()); defer { s.close() }
+    let s=DeviceSession(transport:t,name:"Unknown buds",catalog:try ModelCatalog(),family:.oppo); defer { s.close() }
     try await s.open()
     #expect(s.model == nil)
     #expect(!s.canWrite(Command.setNoise))

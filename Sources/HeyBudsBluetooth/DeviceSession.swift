@@ -32,6 +32,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     public var onDiagnostic: ((String) -> Void)?
     private let catalog: ModelCatalog
     private let name: String
+    private let family:EarbudFamily?
     private var overrideID: String?
     public let transport: EarbudTransport
     private var codec=OPOFrameCodec()
@@ -39,21 +40,23 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     private var sequence: UInt8=0
     private var generation=UUID()
     private struct Pending {
-        let id:UUID, command:UInt16, sequence:UInt8
-        let continuation:CheckedContinuation<OPOFrame,Error>
+        let command:UInt16, sequence:UInt8
+        let exchange:AsyncExchange<OPOFrame>
     }
     private var pending:Pending?
-    private var deadline:Task<Void,Never>?
+    private var noiseReportRevision:UInt64=0
     private var poll:Task<Void,Never>?
     private var last:[UInt16:Date]=[:]
 
     public init(transport:EarbudTransport, name:String, catalog:ModelCatalog, overrideID:String?=nil, family:EarbudFamily?=nil, localHostAddress:[UInt8]?=nil) {
-        self.transport=transport; self.name=name; self.catalog=catalog; self.overrideID=overrideID
-        model=catalog.model(productID:nil,name:name,override:overrideID)
-        let selectedFamily=family ?? model?.family ?? catalog.family(name:name) ?? .oppo
+        self.transport=transport; self.name=name; self.catalog=catalog
+        let selectedFamily=family ?? catalog.family(name:name)
+        self.family=selectedFamily
+        self.overrideID=catalog.validOverride(overrideID,family:selectedFamily)
+        model=catalog.model(productID:nil,name:name,override:self.overrideID)
         if model?.family != selectedFamily { model=nil }
-        if selectedFamily != .oppo {
-            let backend=BrandSession(transport:transport,name:name,catalog:catalog,family:selectedFamily,overrideID:overrideID,localHostAddress:localHostAddress)
+        if let selectedFamily, selectedFamily != .oppo {
+            let backend=BrandSession(transport:transport,name:name,catalog:catalog,family:selectedFamily,overrideID:self.overrideID,localHostAddress:localHostAddress)
             brandSession=backend
             backend.onChange={ [weak self] in self?.onChange?() }
             backend.onClose={ [weak self] reason in self?.onClose?(reason) }
@@ -61,6 +64,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func open() async throws {
+        guard family != nil else { throw ProtocolError.unsupported }
         if let brandSession { try await brandSession.open();return }
         let token=generation
         transport.onEvent = { [weak self] event in
@@ -99,6 +103,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         startPolling()
     }
     public func setModelOverride(_ id:String?) {
+        guard id == nil || catalog.validOverride(id,family:family) != nil else { return }
         if let brandSession { brandSession.setModelOverride(id);return }
         let selected=catalog.model(productID:state.productID,name:name,override:id)
         guard selected?.family == .oppo || selected == nil else { return }
@@ -202,35 +207,23 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     }
     /// Safe documented query surface for the diagnostic probe. No arbitrary raw writes.
     public func query(_ command:UInt16, payload:[UInt8]=[], timeout:Double=2.5) async throws -> OPOFrame {
-        guard brandSession == nil else { throw ProtocolError.unsupported }
+        guard family == .oppo else { throw ProtocolError.unsupported }
         guard Command.safeQueries.contains(command) else { throw ProtocolError.unsupported }
         return try await request(command,payload:payload,timeout:timeout)
     }
-    private func request(_ command:UInt16, payload:[UInt8]=[], timeout:Double=2.5) async throws -> OPOFrame {
+    private func request(_ command:UInt16, payload:[UInt8]=[], timeout:Double=2.5,beforeSend:(() -> Void)?=nil) async throws -> OPOFrame {
+        let token=generation
         try await gate.acquire(); defer { gate.release() }
         try Task.checkCancellation()
-        let token=generation
+        guard generation == token else { throw ProtocolError.disconnected }
         sequence = sequence == 0x7F ? 1 : sequence + 1
-        let seq=sequence, id=UUID()
+        let seq=sequence, exchange=AsyncExchange<OPOFrame>()
         let bytes=try OPOFrameCodec.encode(OPOFrame(command:command,sequence:seq,payload:payload))
-        return try await withTaskCancellationHandler(operation: {
-            try await withCheckedThrowingContinuation { continuation in
-                pending=Pending(id:id,command:command | 0x8000,sequence:seq,continuation:continuation)
-                deadline=Task { [weak self] in
-                    try? await Task.sleep(for:.seconds(timeout)); guard !Task.isCancelled else { return }
-                    self?.finish(id:id,result:.failure(ProtocolError.timeout(command)))
-                }
-                Task { [weak self] in
-                    guard let self, self.generation == token else { return }
-                    do { try await self.transport.send(bytes) }
-                    catch { self.finish(id:id,result:.failure(error)) }
-                }
-            }
-        }, onCancel: { Task { @MainActor [weak self] in self?.finish(id:id,result:.failure(CancellationError())) } })
-    }
-    private func finish(id:UUID, result:Result<OPOFrame,Error>) {
-        guard let p=pending, p.id == id else { return }
-        pending=nil; deadline?.cancel(); deadline=nil; p.continuation.resume(with:result)
+        pending=Pending(command:command | 0x8000,sequence:seq,exchange:exchange)
+        defer { if pending?.exchange === exchange { pending=nil } }
+        return try await exchange.run(timeout:timeout,timeoutError:ProtocolError.timeout(command),abortSend:{ [weak self] in
+            self?.close(); self?.onClose?("Bluetooth write did not complete")
+        },send:{ [transport] in beforeSend?();try await transport.send(bytes) })
     }
     private func receive(_ bytes:Data) {
         for frame in codec.feed(bytes) {
@@ -247,12 +240,12 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
                       frame.sequence == p.sequence else { continue }
                 let directPriority=frame.command == Command.priority | 0x8000 && FeatureCodec.hostPriority(frame.payload) != nil
                 if let status=frame.payload.first, status != 0, !directPriority {
-                    finish(id:p.id,result:.failure(ProtocolError.rejected(status))); continue
+                    p.exchange.receive(.failure(ProtocolError.rejected(status))); continue
                 }
                 state.apply(frame,t500:model?.isT500 == true,model:model)
                 if frame.command == 0x8103 { model=catalog.model(productID:state.productID,name:name,override:overrideID) }
                 last[frame.command & ~0x8000]=Date()
-                finish(id:p.id,result:.success(frame))
+                p.exchange.receive(.success(frame))
             } else {
                 state.apply(frame,t500:model?.isT500 == true,model:model)
                 if frame.command == 0x0204 { noteNotification(frame.payload) }
@@ -263,6 +256,11 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     private func noteNotification(_ payload:[UInt8]) {
         guard let event=payload.first else { return }
         if let command=[UInt8(1):Command.battery,2:Command.wear,3:Command.noise][event] { last[command]=Date() }
+        if event == 3 {
+            var sample=DeviceState()
+            sample.applyNoise(Array(payload.dropFirst()),t500:model?.isT500 == true,model:model)
+            if sample.noise != nil { noiseReportRevision &+= 1 }
+        }
         if event == 5 { last[Command.switches] = .distantPast }
         if event == 6 || event == 0xF2 {
             last[Command.hosts] = .distantPast
@@ -271,16 +269,24 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     }
     public func close() {
         if let brandSession { brandSession.close();return }
-        ready=false; generation=UUID(); poll?.cancel(); poll=nil; deadline?.cancel(); deadline=nil
-        if let p=pending { finish(id:p.id,result:.failure(ProtocolError.disconnected)) }
+        ready=false; generation=UUID(); poll?.cancel(); poll=nil
+        pending?.exchange.cancel(); pending=nil
         transport.onEvent=nil; transport.close(); codec.reset(); state=DeviceState(); last.removeAll(); onChange?()
     }
-    @discardableResult private func write(_ command:UInt16, payload:[UInt8], read:UInt16?, readPayload:[UInt8]=[], matches:() -> Bool) async throws -> WriteOutcome {
+    @discardableResult private func write(_ command:UInt16, payload:[UInt8], read:UInt16?, readPayload:[UInt8]=[], matches:(DeviceState) -> Bool) async throws -> WriteOutcome {
         guard canWrite(command,reading:read) else { throw ProtocolError.unsupported }
+        let token=generation
         _ = try await request(command,payload:payload,timeout:3)
+        try Task.checkCancellation()
+        guard ready, generation == token else { throw ProtocolError.disconnected }
         guard let read else { return .sent }
-        _ = try await request(read,payload:readPayload)
-        guard matches() else { throw ProtocolError.readbackMismatch }
+        let frame=try await request(read,payload:readPayload)
+        try Task.checkCancellation()
+        guard ready, generation == token else { throw ProtocolError.disconnected }
+        var sample=DeviceState()
+        sample.apply(frame,t500:model?.isT500 == true,model:model)
+        guard sample.observedQueries.contains(read) else { throw ProtocolError.invalidPayload }
+        guard matches(sample) else { throw ProtocolError.readbackMismatch }
         return .confirmed
     }
     public func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
@@ -288,22 +294,27 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         guard let option=model?.noiseOptions.first(where:{$0.mode == mode}) else { throw ProtocolError.unsupported }
         if model?.isT500 == true {
             guard canWrite(Command.setNoise) else { throw ProtocolError.unsupported }
-            let old=state.noise
+            var reportRevision=noiseReportRevision
+            let token=generation
             // Some T500 firmware only pushes state and does not ACK the write.
-            do { _ = try await request(Command.setNoise,payload:option.payload,timeout:1) }
+            do { _ = try await request(Command.setNoise,payload:option.payload,timeout:1,beforeSend:{ reportRevision=self.noiseReportRevision }) }
             catch ProtocolError.timeout(_) { }
             let deadline=Date().addingTimeInterval(2)
-            while Date() < deadline, state.noise != mode { try await Task.sleep(for:.milliseconds(50)) }
-            guard state.noise == mode, state.noise != nil || old != nil else { throw ProtocolError.readbackMismatch }
-            return .confirmed
+            while Date() < deadline {
+                try Task.checkCancellation()
+                guard ready, generation == token else { throw ProtocolError.disconnected }
+                if noiseReportRevision != reportRevision, state.noise == mode { return .confirmed }
+                try await Task.sleep(for:.milliseconds(50))
+            }
+            throw ProtocolError.readbackMismatch
         }
-        return try await write(Command.setNoise,payload:option.payload,read:Command.noise,readPayload:[1,1]) { state.noise == mode }
+        return try await write(Command.setNoise,payload:option.payload,read:Command.noise,readPayload:[1,1]) { $0.noise == mode }
     }
     public func setEQ(_ id:UInt8) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.setEQ(id) }
         guard model?.presets.contains(where:{$0.id == id && $0.available(firmware:state.firmwareRevision)}) == true || state.customEQ.contains(where:{$0.id == id}) else { throw ProtocolError.unsupported }
         if model?.gameBlocksEQ == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
-        return try await write(Command.setEQ,payload:[id],read:Command.equalizer) { state.eq == id }
+        return try await write(Command.setEQ,payload:[id],read:Command.equalizer) { $0.eq == id }
     }
     public func setSpatial(_ mode:UInt8) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.setSpatial(mode) }
@@ -312,14 +323,14 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
             guard state.switches[0x18] == false else { throw ProtocolError.unsupported }
         }
         if mode > 0, model?.gameBlocksSpatial == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
-        return try await write(Command.setSpatial,payload:[mode],read:Command.spatial) { state.spatial == mode }
+        return try await write(Command.setSpatial,payload:[mode],read:Command.spatial) { $0.spatial == mode }
     }
     public func setFeature(_ feature:FeatureDefinition, enabled:Bool) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.setFeature(feature,enabled:enabled) }
         guard canSetFeature(feature) else { throw ProtocolError.unsupported }
         if feature.key == "spatialSound", enabled, model?.gameBlocksSpatial == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
         return try await write(Command.setSwitch,payload:[feature.switchID,enabled ? 1 : 0],read:Command.switches,
-            readPayload:FeatureCodec.switchQuery(model:model)) { state.switches[feature.switchID] == enabled }
+            readPayload:FeatureCodec.switchQuery(model:model)) { $0.switches[feature.switchID] == enabled }
     }
     public func canSetFeature(_ feature:FeatureDefinition) -> Bool {
         if let brandSession { return brandSession.canSetFeature(feature) }
@@ -344,13 +355,13 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         if type > 0, model?.gameBlocksEQ == true, state.eq.map({$0 != 0}) == true {
             _ = try await setEQ(0)
         }
-        return try await write(Command.setGameSound,payload:[type,1],read:Command.gameSound) { state.gameSound == type }
+        return try await write(Command.setGameSound,payload:[type,1],read:Command.gameSound) { $0.gameSound == type }
     }
     public func setBass(_ value:UInt8) async throws -> WriteOutcome {
         guard brandSession == nil else { throw ProtocolError.unsupported }
         guard model?.function["bassEngineSupport"].enabled == true, let range=state.bass,
               (range.minimum...range.maximum).contains(value) else { throw ProtocolError.unsupported }
-        return try await write(Command.setBass,payload:[range.minimum,range.maximum,value],read:Command.bass) { state.bass?.current == value }
+        return try await write(Command.setBass,payload:[range.minimum,range.maximum,value],read:Command.bass) { $0.bass?.current == value }
     }
     public func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.saveEQ(entry) }
@@ -363,8 +374,8 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
                   existing.minimum == entry.minimum, existing.maximum == entry.maximum else { throw ProtocolError.unsupported }
         }
         let p=try FeatureCodec.customPayload(entry)
-        return try await write(Command.setCustomEQ,payload:p,read:Command.customEQ) {
-            state.customEQ.contains { $0.name == entry.name && $0.frequencies == entry.frequencies && $0.gains == entry.gains }
+        return try await write(Command.setCustomEQ,payload:p,read:Command.customEQ) { sample in
+            sample.customEQ.contains { $0.name == entry.name && $0.frequencies == entry.frequencies && $0.gains == entry.gains }
         }
     }
     public func canOperateHost(_ operation:FeatureCodec.HostOperation, host:RemoteHost?=nil) -> Bool {
@@ -418,14 +429,14 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
     public func find(_ enabled:Bool) async throws -> WriteOutcome {
         if let brandSession { return try await brandSession.find(enabled) }
         guard model?.function["findDevice"].enabled == true else { throw ProtocolError.unsupported }
-        return try await write(Command.find,payload:[enabled ? 1 : 0],read:nil) { false }
+        return try await write(Command.find,payload:[enabled ? 1 : 0],read:nil) { _ in false }
     }
     public func setGesture(_ entry:GestureEntry, action:UInt8) async throws -> WriteOutcome {
         guard brandSession == nil else { throw ProtocolError.unsupported }
         let allowed=gestureActions(entry)
         guard entry.mode == 1, allowed.contains(action) else { throw ProtocolError.unsupported }
-        return try await write(Command.setGestures,payload:[1,entry.side,entry.mode,entry.gesture,action],read:Command.gestures,readPayload:[2,3,1]) {
-            state.gestures.contains { $0.id == entry.id && $0.action == action }
+        return try await write(Command.setGestures,payload:[1,entry.side,entry.mode,entry.gesture,action],read:Command.gestures,readPayload:[2,3,1]) { sample in
+            sample.gestures.contains { $0.id == entry.id && $0.action == action }
         }
     }
     public func gestureActions(_ entry:GestureEntry) -> [UInt8] {

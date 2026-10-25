@@ -175,3 +175,42 @@ import HeyBudsProtocol
     try await Task.sleep(for:.milliseconds(30));s.close();await task.value
     #expect(!s.ready && s.state.batteries.isEmpty && s.state.observedQueries.isEmpty)
 }
+
+@Test @MainActor func huaweiCustomEQRequiresCompleteFreshCustomField() async throws {
+    let radio=BrandRadio(.huawei),s=DeviceSession(transport:radio,name:"FreeBuds Pro 3",catalog:try ModelCatalog())
+    defer { s.close() };try await s.open();await s.refresh()
+    #expect(!s.canWrite(Command.setCustomEQ))
+    let row:[UInt8]=[100,10]+Array(repeating:0,count:10)+Array("Test".utf8)+Array(repeating:0,count:20)
+    var custom:[UInt8]?=row
+    radio.response={ frame in
+        switch frame.command {
+        case 0x0108:return BrandFrame(0x0108,[2,1,50])
+        case 0x2B2A:return BrandFrame(0x2B2A,[1,2,0,0])
+        case 0x2B4A:return BrandFrame(0x2B4A,[1,1,1,2,1,100]+(custom.map { [8,UInt8($0.count)]+$0 } ?? []))
+        case 0x2B11,0x2B2F:return BrandFrame(frame.command,[1,1,1])
+        case 0x2B6C:return BrandFrame(frame.command,[2,1,0])
+        case 0x2B31:return BrandFrame(frame.command,[2,1,0])
+        default:return nil
+        }
+    }
+    await s.refresh()
+    let entry=try #require(s.state.customEQ.first)
+    #expect(s.canWrite(Command.setCustomEQ))
+    #expect(try await s.saveEQ(entry) == .confirmed)
+    var invalidGain=row;invalidGain[2]=61
+    for malformed in [nil,Array(row.dropLast()),invalidGain] as [[UInt8]?] {
+        custom=malformed
+        do { _ = try await s.saveEQ(entry);Issue.record("Missing or damaged field confirmed cached EQ") }
+        catch { #expect(error as? ProtocolError == .invalidPayload) }
+        #expect(s.state.customEQ == [entry])
+    }
+    custom=[];await s.refresh()
+    #expect(s.state.customEQ.isEmpty)
+}
+
+@Test @MainActor func crossFamilyOverrideIsIgnoredBeforeOpeningBrandSession() async throws {
+    let radio=BrandRadio(.huawei),s=DeviceSession(transport:radio,name:"FreeBuds Pro 3",catalog:try ModelCatalog(),overrideID:"06EC10")
+    defer { s.close() };try await s.open()
+    #expect(s.model?.family == .huawei && s.model?.name.contains("Pro 3") == true)
+    #expect(radio.packets.allSatisfy { $0.first == 0x5A })
+}

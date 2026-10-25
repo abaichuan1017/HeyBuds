@@ -10,7 +10,7 @@ import HeyBudsProtocol
     private var peripheral: CBPeripheral?
     private var writeCharacteristic: CBCharacteristic?
     private var opening: CheckedContinuation<Void,Error>?
-    private var writing: CheckedContinuation<Void,Error>?
+    private var writing: TransportWrite?
     private var timeout: Task<Void,Never>?
     private var closing=false
     public init(name: String) { targetName=name; super.init() }
@@ -95,6 +95,7 @@ import HeyBudsProtocol
     }
     public func send(_ bytes: Data) async throws {
         guard let peripheral, let write=writeCharacteristic, !closing, peripheral.state == .connected else { throw ProtocolError.disconnected }
+        guard writing == nil else { throw TransportFailure.unavailable("Concurrent BLE write") }
         let type: CBCharacteristicWriteType=write.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
         let mtu=peripheral.maximumWriteValueLength(for:type)
         guard mtu > 0 else { throw ProtocolError.disconnected }
@@ -105,25 +106,29 @@ import HeyBudsProtocol
                 guard Date() < deadline, !closing else { throw ProtocolError.disconnected }
                 try await Task.sleep(for:.milliseconds(20))
             }
+            guard !closing,peripheral === self.peripheral,peripheral.state == .connected else { throw ProtocolError.disconnected }
             let fragment=bytes.subdata(in:start..<min(start+mtu,bytes.count))
             if type == .withoutResponse { peripheral.writeValue(fragment,for:write,type:type) }
             else {
                 guard writing == nil else { throw ProtocolError.invalidPayload }
-                try await withCheckedThrowingContinuation { (c:CheckedContinuation<Void,Error>) in
-                    writing=c; peripheral.writeValue(fragment,for:write,type:type)
-                }
+                let completion=TransportWrite()
+                writing=completion
+                defer { if writing === completion { writing=nil } }
+                try await completion.wait(abort:{ [weak self] error in self?.fail(error) },start:{
+                    peripheral.writeValue(fragment,for:write,type:type)
+                })
+                guard !closing,peripheral === self.peripheral else { throw ProtocolError.disconnected }
             }
         }
     }
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        guard peripheral === self.peripheral else { return }
-        let c=writing; writing=nil
-        if let error { c?.resume(throwing:error) } else { c?.resume() }
+        guard !closing,peripheral === self.peripheral,characteristic === writeCharacteristic else { return }
+        if let error { writing?.finish(.failure(error)) } else { writing?.finish(.success(())) }
     }
     private func fail(_ error: Error) {
         let wasReady=opening == nil && writeCharacteristic != nil && !closing
         let o=opening; opening=nil; o?.resume(throwing:error)
-        let w=writing; writing=nil; w?.resume(throwing:error)
+        let w=writing; writing=nil; w?.finish(.failure(error))
         close()
         if wasReady { onEvent?(.closed(error.localizedDescription)) }
     }
@@ -132,6 +137,6 @@ import HeyBudsProtocol
         if let peripheral { peripheral.delegate=nil; central?.cancelPeripheralConnection(peripheral) }
         peripheral=nil; writeCharacteristic=nil
         let o=opening; opening=nil; o?.resume(throwing:ProtocolError.disconnected)
-        let w=writing; writing=nil; w?.resume(throwing:ProtocolError.disconnected)
+        let w=writing; writing=nil; w?.finish(.failure(ProtocolError.disconnected))
     }
 }

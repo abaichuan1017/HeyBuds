@@ -107,7 +107,10 @@ public struct DeviceState: Sendable {
 
     public mutating func apply(_ frame: OPOFrame, t500: Bool = false, model:DeviceModel? = nil) {
         let p = frame.payload
-        if validResponse(frame) { observedQueries.insert(frame.command & ~0x8000) }
+        if frame.command & 0x8000 != 0 {
+            guard validResponse(frame,t500:t500,model:model) else { return }
+            observedQueries.insert(frame.command & ~0x8000)
+        }
         switch frame.command {
         case 0x8100: supportedCommands = CapabilityBitmap.decode(p)
         case 0x8103:
@@ -172,7 +175,7 @@ public struct DeviceState: Sendable {
             if let slot=BatterySlot(rawValue:p[1+i*2]), slot != .enclosure { placement[slot]=p[2+i*2] }
         }
     }
-    private func validResponse(_ frame:OPOFrame) -> Bool {
+    private func validResponse(_ frame:OPOFrame,t500:Bool,model:DeviceModel?) -> Bool {
         let p=frame.payload
         if frame.command == 0x8132 { return FeatureCodec.hostPriority(p) != nil }
         guard p.first == 0 else { return false }
@@ -181,10 +184,16 @@ public struct DeviceState: Sendable {
         case 0x8103:return p.count == 4
         case 0x8105:return p.count > 2
         case 0x8106:return p.count >= 2 && ((p[1] == 4 && p.count >= 8) || (p[1] > 0 && p[1] <= 8 && p.count >= 2+Int(p[1])*2))
-        case 0x810C:return p.count >= 5 && p[2] == 1
+        case 0x810C:
+            var sample=DeviceState()
+            sample.applyNoise(p,t500:t500,model:model)
+            return sample.noise != nil
         case 0x810F,0x812B:return p.count >= 2
         case 0x812A:return p.count >= 2 && p[1] <= 2
-        case 0x810D:return p.count >= 2 && p.count >= 2+Int(p[1])*2
+        case 0x810D:
+            guard p.count >= 2, p.count == 2+Int(p[1])*2 else { return false }
+            let keys=(0..<Int(p[1])).map { p[2+$0*2] }
+            return Set(keys).count == keys.count && (0..<Int(p[1])).allSatisfy { p[3+$0*2] <= 1 }
         case 0x8109:return p.count >= 4
         case 0x8122:return FeatureCodec.customEntries(p) != nil
         case 0x8124:return p.count >= 4 && p[1] <= p[2] && (p[1]...p[2]).contains(p[3])

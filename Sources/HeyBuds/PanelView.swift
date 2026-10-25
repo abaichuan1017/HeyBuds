@@ -42,7 +42,7 @@ struct PanelView: View {
     // A type alias selects the native State property wrapper rather than SDK 27 macros.
     @ViewState<Page> private var page = .home
     @ViewState<CGFloat> private var contentHeight=300
-    @ViewState<CustomEQEntry?> private var editEQ:CustomEQEntry? = nil
+    @ViewState<EQEditingContext?> private var editEQ:EQEditingContext? = nil
     @ViewState<Bool> private var findConfirmation=false
     private var maxHeight:CGFloat { max(280,(NSScreen.main?.visibleFrame.height ?? 800)-100) }
     var body:some View {
@@ -74,13 +74,14 @@ struct PanelView: View {
         .preferredColorScheme(app.appearance == "dark" ? .dark : app.appearance == "light" ? .light : nil)
         // Keep page replacement immediate to avoid flashing newly inserted switches.
         .animation(reduceMotion ? nil : .smooth(duration:0.25),value:app.ready)
-        .sheet(item:$editEQ) { entry in EQEditor(app:app,entry:entry) { editEQ=nil } }
+        .sheet(item:$editEQ) { context in EQEditor(app:app,context:context) { if editEQ?.id == context.id { editEQ=nil } } }
         .alert(L("查找耳机","Find earbuds"),isPresented:$findConfirmation) {
             Button(L("开始响铃","Start ringing")) { app.perform { try await $0.find(true) } }
             Button(L("取消","Cancel"),role:.cancel) { }
         } message: { Text(L("请先摘下耳机。可随时点“停止响铃”结束。","Remove the earbuds first. Use Stop ringing to end the sound.")) }
         .font(.system(size:13))
-        .onChange(of:app.selectedID) { _,_ in page = .home }
+        .onChange(of:app.selectedID) { _,_ in page = .home;editEQ=nil }
+        .onChange(of:app.sessionID) { _,_ in editEQ=nil }
         .onChange(of:app.state.placement) { _,placement in
             let worn:[UInt8]=app.model?.isT500 == true ? [3] : [3,7]
             if placement.values.contains(where:{worn.contains($0)}) { app.noiseControlHint=nil }
@@ -320,10 +321,13 @@ struct PanelView: View {
                 ForEach(app.state.customEQ) { entry in
                     HStack {
                         Text(entry.name); Spacer()
-                        Button(L("编辑","Edit")) { editEQ=entry }
+                        Button(L("编辑","Edit")) { editEQ=EQEditingContext(app:app,entry:entry) }
                     }
                 }
-                Button { editEQ=CustomEQEntry(name:"HeyBuds",minimum:app.model!.customEQMinimum,maximum:app.model!.customEQMaximum,frequencies:app.model!.customEQFrequencies,gains:Array(repeating:0,count:app.model!.customEQFrequencies.count)) } label: {
+                Button {
+                    guard let model=app.model else { return }
+                    editEQ=EQEditingContext(app:app,entry:CustomEQEntry(name:"HeyBuds",minimum:model.customEQMinimum,maximum:model.customEQMaximum,frequencies:model.customEQFrequencies,gains:Array(repeating:0,count:model.customEQFrequencies.count)))
+                } label: {
                     Label(L("新建自定义 EQ","Create custom EQ"),systemImage:"plus")
                 }.disabled(app.operationBusy || app.state.customEQ.count >= (app.model?.customEQMax ?? 0))
             }.padding(.vertical,8)
@@ -528,9 +532,12 @@ struct PanelView: View {
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.candidate == nil || app.operationBusy,
+                settingPicker(L("设备型号","Device model"),helpText:L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily == nil || app.operationBusy,
                     selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
-                    choices:[.init("auto",L("自动识别","Automatic"))]+app.catalog.models.sorted(by:{$0.name < $1.name}).map { .init($0.id,$0.name) })
+                    choices:[.init("auto",L("自动识别","Automatic"))]+app.overrideModels.map { .init($0.id,$0.name) })
+            }
+            if let warning=app.overrideWarning {
+                Text(warning).font(.caption).foregroundStyle(.orange).fixedSize(horizontal:false,vertical:true)
             }
             UpdatesSection(app:app)
         }
@@ -880,13 +887,14 @@ private struct BassSlider:View {
 }
 private struct EQEditor:View {
     @Bindable var app:AppModel
-    let entry:CustomEQEntry
+    let context:EQEditingContext
+    private var entry:CustomEQEntry { context.entry }
     let dismiss:() -> Void
     @ViewState<String> private var name:String
     @ViewState<[Double]> private var gains:[Double]
-    init(app:AppModel,entry:CustomEQEntry,dismiss:@escaping () -> Void) {
-        self.app=app; self.entry=entry; self.dismiss=dismiss
-        _name=State(initialValue:entry.name); _gains=State(initialValue:entry.gains.map(Double.init))
+    init(app:AppModel,context:EQEditingContext,dismiss:@escaping () -> Void) {
+        self.app=app; self.context=context; self.dismiss=dismiss
+        _name=State(initialValue:context.entry.name); _gains=State(initialValue:context.entry.gains.map(Double.init))
     }
     var body:some View {
         VStack(alignment:.leading,spacing:14) {
@@ -912,9 +920,14 @@ private struct EQEditor:View {
                 Button(L("取消","Cancel"),action:dismiss); Spacer()
                 if app.operationBusy { ProgressView().controlSize(.small) }
                 Button(L("保存到耳机","Save to earbuds")) {
+                    guard context.isCurrent(in:app) else { dismiss();return }
                     var saved=entry; saved.name=name; saved.gains=gains.map { Int8($0.rounded()) }
-                    app.perform { session in let result=try await session.saveEQ(saved); dismiss(); return result }
-                }.buttonStyle(.glassProminent).disabled(!FeatureCodec.validEQName(name) || app.operationBusy)
+                    app.perform { session in
+                        let result=try await session.saveEQ(saved)
+                        if !Task.isCancelled,context.isCurrent(in:app) { dismiss() }
+                        return result
+                    }
+                }.buttonStyle(.glassProminent).disabled(!context.isCurrent(in:app) || !FeatureCodec.validEQName(name) || app.operationBusy)
             }
         }.padding(20).frame(width:350)
     }

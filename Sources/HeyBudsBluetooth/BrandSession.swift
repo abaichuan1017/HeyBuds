@@ -20,11 +20,9 @@ import HeyBudsProtocol
     private let gate=RequestGate()
     private var generation=UUID()
     private var poll:Task<Void,Never>?
-    private var deadline:Task<Void,Never>?
     private struct Pending {
-        let id:UUID
         let accepts:(BrandFrame)->Bool
-        let continuation:CheckedContinuation<BrandFrame,Error>
+        let exchange:AsyncExchange<BrandFrame>
     }
     private var pending:Pending?
     private var huaweiRows:[Int:RemoteHost]=[:]
@@ -58,12 +56,12 @@ import HeyBudsProtocol
             try await read(Command.battery)
         case .huawei:
             guard model.raw["route"].text != nil else { throw ProtocolError.unsupported }
-            if model.raw["sourceCapabilities"]["SupportsRfcommBattery"].enabled { try? await read(Command.battery) }
-            if state.observedQueries.isEmpty,model.raw["sourceCapabilities"]["SupportsAncStateReadback"].enabled { try? await read(Command.noise) }
+            if model.raw["sourceCapabilities"]["SupportsRfcommBattery"].enabled { _ = try? await read(Command.battery) }
+            if state.observedQueries.isEmpty,model.raw["sourceCapabilities"]["SupportsAncStateReadback"].enabled { _ = try? await read(Command.noise) }
             guard !state.observedQueries.isEmpty else { throw ProtocolError.invalidPayload }
         case .edifier:
-            try? await read(Command.battery)
-            if state.observedQueries.isEmpty { try? await read(Command.noise) }
+            _ = try? await read(Command.battery)
+            if state.observedQueries.isEmpty { _ = try? await read(Command.noise) }
             guard !state.observedQueries.isEmpty else { throw ProtocolError.invalidPayload }
         case .xiaomi:
             // Preserve upstream's optional challenge probe and its documented frame layout.
@@ -97,7 +95,7 @@ import HeyBudsProtocol
         let token=generation
         for command in [Command.battery,Command.noise,Command.equalizer,Command.spatial,Command.switches,Command.wear,Command.firmware,Command.hosts] where canQuery(command) {
             guard !Task.isCancelled,ready,generation == token else { return }
-            try? await read(command)
+            _ = try? await read(command)
         }
         let stale=state.batteries.filter { Date().timeIntervalSince($0.value.updatedAt) >= 120 }.map(\.key)
         for slot in stale { state.batteries[slot]=nil }
@@ -145,17 +143,18 @@ import HeyBudsProtocol
         if family == .vivo,feature.key == "dual" { return false }
         return availableFeatures.contains(feature)
     }
-    private func read(_ command:UInt16) async throws {
+    @discardableResult private func read(_ command:UInt16) async throws -> DeviceState {
+        var sample=DeviceState()
         switch family {
         case .vivo:
             switch command {
-            case Command.battery:_ = try await readRequest(0x0207)
-            case Command.noise:_ = try await readRequest(0x0230,payload:model.raw["gaiaVersion"].int == 3 ? [] : [0])
-            case Command.equalizer:_ = try await readRequest(0x0218)
-            case Command.spatial:_ = try await readRequest(0x0239)
-            case Command.wear:_ = try await readRequest(0x020D)
-            case Command.firmware:_ = try await readRequest(0x021C)
-            case Command.hosts:_ = try await readRequest(0x0249)
+            case Command.battery:sample = try await readRequest(0x0207)
+            case Command.noise:sample = try await readRequest(0x0230,payload:model.raw["gaiaVersion"].int == 3 ? [] : [0])
+            case Command.equalizer:sample = try await readRequest(0x0218)
+            case Command.spatial:sample = try await readRequest(0x0239)
+            case Command.wear:sample = try await readRequest(0x020D)
+            case Command.firmware:sample = try await readRequest(0x021C)
+            case Command.hosts:sample = try await readRequest(0x0249)
             case Command.switches:
                 if model.function["wearDetection"].enabled { _ = try? await readRequest(0x0203) }
                 if model.supportsGame { _ = try? await readRequest(0x0251) }
@@ -164,59 +163,57 @@ import HeyBudsProtocol
             }
         case .huawei:
             switch command {
-            case Command.battery:_ = try await readRequest(0x0108,payload:[1,0,2,0,3,0])
-            case Command.noise:_ = try await readRequest(0x2B2A,payload:[1,0])
-            case Command.equalizer,Command.customEQ:_ = try await readRequest(0x2B4A,payload:(UInt8(1)...8).flatMap { [$0,0] })
+            case Command.battery:sample = try await readRequest(0x0108,payload:[1,0,2,0,3,0])
+            case Command.noise:sample = try await readRequest(0x2B2A,payload:[1,0])
+            case Command.equalizer,Command.customEQ:sample = try await readRequest(0x2B4A,payload:(UInt8(1)...8).flatMap { [$0,0] })
             case Command.switches:
                 if model.function["wearDetection"].enabled { _ = try? await readRequest(0x2B11,payload:[1,0]) }
                 if model.supportsGame { _ = try? await readRequest(0x2B6C,payload:[2,0]) }
                 if model.hasMultiDevice { _ = try? await readRequest(0x2B2F,payload:[1,0]) }
-            case Command.hosts:try await collectHuaweiHosts()
+            case Command.hosts:
+                try await collectHuaweiHosts();sample.hosts=state.hosts;sample.priorityAddress=state.priorityAddress;sample.observedQueries.insert(Command.hosts)
             default:throw ProtocolError.unsupported
             }
-        case .edifier:_ = try await readRequest(command == Command.battery ? 0xD0 : 0xCC)
+        case .edifier:sample = try await readRequest(command == Command.battery ? 0xD0 : 0xCC)
         case .xiaomi:
-            if command == Command.battery { _ = try await readRequest(2,payload:[255,255,255,255],sequence:0x0B,accepts:{$0.sequence == 0x0B && $0.payload.starts(with:[2,2,4,7])}) }
+            if command == Command.battery { sample = try await readRequest(2,payload:[255,255,255,255],sequence:0x0B,accepts:{$0.sequence == 0x0B && $0.payload.starts(with:[2,2,4,7])}) }
             else if command == Command.switches {
                 let seq=nextSequence()
-                _ = try await readRequest(0xF3,payload:[2,0,47],sequence:seq,accepts:{$0.command == 0xF3 && $0.sequence == seq && $0.payload.starts(with:[3,0,47])})
+                sample = try await readRequest(0xF3,payload:[2,0,47],sequence:seq,accepts:{$0.command == 0xF3 && $0.sequence == seq && $0.payload.starts(with:[3,0,47])})
             } else { throw ProtocolError.unsupported }
         default:throw ProtocolError.unsupported
         }
+        guard sample.observedQueries.contains(command) || command == Command.switches else { throw ProtocolError.invalidPayload }
+        return sample
     }
-    private func readRequest(_ command:UInt16,payload:[UInt8]=[],sequence:UInt8=0,accepts:((BrandFrame)->Bool)?=nil) async throws -> BrandFrame {
+    private func readRequest(_ command:UInt16,payload:[UInt8]=[],sequence:UInt8=0,accepts:((BrandFrame)->Bool)?=nil) async throws -> DeviceState {
         let frame=try await request(command,payload:payload,sequence:sequence,accepts:accepts)
         var sample=DeviceState()
         guard BrandState.apply(frame,model:model,to:&sample) else { throw ProtocolError.invalidPayload }
-        return frame
+        return sample
     }
     private func nextSequence() -> UInt8 { let s=sequence;sequence=sequence == 255 ? 0x90 : sequence+1;return s }
     private func request(_ command:UInt16,payload:[UInt8]=[],sequence:UInt8=0,timeout:Double=2,accepts:((BrandFrame)->Bool)?=nil) async throws -> BrandFrame {
+        let token=generation
         try await gate.acquire();defer { gate.release() }
         try Task.checkCancellation()
-        let id=UUID(),token=generation
+        guard generation == token else { throw ProtocolError.disconnected }
+        let exchange=AsyncExchange<BrandFrame>()
         let bytes=try codec.encode(BrandFrame(command,payload,sequence:sequence))
         let expected=family == .vivo ? command | 0x8000 : command
-        return try await withTaskCancellationHandler(operation:{
-            try await withCheckedThrowingContinuation { continuation in
-                pending=Pending(id:id,accepts:accepts ?? { $0.command == expected },continuation:continuation)
-                deadline=Task { [weak self] in
-                    try? await Task.sleep(for:.seconds(timeout));guard !Task.isCancelled else { return }
-                    self?.finish(id,.failure(ProtocolError.timeout(command)))
-                }
-                Task { [weak self] in
-                    guard let self,self.generation == token else { return }
-                    do { try await self.transport.send(bytes) } catch { self.finish(id,.failure(error)) }
-                }
-            }
-        },onCancel:{Task { @MainActor [weak self] in self?.finish(id,.failure(CancellationError())) }})
+        pending=Pending(accepts:accepts ?? { $0.command == expected },exchange:exchange)
+        defer { if pending?.exchange === exchange { pending=nil } }
+        return try await exchange.run(timeout:timeout,timeoutError:ProtocolError.timeout(command),abortSend:{ [weak self] in
+            self?.close();self?.onClose?("Bluetooth write did not complete")
+        },send:{ [transport] in try await transport.send(bytes) })
     }
     private func send(_ command:UInt16,payload:[UInt8]=[],sequence:UInt8=0,kind:UInt8=0xC4) async throws {
+        let token=generation
         try await gate.acquire();defer { gate.release() };try Task.checkCancellation()
+        guard generation == token else { throw ProtocolError.disconnected }
         try await transport.send(try codec.encode(BrandFrame(command,payload,sequence:sequence,kind:kind)))
-    }
-    private func finish(_ id:UUID,_ result:Result<BrandFrame,Error>) {
-        guard let p=pending,p.id == id else { return };pending=nil;deadline?.cancel();deadline=nil;p.continuation.resume(with:result)
+        try Task.checkCancellation()
+        guard generation == token else { throw ProtocolError.disconnected }
     }
     private func receive(_ data:Data) {
         for frame in codec.feed(data) {
@@ -232,8 +229,8 @@ import HeyBudsProtocol
                 }
             }
             if let p=pending,p.accepts(frame) {
-                if family == .vivo,let status=frame.payload.first,status != 0 { finish(p.id,.failure(ProtocolError.rejected(status))) }
-                else { finish(p.id,.success(frame)) }
+                if family == .vivo,let status=frame.payload.first,status != 0 { p.exchange.receive(.failure(ProtocolError.rejected(status))) }
+                else { p.exchange.receive(.success(frame)) }
             }
             if family == .vivo,frame.command == 0x8509 {
                 let c=Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second],from:Date())
@@ -245,11 +242,12 @@ import HeyBudsProtocol
         }
     }
     private func collectHuaweiHosts() async throws {
+        let token=generation
         try await gate.acquire();defer { gate.release() }
         try Task.checkCancellation()
+        guard generation == token else { throw ProtocolError.disconnected }
         huaweiRows=[:];huaweiExpected=nil;collectingHosts=true
         defer { collectingHosts=false }
-        let token=generation
         try await transport.send(try codec.encode(BrandFrame(0x2B31,[1,0])))
         let until=Date().addingTimeInterval(2)
         while Date() < until {
@@ -265,7 +263,7 @@ import HeyBudsProtocol
         }
         throw ProtocolError.timeout(0x2B31)
     }
-    private func confirmedWrite(command:UInt16,payload:[UInt8],read:UInt16,matches:()->Bool) async throws -> WriteOutcome {
+    private func confirmedWrite(command:UInt16,payload:[UInt8],read:UInt16,matches:(DeviceState)->Bool) async throws -> WriteOutcome {
         let token=generation
         // These brand SET ACKs are not proof of applied state. Always query after sending.
         try await send(command,payload:payload)
@@ -273,6 +271,7 @@ import HeyBudsProtocol
         let until=Date().addingTimeInterval(3)
         repeat {
             try Task.checkCancellation();guard ready,generation == token else { throw ProtocolError.disconnected }
+            let sample:DeviceState
             if read == Command.switches && family != .xiaomi {
                 let query:UInt16
                 switch command {
@@ -284,9 +283,12 @@ import HeyBudsProtocol
                 case 0x2B2E:query=0x2B2F
                 default:throw ProtocolError.unsupported
                 }
-                _ = try await readRequest(query,payload:family == .huawei ? [query == 0x2B6C ? 2 : 1,0] : [])
-            } else { try await self.read(read) }
-            if matches() { return .confirmed }
+                sample = try await readRequest(query,payload:family == .huawei ? [query == 0x2B6C ? 2 : 1,0] : [])
+            } else { sample = try await self.read(read) }
+            try Task.checkCancellation()
+            guard ready,generation == token else { throw ProtocolError.disconnected }
+            guard sample.observedQueries.contains(read) else { throw ProtocolError.invalidPayload }
+            if matches(sample) { return .confirmed }
             try await Task.sleep(for:.milliseconds(250))
         } while Date() < until
         throw ProtocolError.readbackMismatch
@@ -294,28 +296,31 @@ import HeyBudsProtocol
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
         guard canWrite(Command.setNoise,reading:Command.noise),let option=model.noiseOptions.first(where:{$0.mode == mode}) else { throw ProtocolError.unsupported }
         switch family {
-        case .vivo:return try await confirmedWrite(command:0x0130,payload:option.writeBytes+model.raw["noiseSuffix"].elements.compactMap { $0.int.flatMap(UInt8.init(exactly:)) },read:Command.noise) { state.noise == mode }
+        case .vivo:return try await confirmedWrite(command:0x0130,payload:option.writeBytes+model.raw["noiseSuffix"].elements.compactMap { $0.int.flatMap(UInt8.init(exactly:)) },read:Command.noise) { $0.noise == mode }
         case .huawei:
             if model.raw["route"].text == "FreeBuds3" { try await send(0x2B04,payload:[1,1,mode == .off ? 0 : 1]);return .sent }
-            return try await confirmedWrite(command:0x2B04,payload:[1,2]+option.writeBytes,read:Command.noise) { state.noise == mode || (mode == .anc && state.noise?.group == .anc) }
-        case .edifier:return try await confirmedWrite(command:0xC1,payload:option.writeBytes,read:Command.noise) { state.noise == mode }
+            return try await confirmedWrite(command:0x2B04,payload:[1,2]+option.writeBytes,read:Command.noise) { $0.noise == mode || (mode == .anc && $0.noise?.group == .anc) }
+        case .edifier:return try await confirmedWrite(command:0xC1,payload:option.writeBytes,read:Command.noise) { $0.noise == mode }
         default:throw ProtocolError.unsupported
         }
     }
     func setEQ(_ id:UInt8) async throws -> WriteOutcome {
         guard canWrite(Command.setEQ,reading:Command.equalizer),model.presets.contains(where:{$0.id == id}) || state.customEQ.contains(where:{$0.id == id}) else { throw ProtocolError.unsupported }
-        return try await confirmedWrite(command:family == .vivo ? 0x0118 : 0x2B49,payload:family == .vivo ? [id] : [1,1,id],read:Command.equalizer) { state.eq == id }
+        return try await confirmedWrite(command:family == .vivo ? 0x0118 : 0x2B49,payload:family == .vivo ? [id] : [1,1,id],read:Command.equalizer) { $0.eq == id }
     }
     func setSpatial(_ value:UInt8) async throws -> WriteOutcome {
         guard canWrite(Command.setSpatial,reading:Command.spatial),model.spatialModes.contains(value),family == .vivo else { throw ProtocolError.unsupported }
-        return try await confirmedWrite(command:0x0139,payload:[value]+(spatialScene.map { [$0] } ?? []),read:Command.spatial) { state.spatial == value }
+        return try await confirmedWrite(command:0x0139,payload:[value]+(spatialScene.map { [$0] } ?? []),read:Command.spatial) { $0.spatial == value }
     }
     func setFeature(_ feature:FeatureDefinition,enabled:Bool) async throws -> WriteOutcome {
         guard canSetFeature(feature) else { throw ProtocolError.unsupported }
         if family == .xiaomi {
             let seq=nextSequence();try await send(0xF2,payload:[3,0,47,enabled ? 1 : 0],sequence:seq)
-            try await read(Command.switches)
-            guard state.switches[6] == enabled else { throw ProtocolError.readbackMismatch };return .confirmed
+            let token=generation
+            let sample=try await read(Command.switches)
+            try Task.checkCancellation()
+            guard ready,generation == token else { throw ProtocolError.disconnected }
+            guard sample.switches[6] == enabled else { throw ProtocolError.readbackMismatch };return .confirmed
         }
         let command:UInt16
         switch (family,feature.key) {
@@ -327,7 +332,7 @@ import HeyBudsProtocol
         case (.huawei,"dual"):command=0x2B2E
         default:throw ProtocolError.unsupported
         }
-        return try await confirmedWrite(command:command,payload:(family == .huawei ? [1,1] : [])+[enabled ? 1 : 0],read:Command.switches) { state.switches[feature.switchID] == enabled }
+        return try await confirmedWrite(command:command,payload:(family == .huawei ? [1,1] : [])+[enabled ? 1 : 0],read:Command.switches) { $0.switches[feature.switchID] == enabled }
     }
     func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome {
         guard family == .huawei,canWrite(Command.setCustomEQ,reading:Command.customEQ),entry.frequencies == model.customEQFrequencies,entry.gains.count == 10,entry.gains.allSatisfy({(-60...60).contains($0)}),FeatureCodec.validEQName(entry.name),entry.name.utf8.count <= 32 else { throw ProtocolError.unsupported }
@@ -337,7 +342,7 @@ import HeyBudsProtocol
         let name=Array(entry.name.utf8),route=model.raw["route"].text ?? ""
         let op:UInt8=["FreeBuds6I","FreeBudsPro5","FreeArc"].contains(route) ? 1 : 0
         let payload=[1,1,id,2,1,10,5,1,op,3,10]+entry.gains.map { UInt8(bitPattern:$0) }+[4,UInt8(name.count)]+name
-        return try await confirmedWrite(command:0x2B49,payload:payload,read:Command.customEQ) { state.customEQ.contains { $0.id == id && $0.name == entry.name && $0.gains == entry.gains } }
+        return try await confirmedWrite(command:0x2B49,payload:payload,read:Command.customEQ) { $0.customEQ.contains { $0.id == id && $0.name == entry.name && $0.gains == entry.gains } }
     }
     func canOperateHost(_ operation:FeatureCodec.HostOperation,host:RemoteHost?) -> Bool {
         guard canWrite(Command.operateHost,reading:Command.hosts),operation != .automatic,let host,let latest=state.hosts.first(where:{$0.id == host.id}),!latest.current,let local=localHostAddress,latest.address != local else { return false }
@@ -354,9 +359,9 @@ import HeyBudsProtocol
             command=operation == .priority ? 0x2B32 : 0x2B33
             payload=[operation == .priority || operation == .connect ? 1 : 2,6]+host.address
         } else { throw ProtocolError.unsupported }
-        return try await confirmedWrite(command:command,payload:payload,read:Command.hosts) {
-            if operation == .priority { return state.priorityAddress == host.address }
-            let connected=state.hosts.first(where:{$0.id == host.id})?.connected ?? false
+        return try await confirmedWrite(command:command,payload:payload,read:Command.hosts) { sample in
+            if operation == .priority { return sample.priorityAddress == host.address }
+            let connected=sample.hosts.first(where:{$0.id == host.id})?.connected ?? false
             return operation == .connect ? connected : !connected
         }
     }
@@ -369,8 +374,8 @@ import HeyBudsProtocol
         model=new;codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));onChange?()
     }
     func close() {
-        generation=UUID();ready=false;poll?.cancel();poll=nil;deadline?.cancel();deadline=nil
-        if let p=pending { finish(p.id,.failure(ProtocolError.disconnected)) }
+        generation=UUID();ready=false;poll?.cancel();poll=nil
+        pending?.exchange.cancel();pending=nil
         collectingHosts=false;codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));transport.onEvent=nil;transport.close();state=DeviceState();onChange?()
     }
 }
