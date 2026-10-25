@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.6 — 2026-10-25
+
+- Fix noise, equalizer and sound settings being reported as successful without a valid response from the earbuds.
+- Prevent connection conflicts during consecutive controls and improve cancellation and reconnection reliability.
+- Fix busy indicators after switching earbuds and close outdated EQ editors when the device disconnects or changes.
+- Restrict manual model selection to compatible devices to prevent incorrect connections.
+- Fix missing low-battery notifications when switching between different earbuds.
+
 ## 0.4.5 — 2026-10-22
 
 - Make the connection pop-up more compact with less top spacing and balanced battery columns.

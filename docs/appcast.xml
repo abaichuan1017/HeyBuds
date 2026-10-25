@@ -4,17 +4,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.4.5</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.5</link>
-      <sparkle:version>13</sparkle:version>
-      <sparkle:shortVersionString>0.4.5</sparkle:shortVersionString>
+      <title>HeyBuds 0.4.6</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.4.6</link>
+      <sparkle:version>14</sparkle:version>
+      <sparkle:shortVersionString>0.4.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 优化连接弹窗比例，减少顶部留白，让电量信息排列更紧凑。
-- 调整关闭按钮的位置并增加淡圆形衬底，将电量等待提示合并到状态行。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.5/HeyBuds-arm64.dmg" length="2391427" type="application/octet-stream" sparkle:edSignature="NK2sU1oiQa1GZQqSQL6iiu5CCvxi+JgW2qs5Z4Iv13jvhD1hZ8Tcnd/nsq7C3c3Cgm5KwMjH9He08AagFCnpBw=="></enclosure>
+      <description format="plain-text">- 修复部分降噪、均衡器及音效设置在未收到有效回读时显示成功的问题。
+- 修复快速连续操作时的连接冲突，改善取消操作和断线重连的稳定性。
+- 修复切换耳机后忙碌状态异常，并在断连或切换设备时关闭失效的 EQ 编辑窗口。
+- 仅允许选择与当前耳机兼容的型号，避免型号设置导致连接失败。
+- 修复切换不同耳机时漏报低电量的问题。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.4.6/HeyBuds-arm64.dmg" length="2422787" type="application/octet-stream" sparkle:edSignature="467itAAPrQarOeV0U86E9Gmjlh/mfLLfoAFjZ2+MZG5zkIg27QgnnMgbOghR5DE/6nR+EdvF3Y3rJ9zK5LjpAQ=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: YyPzSPWsGPJW/AK6iWtgpfBGvkqGThjNTEkkkP/uVYRagn1YglSXqhDOskIJb5FbiU49o5yWURLlZzQacx/hCQ==
-length: 1276
+edSignature: d9YB+dqD+xh5hCg7Uv0vI946+hto2L+5OnwJ7lT3HgwxP9Asiuixb0RvfIaQeEJUVeWGA1jEr5IGYVYOkKzfAg==
+length: 1544
 -->
