@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.5.0 — 2026-10-26
+
+新增 16 款耳机的初步支持，保留原有型号与功能。所有新增型号的 HeyBuds/macOS 实机兼容性仍待验证；具体功能取决于型号、固件和设备响应。
+
+Initial support for 16 additional models, retaining existing models and features. HeyBuds/macOS hardware compatibility for all new models remains unverified; available controls depend on the model, firmware and device responses.
+
+- **Samsung Galaxy Buds2 / Buds2 Pro / Buds4 Pro**：电量、降噪和预设 EQ；Buds2/2 Pro 触控锁，Buds4 Pro 降噪强度。 Battery, noise control and preset EQ; touch lock on Buds2/2 Pro and ANC strength on Buds4 Pro.
+- **Google Pixel Buds Pro / Pro 2**：电量、降噪和五组 EQ 预设。 Battery, noise control and five EQ presets.
+- **Bose QuietComfort 45 / QuietComfort Ultra Headphones (2nd Gen) / QuietComfort Ultra Earbuds (2nd Gen)**：电量、Quiet / Aware 模式及设备可确认的降噪级别。 Battery, Quiet / Aware modes and device-confirmed cancellation levels.
+- **Nothing Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2**：电量、降噪与通透；预设 EQ 按型号及设备响应开放。 Battery and noise control; preset EQ where supported by the model and device responses.
+- **Sony WH-1000XM3 / WH-1000XM4 / WH-XB910N / ULT WEAR**：电量、降噪、通透和语音聚焦；ULT WEAR 暂无通透强度调节。 Battery, noise control and Focus on Voice; ambient-level adjustment is unavailable on ULT WEAR.
+
+### 致谢 / Thanks
+
+感谢以下项目分享对应型号的协议资料与实现参考。 Thanks to these projects for model-specific protocol documentation and implementation references:
+
+- **Samsung**：[Budsy](https://github.com/vedatkilic/budsy)、[GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient)。
+- **Google**：[PixelBudsMacOS](https://github.com/KashaMalaga/PixelBudsMacOS)、[pbpctrl](https://github.com/qzed/pbpctrl)。
+- **Bose**：[bosectl](https://github.com/aaronsb/bosectl)、[bozo](https://github.com/NerdySouth/bozo)、[bosectl-android](https://github.com/depau/bosectl-android)。
+- **Nothing / CMF**：[swift-nothing-ear](https://github.com/bestK1ngArthur/swift-nothing-ear)、[nothing-x-macos](https://github.com/nikiomori/nothing-x-macos)、[openNothing](https://github.com/Evergaster/openNothing)（协议事实参考 / protocol facts）。
+- **Sony**：[SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[sonyctl](https://github.com/DaanHessen/sonyctl)（协议事实参考 / protocol facts）、[sony-ult-ctl](https://github.com/Leonard013/sony-ult-ctl)。
+
+
 ## 0.4.7 — 2026-10-25
 
 - Add initial Sony WF-1000XM5, WH-1000XM5 and WH-CH720N support for battery, noise cancellation and ambient sound.

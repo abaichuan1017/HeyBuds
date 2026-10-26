@@ -128,10 +128,17 @@ struct PanelView: View {
     @ViewBuilder private var home:some View {
         if app.ready {
             HStack(alignment:.top,spacing:8) {
+                if app.model?.unassignedEarbudBatteries == true {
+                    ForEach([UInt8(1),2],id:\.self) { id in
+                        BatteryCell(title:L("耳机电量 ","Earbud battery ")+String(id),symbol:"earbuds",reading:app.state.unassignedBatteries[id],placement:nil,t500:false)
+                    }
+                    BatteryCell(title:L("充电盒","Case"),symbol:EarbudIcon.enclosure,reading:app.state.batteries[.enclosure],placement:nil,t500:false)
+                } else {
                 BatteryCell(title:app.model?.singleBattery == true ? L("耳机","Headphones") : L("左耳","Left"),symbol:app.model?.singleBattery == true ? "headphones" : "airpods.pro.left",sideLabel:app.model?.singleBattery == true ? nil : "L",reading:app.state.batteries[.left],placement:app.state.placement[.left],t500:app.model?.isT500 == true)
                 if app.model?.singleBattery != true {
                 BatteryCell(title:L("右耳","Right"),symbol:"airpods.pro.right",sideLabel:"R",reading:app.state.batteries[.right],placement:app.state.placement[.right],t500:app.model?.isT500 == true)
                 BatteryCell(title:L("充电盒","Case"),symbol:EarbudIcon.enclosure,reading:app.state.batteries[.enclosure],placement:nil,t500:false)
+                }
                 }
             }.padding(.vertical,6)
             if app.model?.noiseOptions.isEmpty == false { noiseCard }
@@ -157,15 +164,45 @@ struct PanelView: View {
                 noiseModeButtons
                 if let noise=app.state.sonyNoise,noise.mode == .transparency {
                     Divider()
-                    settingPicker(L("通透强度","Ambient level"),selection:Binding(get:{noise.ambientLevel},set:{ level in
-                        app.perform { try await $0.setSonyAmbient(level:level,focusOnVoice:noise.focusOnVoice) }
-                    }),choices:(1...20).map { .init($0,String($0)) })
+                    if let level=noise.ambientLevel,SonyProtocol.profile(model:app.model)?.supportsAmbientLevel == true {
+                        settingPicker(L("通透强度","Ambient level"),selection:Binding(get:{level},set:{ value in
+                            app.perform { try await $0.setSonyAmbient(level:value,focusOnVoice:noise.focusOnVoice) }
+                        }),choices:(1...20).map { .init($0,String($0)) })
+                    }
                     settingToggle(L("语音聚焦","Focus on voice"),isOn:Binding(get:{noise.focusOnVoice},set:{ voice in
-                        app.perform { try await $0.setSonyAmbient(level:noise.ambientLevel,focusOnVoice:voice) }
+                        app.perform { try await $0.setSonyFocusOnVoice(voice) }
                     }))
                 }
             }.card().disabled(!app.canWrite(Command.setNoise,reading:Command.noise))
                 .accessibilityElement(children:.contain).accessibilityLabel(L("降噪控制","Noise control"))
+        } else if app.model?.family == .bose {
+            VStack(spacing:10) {
+                noiseModeButtons
+                if let cnc=app.session?.boseCNC,cnc.maximum <= 10,app.session?.canSetBoseCNC == true {
+                    Divider()
+                    settingPicker(L("环境声音","Ambient sound"),helpText:L("0 为最大降噪，数值越大环境声音越多。","0 is maximum cancellation; higher values admit more ambient sound."),selection:Binding(get:{cnc.level},set:{ level in
+                        app.perform { try await $0.setBoseCNC(level) }
+                    }),choices:(0...cnc.maximum).map { .init($0,String($0)) })
+                }
+            }.card().disabled(app.operationBusy)
+        } else if app.model?.family == .samsung {
+            VStack(spacing:10) {
+                noiseModeButtons
+                if let controls=app.state.samsungControls {
+                    if let level=controls.ancLevel {
+                        Divider()
+                        settingPicker(L("降噪强度","ANC strength"),selection:Binding(get:{level},set:{ value in
+                            app.perform { try await $0.setSamsungANCLevel(value) }
+                        }),choices:(0...4).map { .init($0,String($0+1)) })
+                    }
+                    if app.model?.id != "samsung:buds4-pro" {
+                        Divider()
+                        settingToggle(L("锁定触控","Lock touch controls"),isOn:Binding(get:{controls.touchLocked},set:{ locked in
+                            app.perform { try await $0.setSamsungTouchLocked(locked) }
+                        }))
+                    }
+                }
+            }.card().disabled(!app.canWrite(Command.setNoise,reading:Command.noise))
         } else {
             noiseModeButtons.card().accessibilityElement(children:.contain)
                 .accessibilityLabel(L("降噪控制","Noise control"))
@@ -256,6 +293,7 @@ struct PanelView: View {
         guard let id=app.state.eq else { return L("未知","Unknown") }
         if let preset=app.presets.first(where:{$0.id == id}) { return app.language == "en" ? preset.english : preset.chinese }
         if let preset=app.state.customEQ.first(where:{$0.id == id}) { return preset.name }
+        if app.model?.family == .google && id == 255 { return L("自定义","Custom") }
         return L("预设 ","Preset ")+String(id)
     }
     private func eqChoice(_ id:UInt8,name:String) -> some View {
@@ -548,7 +586,7 @@ struct PanelView: View {
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),helpText:app.connectionFamily == .sony ? L("Sony 型号以耳机返回的信息自动识别。","Sony models are identified from information returned by the headphones.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily == nil || app.connectionFamily == .sony || app.operationBusy,
+                settingPicker(L("设备型号","Device model"),helpText:app.connectionFamily?.allowsModelOverride == false ? L("此品牌按型号自动识别协议，不能手动切换型号。","This brand selects its protocol automatically by model; manual overrides are unavailable.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily?.allowsModelOverride != true || app.operationBusy,
                     selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
                     choices:[.init("auto",L("自动识别","Automatic"))]+app.overrideModels.map { .init($0.id,$0.name) })
             }

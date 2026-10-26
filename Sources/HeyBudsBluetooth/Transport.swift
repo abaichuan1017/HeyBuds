@@ -21,8 +21,9 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
     public let audioConnected: Bool
     public let classicAddress: String?
     public let family: EarbudFamily?
-    public init(id: String, name: String, audioConnected: Bool, classicAddress: String?, family:EarbudFamily?=nil) {
-        self.id=id; self.name=name; self.audioConnected=audioConnected; self.classicAddress=classicAddress;self.family=family
+    public let controlServiceUUID:String?
+    public init(id: String, name: String, audioConnected: Bool, classicAddress: String?, family:EarbudFamily?=nil,controlServiceUUID:String?=nil) {
+        self.id=id; self.name=name; self.audioConnected=audioConnected; self.classicAddress=classicAddress;self.family=family;self.controlServiceUUID=controlServiceUUID
     }
 }
 @MainActor public enum Discovery {
@@ -43,11 +44,14 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
                 let name=device.name ?? "Earbuds"
                 guard let address=device.addressString else { return nil }
                 let services=Set(EarbudFamily.allCases.filter { family in
-                    family != .huawei && family.serviceUUID.map { device.getServiceRecord(for:uuid($0)) != nil } == true
+                    family != .huawei && family.classicServiceUUIDs.contains { device.getServiceRecord(for:uuid($0)) != nil }
                 })
                 let family=catalog?.routingFamily(name:name,services:services)
                 guard let family else { return nil }
-                return DeviceCandidate(id:address,name:name,audioConnected:device.isConnected(),classicAddress:address,family:family)
+                let available=family.classicServiceUUIDs.filter { device.getServiceRecord(for:uuid($0)) != nil }
+                let preferred=family.serviceUUID(for:name)
+                let service=preferred.flatMap { available.contains($0) ? $0 : nil } ?? (available.count == 1 ? available.first : nil)
+                return DeviceCandidate(id:address,name:name,audioConnected:device.isConnected(),classicAddress:address,family:family,controlServiceUUID:service)
             }.sorted { $0.audioConnected == $1.audioConnected ? $0.name < $1.name : $0.audioConnected }
         }.value
     }

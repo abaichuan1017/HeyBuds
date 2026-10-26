@@ -173,7 +173,7 @@ import HeyBudsBluetooth
         image?.isTemplate=true; button.image=image
         button.appearsDisabled = connected.isEmpty && !model.ready
         if model.menuBattery, model.ready {
-            button.title=model.state.batteries.sorted(by:{$0.key.rawValue < $1.key.rawValue}).map { "\($0.value.percent)%" }.joined(separator:" ")
+            button.title=(model.state.batteries.sorted(by:{$0.key.rawValue < $1.key.rawValue}).map { $0.value } + model.state.unassignedBatteries.sorted(by:{$0.key < $1.key}).map { $0.value }).map { "\($0.percent)%" }.joined(separator:" ")
             button.imagePosition = .imageLeading
         } else { button.title="" }
         button.toolTip="HeyBuds · \(model.status)"
@@ -248,7 +248,7 @@ import HeyBudsBluetooth
                 try? await Task.sleep(for:.milliseconds(200))
                 guard !Task.isCancelled, self.model.connectionTips,
                       self.model.knownConnectedDevices.contains(where:{$0.id == device.id}) else { return }
-                if self.model.ready, self.model.selectedID == device.id, !self.model.state.batteries.isEmpty { break }
+                if self.model.ready, self.model.selectedID == device.id, (!self.model.state.batteries.isEmpty || !self.model.state.unassignedBatteries.isEmpty) { break }
             }
             self.pendingAnnouncementID=nil
             guard !self.popover.isShown else { return }

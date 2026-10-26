@@ -247,5 +247,35 @@ This list follows the current app catalog. Duplicate display names are merged an
 - WF-1000XM5
 - WH-1000XM5
 - WH-CH720N
+- WH-1000XM3
+- WH-1000XM4
+- WH-XB910N
+- ULT WEAR (WH-ULT900N)
 
 已接入电量、降噪及通透控制，待 HeyBuds/macOS 实机验证。Battery and noise control are implemented; hardware verification is pending. See [compatibility](COMPATIBILITY.md).
+
+## Samsung
+
+- Galaxy Buds2
+- Galaxy Buds2 Pro
+- Galaxy Buds4 Pro
+
+## Google
+
+- Pixel Buds Pro
+- Pixel Buds Pro 2
+
+## Bose
+
+- Bose QuietComfort 45
+- Bose QuietComfort Ultra Headphones (2nd Gen)
+- Bose QuietComfort Ultra Earbuds (2nd Gen)
+
+## Nothing / CMF
+
+- Nothing Ear (a)
+- Nothing Headphone (1)
+- CMF Buds 2
+- CMF Buds Pro 2
+
+新增型号的功能范围和未确认项见[兼容性说明](COMPATIBILITY.md)。All new models require separate hardware acceptance.

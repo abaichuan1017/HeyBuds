@@ -2,7 +2,13 @@
 import Foundation
 
 public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
-    case oppo, vivo, huawei, xiaomi, edifier, sony
+    case oppo, vivo, huawei, xiaomi, edifier, sony, samsung, google, bose, nothing
+    public var allowsModelOverride:Bool { [.oppo,.vivo,.huawei,.xiaomi,.edifier].contains(self) }
+    public func transportKinds(for name:String) -> [String] {
+        if self == .oppo { return ["RFCOMM","BLE"] }
+        if self == .bose,BoseProfile.named(name)?.prefersBLE == true { return ["BLE"] }
+        return ["RFCOMM"]
+    }
     public static func normalize(_ name:String) -> String { name.lowercased().filter { $0.isLetter || $0.isNumber } }
     public static func detect(_ name:String) -> EarbudFamily? {
         let n=normalize(name)
@@ -11,8 +17,19 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         if ["huawei","freebuds","freeclip","freearc","freelace","eyewear"].contains(where:n.hasPrefix) { return .huawei }
         if ["xiaomi","redmi","mibuds","mitrue","flipbuds","miair","air2se","air2pro"].contains(where:n.contains) { return .xiaomi }
         if ["edifier","w820nb","w200bt","漫步者"].contains(where:n.contains) { return .edifier }
-        if SonyProtocol.modelNames.contains(where:{n == normalize($0) || n == normalize("Sony "+$0)}) { return .sony }
+        if SonyProtocol.profile(name:name) != nil { return .sony }
+        if SamsungProfile.named(name) != nil { return .samsung }
+        if BoseProfile.named(name) != nil { return .bose }
+        if NothingProfile.named(name) != nil { return .nothing }
+        if ["Pixel Buds Pro","Pixel Buds Pro 2"].contains(where:{n == normalize($0) || n == normalize("Google "+$0)}) { return .google }
         return nil
+    }
+    public var classicServiceUUIDs:[String] {
+        if self == .sony { return [SonyProtocol.serviceV2,SonyProtocol.serviceV1] }
+        return serviceUUID.map { [$0] } ?? []
+    }
+    public func serviceUUID(for name:String) -> String? {
+        self == .sony ? SonyProtocol.serviceUUID(for:name) ?? serviceUUID : serviceUUID
     }
     public var serviceUUID:String? {
         switch self {
@@ -22,6 +39,10 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         case .xiaomi:return "00001101-0000-1000-8000-008584D01810"
         case .edifier:return "EDF00000-EDFE-DFED-FEDF-EDFEDFEDFEDF"
         case .sony:return SonyProtocol.serviceV2
+        case .samsung:return SamsungProfile.service
+        case .google:return GoogleMaestro.service
+        case .bose:return BoseProfile.bmapServiceUUID
+        case .nothing:return NothingProfile.service
         }
     }
 }

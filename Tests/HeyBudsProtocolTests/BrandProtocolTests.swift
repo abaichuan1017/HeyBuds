@@ -20,7 +20,7 @@ private func hex(_ string:String) -> [UInt8] { string.split(separator:" ").map {
 }
 @Test func migratedCatalogCoversSourceFamiliesAndDisambiguatesNames() throws {
     let c=try ModelCatalog()
-    #expect(c.models.filter { $0.family != .sony }.count == 209)
+    #expect(c.models.filter { [.oppo,.vivo,.huawei,.xiaomi,.edifier].contains($0.family) }.count == 209)
     #expect(c.models.filter { $0.family == .vivo }.count == 43)
     #expect(c.models.filter { $0.family == .huawei }.count == 24)
     #expect(c.models.filter { $0.family == .vivo }.reduce(0) { $0+$1.raw["sourceEntries"].elements.count } == 87)

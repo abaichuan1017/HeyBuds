@@ -33,7 +33,7 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 
 - [SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient), [SonyBridge](https://github.com/AmitRajput-Dev/SonyBridge) and [HeadBridge](https://github.com/herenickname/HeadBridge) informed the handwritten Swift MDR framing, V2 handshake, function discovery, battery and noise-control implementation. MIT notices and copyrights are preserved in `Licenses/Sony-MIT.txt`.
 - [Sony Device Center](https://github.com/marconvcm/sony-device-center) was used to cross-check model profiles and V2 payloads. No C++ client or binary is bundled.
-- Exact revisions and source fingerprints are recorded in `docs/upstream-sources.json`. Only the three named V2 models are enabled; upstream support reports do not establish HeyBuds hardware compatibility. Manufacturer applications, extracted metadata, artwork and raw device captures are not included.
+- Exact revisions and source fingerprints are recorded in `docs/upstream-sources.json`. Only explicitly listed V1/V2 profiles are enabled; upstream support reports do not establish HeyBuds hardware compatibility. Manufacturer applications, extracted metadata, artwork and raw device captures are not included.
 
 ## Sparkle
 
@@ -53,3 +53,33 @@ HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 - Used as a visual/information-architecture reference only. No source code or assets from that project are included. Shared Bluetooth protocol constants describe interoperability, not a copied implementation.
 
 No affiliation with OPPO, OnePlus, realme, vivo, iQOO, Huawei, Xiaomi, Redmi, Edifier, Sony or Apple. The app icon combines the original blue gradient background with Apple's `airpods.pro` SF Symbol, the same system asset used by the menu bar. SF Symbols and system materials are provided by macOS.
+
+## Samsung
+
+- [Budsy](https://github.com/vedatkilic/budsy) (MIT, Copyright 2026 Vedat Kılıç) and [GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient) (GPL-3.0) informed modern SPP framing, CRC, revision-specific status fields, preset EQ, touch-lock preservation and Buds4 Pro ANC levels. See `Licenses/Samsung-MIT.txt` and the GPL license included with HeyBuds.
+- The parser, request lifecycle and readback checks are handwritten; firmware transfer, reset, serial-number requests and upstream application assets are excluded.
+
+## Google Maestro
+
+- [PixelBudsMacOS](https://github.com/KashaMalaga/PixelBudsMacOS) (MIT, Jesús Ramírez Ramos) and [pbpctrl](https://github.com/qzed/pbpctrl) (MIT or Apache-2.0, Maximilian Luz) informed the handwritten bounded protobuf subset, Pigweed HDLC/RPC framing, setting IDs and preset curves. MIT notices are included in `Licenses/Google-MIT.txt`.
+- No generated protobuf code, Google application resources or account services are bundled. The Pigweed wire layout is used for interoperability.
+
+## Additional Sony profiles
+
+- [SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient) (MIT) supplies V1 protocol definitions. [sony-ult-ctl](https://github.com/Leonard013/sony-ult-ctl) (MIT, Copyright 2026 Leonard013) informs ULT payload fields; its full notice is retained in `Licenses/Sony-ULT-MIT.txt` and `SonyProtocol.swift`.
+- [sonyctl](https://github.com/DaanHessen/sonyctl) protocol documentation was used only for XB910N interoperability facts. No AGPL implementation is copied or bundled.
+
+New brand names identify interoperability only. No affiliation with Samsung, Google, Bose, Nothing or CMF is implied.
+
+## Bose BMAP
+
+- [bosectl](https://github.com/aaronsb/bosectl) and [bozo](https://github.com/NerdySouth/bozo) (MIT) provide model-specific battery/mode/CNC references. Full notices are in `Licenses/Bose-MIT.txt`.
+- [bosectl-android](https://github.com/depau/bosectl-android) (GPL-3.0-or-later) informs secure GATT endpoints, segmentation and Ultra Earbuds 2 corrections. The Swift code is newly implemented with bounded decoders and explicit GET readback; no fixed RFCOMM channels, pairing repair or manufacturer binaries are copied.
+
+## Nothing / CMF
+
+- [swift-nothing-ear](https://github.com/bestK1ngArthur/swift-nothing-ear) and [nothing-x-macos](https://github.com/nikiomori/nothing-x-macos) (GPL-3.0) provide model-specific protocol and capability references. Thanks to bestK1ngArthur, nikiomori, Daniel and their contributors. The full GPL license is included as `LICENSE`.
+- [EarA-linux](https://github.com/oneydef/EarA-linux) (GPL-3.0-or-later) and [omarchy-headphones](https://github.com/ncr/omarchy-headphones) (MIT, Jacek Becela) supply additional protocol facts. [openNothing](https://github.com/Evergaster/openNothing) is used only for protocol facts because the reference snapshot lacks its declared standalone license. No AGPL or ambiguously licensed implementation is copied.
+- Source files, checksum policies, identity gates and remaining field ambiguities are documented in [Nothing provenance](docs/licenses/Nothing.md). No manufacturer artwork, serial numbers or personal captures are included.
+
+[MagicBuds](https://github.com/artistro08/MagicBuds) (MIT, Copyright 2026 Devin Green) supplied Pixel Buds Pro 2 protocol cross-checks. Its full notice is retained in `Licenses/Google-MIT.txt`.

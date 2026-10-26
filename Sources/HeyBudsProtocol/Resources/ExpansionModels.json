@@ -1,0 +1,826 @@
+{
+  "models": [
+    {
+      "id": "samsung:buds2",
+      "name": "Galaxy Buds2",
+      "brand": "Samsung",
+      "protocolFamily": "samsung",
+      "children": [
+        {
+          "name": "Samsung Galaxy Buds2"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "标准",
+          "en": "Normal"
+        },
+        {
+          "id": 1,
+          "zh": "低音增强",
+          "en": "Bass boost"
+        },
+        {
+          "id": 2,
+          "zh": "柔和",
+          "en": "Soft"
+        },
+        {
+          "id": 3,
+          "zh": "动感",
+          "en": "Dynamic"
+        },
+        {
+          "id": 4,
+          "zh": "清晰",
+          "en": "Clear"
+        },
+        {
+          "id": 5,
+          "zh": "高音增强",
+          "en": "Treble boost"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "samsung:buds2-pro",
+      "name": "Galaxy Buds2 Pro",
+      "brand": "Samsung",
+      "protocolFamily": "samsung",
+      "children": [
+        {
+          "name": "Samsung Galaxy Buds2 Pro"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "标准",
+          "en": "Normal"
+        },
+        {
+          "id": 1,
+          "zh": "低音增强",
+          "en": "Bass boost"
+        },
+        {
+          "id": 2,
+          "zh": "柔和",
+          "en": "Soft"
+        },
+        {
+          "id": 3,
+          "zh": "动感",
+          "en": "Dynamic"
+        },
+        {
+          "id": 4,
+          "zh": "清晰",
+          "en": "Clear"
+        },
+        {
+          "id": 5,
+          "zh": "高音增强",
+          "en": "Treble boost"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "samsung:buds4-pro",
+      "name": "Galaxy Buds4 Pro",
+      "brand": "Samsung",
+      "protocolFamily": "samsung",
+      "children": [
+        {
+          "name": "Samsung Galaxy Buds4 Pro"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        },
+        {
+          "mode": "adaptive",
+          "bytes": [
+            3
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "标准",
+          "en": "Normal"
+        },
+        {
+          "id": 1,
+          "zh": "低音增强",
+          "en": "Bass boost"
+        },
+        {
+          "id": 2,
+          "zh": "柔和",
+          "en": "Soft"
+        },
+        {
+          "id": 3,
+          "zh": "动感",
+          "en": "Dynamic"
+        },
+        {
+          "id": 4,
+          "zh": "清晰",
+          "en": "Clear"
+        },
+        {
+          "id": 5,
+          "zh": "高音增强",
+          "en": "Treble boost"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "google:pixel-buds-pro",
+      "name": "Pixel Buds Pro",
+      "brand": "Google",
+      "protocolFamily": "google",
+      "children": [
+        {
+          "name": "Google Pixel Buds Pro"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "重低音",
+          "en": "Heavy bass"
+        },
+        {
+          "id": 2,
+          "zh": "人声增强",
+          "en": "Vocal boost"
+        },
+        {
+          "id": 3,
+          "zh": "高音增强",
+          "en": "Treble boost"
+        },
+        {
+          "id": 4,
+          "zh": "低音减弱",
+          "en": "Light bass"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "google:pixel-buds-pro-2",
+      "name": "Pixel Buds Pro 2",
+      "brand": "Google",
+      "protocolFamily": "google",
+      "children": [
+        {
+          "name": "Google Pixel Buds Pro 2"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "重低音",
+          "en": "Heavy bass"
+        },
+        {
+          "id": 2,
+          "zh": "人声增强",
+          "en": "Vocal boost"
+        },
+        {
+          "id": 3,
+          "zh": "高音增强",
+          "en": "Treble boost"
+        },
+        {
+          "id": 4,
+          "zh": "低音减弱",
+          "en": "Light bass"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "bose:qc45",
+      "name": "Bose QuietComfort 45",
+      "brand": "Bose",
+      "protocolFamily": "bose",
+      "children": [
+        {
+          "name": "QC45"
+        },
+        {
+          "name": "Bose QC45"
+        },
+        {
+          "name": "QuietComfort 45"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "anc",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            1
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "bose:qc-ultra-headphones-2",
+      "name": "Bose QuietComfort Ultra Headphones (2nd Gen)",
+      "brand": "Bose",
+      "protocolFamily": "bose",
+      "children": [
+        {
+          "name": "QuietComfort Ultra Headphones (2nd Gen)"
+        },
+        {
+          "name": "Bose QC Ultra Headphones 2nd Gen"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "anc",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            1
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "bose:qc-ultra-earbuds-2",
+      "name": "Bose QuietComfort Ultra Earbuds (2nd Gen)",
+      "brand": "Bose",
+      "protocolFamily": "bose",
+      "children": [
+        {
+          "name": "QuietComfort Ultra Earbuds (2nd Gen)"
+        },
+        {
+          "name": "Bose QC Ultra Earbuds 2nd Gen"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "anc",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            1
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": false,
+        "unassignedEarbudBatteries": true
+      }
+    },
+    {
+      "id": "nothing:ear-a",
+      "name": "Nothing Ear (a)",
+      "brand": "Nothing",
+      "protocolFamily": "nothing",
+      "children": [
+        {
+          "name": "Ear (a)"
+        },
+        {
+          "name": "Nothing Ear(a)"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 2,
+          "zh": "高音增强",
+          "en": "More Treble"
+        },
+        {
+          "id": 3,
+          "zh": "低音增强",
+          "en": "More Bass"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "nothing:headphone-1",
+      "name": "Nothing Headphone (1)",
+      "brand": "Nothing",
+      "protocolFamily": "nothing",
+      "children": [
+        {
+          "name": "Headphone (1)"
+        },
+        {
+          "name": "Nothing Headphone(1)"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 2,
+          "zh": "高音增强",
+          "en": "More Treble"
+        },
+        {
+          "id": 3,
+          "zh": "低音增强",
+          "en": "More Bass"
+        }
+      ],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "nothing:cmf-buds-2",
+      "name": "CMF Buds 2",
+      "brand": "CMF",
+      "protocolFamily": "nothing",
+      "children": [
+        {
+          "name": "CMF Buds2"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "摇滚",
+          "en": "Rock"
+        },
+        {
+          "id": 2,
+          "zh": "电子",
+          "en": "Electronic"
+        },
+        {
+          "id": 3,
+          "zh": "流行",
+          "en": "Pop"
+        },
+        {
+          "id": 4,
+          "zh": "人声增强",
+          "en": "Enhance Vocals"
+        },
+        {
+          "id": 5,
+          "zh": "古典",
+          "en": "Classical"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "nothing:cmf-buds-pro-2",
+      "name": "CMF Buds Pro 2",
+      "brand": "CMF",
+      "protocolFamily": "nothing",
+      "children": [
+        {
+          "name": "CMF Buds Pro2"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "均衡",
+          "en": "Balanced"
+        },
+        {
+          "id": 1,
+          "zh": "摇滚",
+          "en": "Rock"
+        },
+        {
+          "id": 2,
+          "zh": "电子",
+          "en": "Electronic"
+        },
+        {
+          "id": 3,
+          "zh": "流行",
+          "en": "Pop"
+        },
+        {
+          "id": 4,
+          "zh": "人声增强",
+          "en": "Enhance Vocals"
+        },
+        {
+          "id": 5,
+          "zh": "古典",
+          "en": "Classical"
+        }
+      ],
+      "function": {
+        "singleBattery": false
+      }
+    },
+    {
+      "id": "sony:wh-1000xm3",
+      "name": "WH-1000XM3",
+      "brand": "Sony",
+      "protocolFamily": "sony",
+      "children": [
+        {
+          "name": "Sony WH-1000XM3"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "sony:wh-1000xm4",
+      "name": "WH-1000XM4",
+      "brand": "Sony",
+      "protocolFamily": "sony",
+      "children": [
+        {
+          "name": "Sony WH-1000XM4"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "sony:wh-xb910n",
+      "name": "WH-XB910N",
+      "brand": "Sony",
+      "protocolFamily": "sony",
+      "children": [
+        {
+          "name": "Sony WH-XB910N"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    },
+    {
+      "id": "sony:ult-wear",
+      "name": "ULT WEAR",
+      "brand": "Sony",
+      "protocolFamily": "sony",
+      "children": [
+        {
+          "name": "Sony ULT WEAR"
+        },
+        {
+          "name": "WH-ULT900N"
+        },
+        {
+          "name": "Sony WH-ULT900N"
+        }
+      ],
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [],
+      "function": {
+        "singleBattery": true
+      }
+    }
+  ]
+}

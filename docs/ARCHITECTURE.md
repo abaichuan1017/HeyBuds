@@ -4,7 +4,7 @@
 
 `IOBluetooth / CoreBluetooth → EarbudTransport → DeviceSession 品牌路由 → 各品牌编解码与状态归一化 → AppModel → SwiftUI`
 
-OPPO 同时保留 RFCOMM 与 BLE GATT；新增品牌由 `BrandSession` 处理自己的线制，不调用 OPO 握手或封包。RFCOMM 只通过各品牌服务 UUID 的 SDP 记录获取通道；华为标准 SPP 只用于已识别型号，不凭通用串口服务判定品牌。OPPO BLE 只发现已知控制服务和写入／通知特征，先检索系统已连接外设，再定向扫描。传输间按序切换，同一会话不会同时打开两条链路。
+OPPO 同时保留 RFCOMM 与 BLE GATT；vivo/华为/小米/漫步者由 `BrandSession` 处理自己的线制，不调用 OPO 握手或封包。RFCOMM 只通过各品牌服务 UUID 的 SDP 记录获取通道；华为标准 SPP 只用于已识别型号，不凭通用串口服务判定品牌。OPPO BLE 只发现已知控制服务和写入／通知特征，先检索系统已连接外设，再定向扫描。传输间按序切换，同一会话不会同时打开两条链路。
 
 ## 生命周期与写入
 
@@ -36,6 +36,12 @@ OPPO 同时保留 RFCOMM 与 BLE GATT；新增品牌由 `BrandSession` 处理自
 
 先显示菜单栏入口，在后台读取型号目录，首次打开面板时才创建 SwiftUI 视图。型号 ID、名称和别名在加载时建立索引；后台设备查找复用同一份目录。登录项状态仅在进入设置时读取，空闲时不创建加载动画。蓝牙事件继续触发去抖后的查找，补偿查找在面板打开时每 8 秒、后台每 30 秒执行一次；手动刷新仍立即执行。
 
-发行包仅包含应用、五份紧凑 JSON、无损压缩图标和许可。原始 vivo 表保留在 `docs/reference/`；诊断预览与硬件演练入口仅编入 debug 构建。蓝牙协议握手等待、请求超时和设备响应确认保持协议要求。
+发行包仅包含应用、型号/EQ 紧凑 JSON、无损压缩图标和许可。原始 vivo 表保留在 `docs/reference/`；诊断预览与硬件演练入口仅编入 debug 构建。蓝牙协议握手等待、请求超时和设备响应确认保持协议要求。
 
 Sony uses an independent MDR V2 session over its dedicated RFCOMM service. The session verifies Table 1, device-reported identity and advertised functions before querying or controlling the three supported profiles. Requests wait for both transport completion and a matching ACK/response; reply and notification ACKs share a serialized writer. Timeouts and cancellations retire the connection to prevent late one-bit sequence traffic from satisfying later requests. Noise writes require fresh, settled readback. Sony battery subtypes distinguish single, left/right and case readings, including threshold-bearing variants. Other brands retain their existing transports and session paths.
+
+## 0.5 新品牌后端
+
+`SamsungSession`、`GoogleSession`、`BoseSession`、`NothingSession` 各自选择消息、解析字段和验证回读，共享 `ControlChannel` 的请求/发送生命周期。没有请求编号的协议超时后关闭会话；Google 的只读路由探测允许按唯一调用编号丢弃迟到回复。BLE BMAP 分包保留 ATT 通知边界，OPPO BLE 的原封包保持不变。
+
+`ExpansionModels.json` 独立保存本轮 16 款，既有 212 条目录保持原字节。Sony 由明确 V1/V2 型号配置选择服务、握手、功能键与消息布局；两代同编号命令不能互用。新品牌不接受手动型号覆盖，不将 OPPO 能力键直接用作线命令。

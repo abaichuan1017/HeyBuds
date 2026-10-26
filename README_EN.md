@@ -36,7 +36,13 @@ Check battery levels, switch noise modes, adjust sound and manage connected devi
 | HUAWEI | Battery, noise control, EQ, custom EQ, connected devices |
 | Xiaomi / Redmi | Family detection and battery; low latency requires valid state readback |
 | EDIFIER | Battery and noise control for supported SPP families |
-| Sony | WF-1000XM5 / WH-1000XM5 / WH-CH720N: battery, noise control, ambient level and focus on voice; hardware verification pending |
+| Samsung | Galaxy Buds2 / Buds2 Pro / Buds4 Pro: battery, noise control and preset EQ; touch lock on Buds2/2 Pro and ANC strength on Buds4 Pro |
+| Google | Pixel Buds Pro / Pro 2: battery, noise control and five EQ presets |
+| Bose | QuietComfort 45 / Ultra Headphones (2nd Gen) / Ultra Earbuds (2nd Gen): battery, Quiet / Aware modes and readable cancellation levels |
+| Nothing / CMF | Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2: battery and noise control; preset EQ gated by model and valid readback |
+| Sony | Original three models plus WH-1000XM3 / XM4 / WH-XB910N / ULT WEAR: battery, noise control and focus on voice; no ambient-level control on ULT WEAR |
+
+New models have initial protocol support; HeyBuds/macOS hardware compatibility remains unverified.
 
 Features depend on the model, firmware and device responses. See the [model list](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md) and [compatibility notes](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md).
 
@@ -62,7 +68,7 @@ Requires Swift 6.4 and the macOS 27 SDK.
 ```sh
 git clone https://github.com/abaichuan1017/HeyBuds.git
 cd HeyBuds
-swift test
+swift test --no-parallel
 bash scripts/build.sh
 open dist/HeyBuds.app
 ```

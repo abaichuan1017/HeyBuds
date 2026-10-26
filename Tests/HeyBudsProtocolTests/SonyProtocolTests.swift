@@ -68,13 +68,13 @@ import Testing
     #expect(throws:ProtocolError.self) { try SonyProtocol.noiseWrite(mode:.deep,level:20,voice:false) }
 }
 
-@Test func sonyCatalogAddsExactlyThreeProfilesWithoutChangingOldFamilies() throws {
+@Test func sonyCatalogPreservesOriginalThreeProfilesAlongsideExpansion() throws {
     let catalog=try ModelCatalog(),sony=catalog.models.filter { $0.family == .sony }
-    #expect(sony.count == 3 && catalog.models.count == 212 && catalog.models.filter { $0.family != .sony }.count == 209)
+    #expect(sony.count == 7 && catalog.models.count == 228 && catalog.models.filter { [.oppo,.vivo,.huawei,.xiaomi,.edifier].contains($0.family) }.count == 209)
     #expect(catalog.model(productID:nil,name:"Sony WF-1000XM5")?.singleBattery == false)
     #expect(catalog.model(productID:nil,name:"WH-1000XM5")?.singleBattery == true)
     #expect(catalog.model(productID:nil,name:"WH-CH720N")?.singleBattery == true)
-    for name in ["Sony speaker","WH-1000XM4","WF-1000XM4","WH-1000XM6","XM5"] { #expect(catalog.family(name:name) == nil) }
+    for name in ["Sony speaker","WF-1000XM4","WH-1000XM6","XM5"] { #expect(catalog.family(name:name) == nil) }
     #expect(catalog.routingFamily(name:"Renamed headphones",services:[.sony]) == .sony)
     #expect(catalog.family(name:"WH-1000XM5",override:"06EC10") == .sony)
     #expect(catalog.validOverride("sony:wh-1000xm5",family:.oppo) == nil)

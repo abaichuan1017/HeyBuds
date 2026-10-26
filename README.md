@@ -36,7 +36,13 @@
 | HUAWEI | 电量、降噪、EQ、自定义 EQ、多设备 |
 | Xiaomi / Redmi | 系列识别、电量；低延迟需有效状态回读 |
 | EDIFIER | 支持 SPP 的系列电量及降噪 |
-| Sony | WF-1000XM5 / WH-1000XM5 / WH-CH720N：电量、降噪、通透强度与语音聚焦；待实机验证 |
+| Samsung | Galaxy Buds2 / Buds2 Pro / Buds4 Pro：电量、降噪与预设 EQ；前两款触控锁、Buds4 Pro 降噪强度 |
+| Google | Pixel Buds Pro / Pro 2：电量、降噪与五组 EQ 预设 |
+| Bose | QuietComfort 45 / Ultra Headphones (2nd Gen) / Ultra Earbuds (2nd Gen)：电量、Quiet / Aware 模式及有回读的降噪级别 |
+| Nothing / CMF | Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2：电量、降噪；预设 EQ 按型号及有效回读开放 |
+| Sony | 原有三款及 WH-1000XM3 / XM4 / WH-XB910N / ULT WEAR：电量、降噪与语音聚焦；ULT WEAR 无通透强度控件 |
+
+新增型号均为初步协议接入，HeyBuds/macOS 实机兼容性待验证。
 
 具体功能取决于型号、固件和设备响应。详见[型号清单](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md)与[兼容性说明](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md)。
 
@@ -62,7 +68,7 @@
 ```sh
 git clone https://github.com/abaichuan1017/HeyBuds.git
 cd HeyBuds
-swift test
+swift test --no-parallel
 bash scripts/build.sh
 open dist/HeyBuds.app
 ```

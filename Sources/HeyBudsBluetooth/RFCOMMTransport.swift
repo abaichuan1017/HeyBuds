@@ -8,7 +8,7 @@ import HeyBudsProtocol
     public var onEvent: ((TransportEvent) -> Void)?
     public let label="RFCOMM"
     private let device: IOBluetoothDevice
-    private let serviceUUID:String
+    public let serviceUUID:String
     private var channel: IOBluetoothRFCOMMChannel?
     private var opening: CheckedContinuation<Void,Error>?
     private var writing: TransportWrite?

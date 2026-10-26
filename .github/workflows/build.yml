@@ -30,7 +30,7 @@ jobs:
       - name: Audit public source
         run: python3 scripts/audit-source.py
       - name: Run protocol, session and presentation tests
-        run: swift test
+        run: swift test --no-parallel
       - name: Build signed local application
         run: bash scripts/build.sh
       - name: Verify application and DMG contents

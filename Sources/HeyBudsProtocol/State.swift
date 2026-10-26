@@ -48,10 +48,13 @@ public struct DeviceState: Sendable {
     public var firmwareRevision: Int?
     public var codec: String?
     public var batteries: [BatterySlot:BatteryReading] = [:]
+    /// Some protocols identify components without an established left/right map.
+    public var unassignedBatteries: [UInt8:BatteryReading] = [:]
     public var placement: [BatterySlot:UInt8] = [:]
     public var noise: NoiseMode?
     public var liveNoise: NoiseMode?
     public var sonyNoise: SonyNoiseState?
+    public var samsungControls: SamsungControlState?
     public var eq: UInt8?
     public var spatial: UInt8?
     public var switches: [UInt8:Bool] = [:]

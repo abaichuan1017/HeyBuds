@@ -1,5 +1,5 @@
 {
-  "checkedDate": "2026-10-25",
+  "checkedDate": "2026-10-26",
   "upstreamProjects": [
     {
       "name": "OppoPodsManager",
@@ -34,7 +34,7 @@
       "url": "https://github.com/mos9527/SonyHeadphonesClient",
       "license": "MIT",
       "commit": "8f4808cb635f5a176df0b7b5aea959818be5129e",
-      "usage": "Sony MDR interoperability reference for the handwritten Swift V2 subset; no manufacturer resources or generated metadata vendored",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
       "sourceFiles": {
         "libmdr/src/HeadphonesV2.cpp": "287b725e33aa012a36611caf28d92db4ce8ecd27d820d4055b67241d2f488630",
         "libmdr/src/HeadphonesV2T1.cpp": "d7548d6116d628e370779dda2fe3aa4321f434dafe1fadc3e70521728dbe1712",
@@ -42,7 +42,20 @@
         "tests/ABI.c": "f1ab8893684d226c1ff2ab237bf42637b2b1f6ff9b8b031216377749e0113e7c",
         "docs/device-support/WF-1000XM5.md": "5fcdd22008a75aeb57400ccf849196827a25e78b6d47a9d1d93dfde8a569f7e5",
         "docs/device-support/WH-1000XM5.md": "86a735330e8df0b28e7468358819018e765b0004daaf1101f201385ad9b81f31",
-        "docs/device-support/WH-CH720N.md": "c9478759dd4f3289d499d33b5a925a4a8c87836a6113624ceb4ac33fb62bf707"
+        "docs/device-support/WH-CH720N.md": "c9478759dd4f3289d499d33b5a925a4a8c87836a6113624ceb4ac33fb62bf707",
+        "docs/device-support/WH-1000XM3.md": "bd62036e157b5e1e2756b5f7f8f13c63a82db454416ef8d13c412bf59cfe4f4e",
+        "docs/device-support/WH-1000XM6.md": "2a6b1ca367b094266a657c6d819a96468e8348df11cb3583ef463d824551c44f",
+        "docs/device-support/WF-1000XM6.md": "e7bd83b6ae2aac18e5110033b0bbf6775784baf89432944faff204824f8422df",
+        "docs/device-support/WF-C700N.md": "5f8fed2dc51f72bd9f0b25ca89560c8e8a20910abde08ca57ced29d216e0dd39",
+        "docs/device-support/WF-LC900.md": "7847cc7aa442df45d33cc3b6a415b797fbd1b2bec4b6a3343bec0804273582ab",
+        "docs/device-support/WF-L910.md": "ef81e202b173df5829bf7ee609ffa2e4a7d29a3f699c04850364a2fd634826ce",
+        "docs/device-support/WF-C510.md": "3320a0b436463aa4fc9ee234ba4b0f3b50ebe747d75ff779c88677dd16853c8a",
+        "docs/device-support/WF-LS900N.md": "56832a49f6630d0759b1c1362bc455415f31fa703e20c2ec7f26978bb1ce75de",
+        "README.md": "7c74df4e7851ed4783ad4d565da8012aaaf6b95323d0cc237b0582097e0b08df",
+        "LICENSE": "6d3de8cf625055aaba6c29a51a526aecfca1780ac2c0d6185d1dc7a41ca69e71",
+        "libmdr/src/HeadphonesV1.cpp": "4222d382c602e4d4e8c2168d97bb6ddc86d5f4e7902854e6cc60ce7c4b0007a3",
+        "libmdr/include/mdr/ProtocolV1T1.hpp": "a4b1bb01b8d9c149c4eed91c50e9b791956ef028cfde93c106e616ff642181bd",
+        "libmdr/include/mdr/ProtocolV2T1.hpp": "d4c90a3a438899a94dfc98b9b418126e30916585446d542ebb85214d6bd5c1a9"
       }
     },
     {
@@ -76,6 +89,280 @@
       "sourceFiles": {
         "libs/sony-protocol/src/ProtocolV2.cpp": "376429a8f80df56f90c7739f1498b5d8398faa71b5fa7de51d60c23f28e4d4c5",
         "libs/sony-protocol/src/DeviceProfileRegistry.cpp": "250af5207714ccad351ed9dfa7de808b1f8e4c6374f8ded1c7c0e1445e3c094a"
+      }
+    },
+    {
+      "name": "GalaxyBudsClient",
+      "url": "https://github.com/timschneeb/GalaxyBudsClient",
+      "license": "GPL-3.0",
+      "commit": "754b6fdfb1c151b022cece775c8aaad4eb185afa",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "GalaxyBudsClient/Model/Specifications/BudsDeviceSpec.cs": "ad61405cee8dd50dc34ad6d757111458f06d058e2bea94a51d9cee76bcebecda",
+        "GalaxyBudsClient/Model/Specifications/BudsPlusDeviceSpec.cs": "37716634638a2eca77b4eda6c3fa73686c6fe8871bf8627f5686cbc82430eeb5",
+        "GalaxyBudsClient/Model/Specifications/BudsLiveDeviceSpec.cs": "df0f45cf466e2565531ed57247f26012b07761f3272163c6a74277298faaa593",
+        "GalaxyBudsClient/Model/Specifications/BudsProDeviceSpec.cs": "2a05dcfd4943c1022095e8dd060fa2d2ab4527e463687f977edada78c8270430",
+        "GalaxyBudsClient/Model/Specifications/Buds2DeviceSpec.cs": "945cd5f513b91baf3d65771e70d1eebb96a2bf7ca0646a0c8eced241ec9c1324",
+        "GalaxyBudsClient/Model/Specifications/Buds2ProDeviceSpec.cs": "ac1ec73bd28b40dee46d53f5d00504cb48b7329c2bee847d3364a5eee2b57c38",
+        "GalaxyBudsClient/Model/Specifications/BudsFeDeviceSpec.cs": "90f9d59f66dab43bd361c2ce52fbc071cb35e2379b01dd1d37b9d4c160967ef2",
+        "GalaxyBudsClient/Model/Specifications/Buds3DeviceSpec.cs": "a7e69f5dd11520fec194f53e03f1f6c1efafb765b3c0c9371199d3a70ee0a231",
+        "GalaxyBudsClient/Model/Specifications/Buds3ProDeviceSpec.cs": "fe3cf985eb80759cc6701fadf0d0af7a0f6e8ac7033cb998436d83521442ba3e",
+        "GalaxyBudsClient/Model/Specifications/BudsCoreDeviceSpec.cs": "cc61ef1033b6f406400d22935c24f9fb978e4eb27412c56218d65860cbad01e0",
+        "GalaxyBudsClient/Model/Specifications/Buds3FeDeviceSpec.cs": "30cea328b0c521790e3dd2515c520e76f836ade9dcffdcd8633a72ec2200289a",
+        "GalaxyBudsClient/Model/Specifications/Buds4DeviceSpec.cs": "b7795ae45705c0c6c31196d0c68345daab19a65126e2f0fd003e9d319247d5ee",
+        "GalaxyBudsClient/Model/Specifications/Buds4ProDeviceSpec.cs": "cb0dad63fb2e292b6177128c227eb6b546af10566e0946e321f03a4a8517452d",
+        "README.md": "a71fe613ec50a135f2952612c36b757a174ff02ab269a74b9dc5ad843a9bf279",
+        "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "GalaxyBudsClient/Model/Constants.cs": "9394624be0ac3df218f5a287ec1c3535e04496eb77d23b4f581d4d26b30b0262",
+        "GalaxyBudsClient/Message/SppMessage.cs": "d20a40c0272f03ce1b4f4c45d18302814af7c95b3476c2fa795ad32408ff7288",
+        "GalaxyBudsClient/Message/Decoder/ExtendedStatusUpdateDecoder.cs": "ba2eabe9c79ba8e5822699424bed5912fdd1b8d790a9dc591ac51994b026abed",
+        "GalaxyBudsClient/Message/Encoder/LockTouchpadEncoder.cs": "1c09dfa467079e969346321a59a2ba5cfd35efc41d1773a185727175824521e9",
+        "GalaxyBudsClient/Message/Encoder/SetEqualizerEncoder.cs": "ffe3e9565985f174e1b7a289f63022ac211a10ad59b889ed8a0932c94345e22d",
+        "GalaxyBudsClient/Message/Decoder/StatusUpdateDecoder.cs": "0f70e9c414922d4d390b1701b91f94896c4a7719aa3bda1f578b79f470d51254"
+      }
+    },
+    {
+      "name": "swift-nothing-ear",
+      "url": "https://github.com/bestK1ngArthur/swift-nothing-ear",
+      "license": "GPL-3.0",
+      "commit": "b56c15e5749996f8f0e4fda54622079ea395686a",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "Docs/ear_1.md": "8520313c031f2750206341c84bfc5c49e765dfef53f23fc0053b5995f22ce3f7",
+        "Docs/ear_2.md": "99cb860ca1eb60ee265add96f30fd83a81d6e71d66ee6581d9356482c9769d7a",
+        "Docs/ear_3.md": "5c7f19677855c00edd506b4c68aa38097489d9ac30cf4e1875edced360740b28",
+        "Docs/ear_3a.md": "0093a934c8de9afaec8acac1338858499241b687f7783e5bdea2d16ec0d72627",
+        "Docs/ear_stick.md": "fe11952ccfa63bc62dfc9c2c977e3ed6df43f372dcc00ddace45deaa0ba69459",
+        "Docs/ear_open.md": "91bfa0def17fdebe0e7c8e5ce283474f9126e9084f67df4c933dbe181bb326ac",
+        "Docs/ear.md": "125f4961b53d3f998c7a9195b1b8a437db2c1cbdbc94b0ea57ad0624b38b680d",
+        "Docs/ear_a.md": "3c7205f78e33a1ff2ab7240a77971e9959abcaf83d9e5a888b279699e8f5edea",
+        "Docs/headphones_1.md": "b9452f91099100130640a7a6e7d38e260179ac8da598f0bc3adc28ed656b7fe2",
+        "Docs/headphones_1_pro.md": "17cc07b3637f5e2dc0d9254fca80b99a36af2333519be337c282a3f3e0ed164c",
+        "Docs/headphones_a.md": "dd68fbb1db6f687da17e3c2b0a23827798b263f26e6918d09bfd9e5aec43395b",
+        "Docs/cmf_buds.md": "d8d4dd03ffb39fa16add82f98dd4bc98e41c2d264dfd2ebcada7f9bb5cf46def",
+        "Docs/cmf_buds_neo.md": "ce2d635a6a7177881f48fa238e031472b8649f75eab9792e7316f119fd035f36",
+        "Docs/cmf_buds_2a.md": "cabf90c728e4c2c3b3fc0cf9127e70490f40cc302bc02e936a8cecc03ce53cd4",
+        "Docs/cmf_buds_2.md": "6a27a90ddb9a53d9ea858e5656ac5a1e751d545179086bc08de22916de486e50",
+        "Docs/cmf_buds_2_plus.md": "f19445ad32ed0bf9896d899c390f4b345f6326c4a857efbd8facb85665669aa4",
+        "Docs/cmf_buds_pro.md": "1563b9a7e2f00d19f8fd53691e27257b1e3b66f4452eeda53842d58dcd15c2a4",
+        "Docs/cmf_buds_pro_2.md": "fb0b35ff60a5de281358e06f9986dd8920ed1289ba3e21f17f5c7a1cff61575c",
+        "Docs/cmf_neckband_pro.md": "c2390b6545aeb87788f1547b4978de1101665196bdd79e75885262672dcda08a",
+        "Docs/cmf_headphone_pro.md": "2b13f3163ea8b8701d002dfc6d71a839e2dd9c0d6e014b7e2f57f895ec7d8e33",
+        "Docs/cmf_clip_pro.md": "462777830c3f8817b81cf059b0cec8eceb4a0bb062a5456e85db91614581c11c",
+        "README.md": "0a6417934a39670daecf805d977de99c42d7da7b0173f73daaca25bd23db2437",
+        "LICENSE.md": "5546ad8e1dd114ed3772a1b530d530593ef3eea748f91837120767944e22259b",
+        "Sources/SwiftNothingEar/Device.swift": "4f78bf60df9a8e9d3635721a5e08b6d09bfa184bc4df764927459fed6203885c",
+        "Sources/SwiftNothingEar/Bluetooth.swift": "347bf7dc5f9c1ff4feb9ca6a724bcc78c29b4ed93d8b393216c9d13d3adb6843",
+        "Sources/SwiftNothingEar/DeviceCapability/NoiseCancellation.swift": "0b7a37411d5f2b31ab88213c59ced5edda6a35a30625fa5fe43206b772b2e5ee",
+        "Sources/SwiftNothingEar/DeviceModel.swift": "867c3264b48afdf66f7cc77810453ed355252eee89e0ca58f860db6728426a8c",
+        "Sources/SwiftNothingEar/DeviceCapability/EQ.swift": "7ae9b806e7c4368f580c40f9fe3a1c7b76a2ec9f6518eb8ea128e60b56e2965f",
+        "Tests/SwiftNothingEarTests/NothingEarATests.swift": "c16ddc0991b7256a00ff63e0d1b9070fb5acc812cb6acacfe8610857e25cb78e",
+        "Tests/SwiftNothingEarTests/NothingHeadphone1Tests.swift": "29774f907ce0d5b7813d010aeb521bd537f54eb5f5c6196cf7cc35fe3d789362",
+        "Tests/SwiftNothingEarTests/CMFBuds2Tests.swift": "36b10bcb8d2f2bf9e00508843728539684e778782cf0b156ca7bb28328651f59",
+        "Tests/SwiftNothingEarTests/CMFBudsPro2Tests.swift": "1357df6ec98dee18c04cc9eb92aee1a404675c2192290df7418a80720a798467"
+      }
+    },
+    {
+      "name": "bosectl",
+      "url": "https://github.com/aaronsb/bosectl",
+      "license": "MIT",
+      "commit": "70570b29c1d3c9ba775b08a29eaea72385de27b5",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "README.md": "9fb7c7917a0a0f09af84b09b505f40238d13073509980cb78cb6e4f869cafc9c",
+        "python/pybmap/catalog.py": "a45cc990ad674847a531353ade2c8fbdb105456d967fea04aa381ac7c0578b97",
+        "LICENSE": "e7c3673fef0c3e18c0f7b147264182427c076121b64a767f15bf574be7b80024",
+        "python/pybmap/protocol.py": "0e9705f4c8322e8a6f65b20b05af97d8af4986fd66277062ff74b94ad0a50eae",
+        "python/pybmap/connection.py": "29b08e4a906b478d07325ce640a0cd4eb6030e414ba6a096c60ac11219f5ff07",
+        "python/pybmap/__init__.py": "1d88c29c15514bc41e0e9ba18a2a799d9d3df8f3f8073a2a5a1a06c023e01466",
+        "python/pybmap/devices/parsers.py": "de8f8d3434e592218626554767f32e9d0ea483cd98c8e0260a164650373eb729",
+        "python/pybmap/devices/qc45.py": "d0f8df9de743c852615a75808d726f933a6d2e90f684aac73a4b8a533312cbca",
+        "python/pybmap/devices/qc_ultra2.py": "761b2fe1dc816483bf0720cad18857349c0d9419fa36235cdc2b7dfa074c575e",
+        "python/pybmap/devices/qc_ultra2_earbuds.py": "94b8e5c18a63feff7a0a8e636aa91d1872b76102f073df00fd030fefd7667ee9"
+      }
+    },
+    {
+      "name": "bozo",
+      "url": "https://github.com/NerdySouth/bozo",
+      "license": "MIT",
+      "commit": "db07cad042093a4abcfb37c3f31ab6ace6137d4a",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "README.md": "3e90ab1fb5d8392ab0bf72f2daec6be4d0d2684e9080ede9773f3fdb58647249",
+        "LICENSE": "356052505e22e585ddd2c8ba98f9035121258112189c96392d5685708cdc57a9",
+        "docs/BMAP.md": "804fa60624462f5906735cadc442b13cef74578d2abb71edee3dce35ba6b6046",
+        "crates/bozo-proto/src/protocol/audio_modes.rs": "45d116fb33ebc34d5bc422b21699565233bde4920805ce47844de3946407dafd"
+      }
+    },
+    {
+      "name": "PixelBudsMacOS",
+      "url": "https://github.com/KashaMalaga/PixelBudsMacOS",
+      "license": "MIT",
+      "commit": "0ffd4f96f0d2a3070870798256b25924f9409e26",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "README.md": "842b170d2d61e279e6c553e91d8562043c2c6a022b1828c9676e7c81d007bafc",
+        "Sources/MaestroIOBluetooth/RFCOMMTransport.swift": "bc55bd8a51252e554c72f856e41615cf3a0e8b3b57c4009d03ea98aab8e1af94",
+        "LICENSE": "3e82f14cd630217cbeddefeb60a7f694a97406752e7e8883eacbb757282b3256",
+        "Package.swift": "1b1a59eb6251bdc496aa6f5d2f468556d369b464b4ae8ec04bdc61bd14a6840e",
+        "Sources/Maestro/Services/MaestroService.swift": "426854360d6076905f6b836bfc915a2728397b8e5c1516da3c421d5b43ea4ddf",
+        "Sources/Maestro/PwRPC/ChannelResolver.swift": "ccd6761db7a86ac9a7901e80e7b679aad3d9c6fe6e3bd377c7cb6f24277e3928",
+        "Sources/Maestro/PwRPC/HashId.swift": "02537491c193cd27c5405890090d2f60939eaebea3e7e9c85835e2e52375884e",
+        "Sources/Maestro/PwRPC/PeerAddress.swift": "d4f4b52240112316d55a72c4222a6f1e78f52b1f98bfb83d235abb6b26110a10",
+        "Sources/Maestro/HDLC/Encoder.swift": "447ca5363219a24f92e72ec03495cae5a76d7151e960363db113b76a73f89458",
+        "Sources/Maestro/HDLC/Decoder.swift": "9499a932492cc41d301c1af43e1e2cc268f597159ca0f58648b807e8fa1fd28e",
+        "Sources/PixelBudsBar/EqPresets.swift": "18c0b84947635f4e42b7438c3db7150c261a6df87ff9235ea761dfb4f959d902"
+      }
+    },
+    {
+      "name": "pbpctrl",
+      "url": "https://github.com/qzed/pbpctrl",
+      "license": "MIT OR Apache-2.0",
+      "commit": "2620367a41f92135059f637d92a2e4f427abb44e",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "README.md": "d149f35d3eeccf72baf7bec4bd4e86cf677e6cf4f0f969f3873ce1a0ca825ec0",
+        "LICENSE-MIT": "19544a17e8bed457223bd9a85f098a38cf2b3f248a9547a6a269c96229f4e51e",
+        "LICENSE-APACHE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+        "libmaestro/proto/maestro_pw.proto": "d30061aff8b6a3fd4e025875d10af87dcb38310a0ff56acc8d222c1d505f1495",
+        "libmaestro/proto/pw.rpc.packet.proto": "dd8035ea13de711dccb3414b5f92d0c51136eaf5b2c54dae2c0b299f67092c45"
+      }
+    },
+    {
+      "name": "budsy",
+      "url": "https://github.com/vedatkilic/budsy",
+      "license": "MIT",
+      "commit": "dfd512c12aa064d3e9691c6736f9d2c157727eef",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "Sources/Models/BudsModel.swift": "8b84e174a650fe8a3d717b889f2313b84e9245ab25b576eaec8e13d9c4b422f1",
+        "Sources/Bluetooth/BluetoothManager.swift": "75c170a0e916b80e15e65563c6d24d369672b5b888e14be3bb48c32d046cc422",
+        "README.md": "2e1e6d84437050372a0f235710f16d37247295e2d214c217f8f0cece7557d379",
+        "LICENSE": "001c6d93cb7170498dbca9f9ebc0ea909bf805d93c1c26b0289bf891d743df17",
+        "Sources/Bluetooth/SppMessage.swift": "6600e2f7c095153808743b8184e256ee44d80a2e180c4d95c800955d4f3c33aa",
+        "Sources/Bluetooth/CRC16.swift": "f7222843a39ee6a670a858ef7afac832b122879005671094e2dc9c72e9f12795",
+        "Sources/Bluetooth/MessageId.swift": "228a3aeb7e9922d3e22d41d5ef3ff619acb32e10e9b198befe8b074cb6124f39"
+      }
+    },
+    {
+      "name": "nothing-x-macos",
+      "url": "https://github.com/nikiomori/nothing-x-macos",
+      "license": "GPL-3.0",
+      "commit": "ef55fc8650c699b80fbda56fdeda7ce2dccb1d2a",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "README.md": "723138efb89d1af59195914fb3b3c376fd70d4efc48301dec1cf51a96d8257b1",
+        "LICENSE": "f817886ee6bb65ed3098a7987b1e9781653d15c71f85589ce0d2af663c66d373",
+        "Nothing X MacOS/framework/BluetoothManager.swift": "bf3c2dd4511d4ef3e3f03045154de0407b7cd1ea0c8a306f3de2610d1c78dd9f",
+        "Nothing X MacOS/framework/NothingServiceImpl.swift": "c5d7ff1214412562d21f5a75805229089ff1bebc67563f7f40516185db373b7a",
+        "Nothing X MacOS/framework/utils/CRC16.swift": "d7bbb5993514978ed5377d19b6eece1582c56651f59cb016d3aec3ff3001f13d",
+        "Nothing X MacOS/framework/utils/SKUUtil.swift": "c8235c35c53d625fda8adfd85cea3245b69f5fb2b94dfe283ef564813a4a08f9",
+        "Nothing X MacOS/domain/enums/Commands.swift": "c61efeb25167225894c23272be1796e9422d3d2cb7a2223b9acebec14ad1acdb",
+        "Nothing X MacOS/domain/enums/device/Codenames.swift": "8c06591ea214d22d2b2764c2c55e9335c3e19ca12834d9e67686a08c7b472c78",
+        "Nothing X MacOS/domain/enums/device/SKU.swift": "639a27e599f7a0368f6dca52c573379e477cde38d6464102b56c1c0ab0a9e5f9",
+        "Nothing X MacOS/domain/enums/device/EQProfiles.swift": "89368c280433696e753a99292c15d46fb4aa33fbaa506a6683ddefff702f3cf0"
+      }
+    },
+    {
+      "name": "bosectl-android",
+      "url": "https://github.com/depau/bosectl-android",
+      "license": "GPL-3.0",
+      "commit": "1ece0cd68e9b35496361ef3b186aa4af0783e7b7",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "bmap/src/main/java/eu/depau/bosectl/bmap/GattTransport.kt": "03f934dc34297cd9ec9fa5b7d6f531de407399f6895adab58637cc08f5f985a3",
+        "bmap/src/main/java/eu/depau/bosectl/bmap/Parsers.kt": "4af8f0632ad09be08c28703bb07a9e89db27ff267f0a5f571c1f08274eec259c",
+        "README.md": "3e6a7964b3a05abfadc5031aabf2bea5e70d2af659f8027a3949fb3f38c97caf",
+        "LICENSE": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+        "docs/PROTOCOL.md": "b6f793f18757e5833a06a92fc0cb2e2fb84011a7b96575379adae7d0639e3b7b",
+        "bmap/src/main/java/eu/depau/bosectl/bmap/BleFraming.kt": "70b07799e2e79f63d6f2d4dc7652616946a1447c5204ae22720fdc21c647b671",
+        "bmap/src/main/java/eu/depau/bosectl/bmap/Protocol.kt": "71f9ab4ea2cf9c2345dc3d7b061385c42d7fbcb1d2487f4be1283e0a0f946dfa",
+        "bmap/src/main/java/eu/depau/bosectl/bmap/Types.kt": "cddc890f1a17bd2359c0473d1d43d59c7ad71c139b88c50d8c2bad35f2694240",
+        "bmap/src/main/java/eu/depau/bosectl/bmap/BmapConnection.kt": "2d356243cf893149749b9baa7f4be50852b84ca853108bc2100b6930227c5541"
+      }
+    },
+    {
+      "name": "sonyctl",
+      "url": "https://github.com/DaanHessen/sonyctl",
+      "license": "AGPL-3.0 (protocol documentation only)",
+      "commit": "2c24bf362a3539465c112f18ef5e7e2698af4dde",
+      "usage": "WH-XB910N wire facts from protocol documentation only; no AGPL implementation copied",
+      "sourceFiles": {
+        "docs/protocol.md": "747cdfe38d75a8f7121aa090c2021447a051973cc610158cd02796b681ba0b67",
+        "README.md": "37f42a7489e86302a0d4b83183cca85c6b877712a070e4b20201a31f7d83a326",
+        "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
+      }
+    },
+    {
+      "name": "sony-ult-ctl",
+      "url": "https://github.com/Leonard013/sony-ult-ctl",
+      "license": "MIT",
+      "commit": "546099de1e1ff35a0d28dae24ba3ed09d8918085",
+      "usage": "Model-specific interoperability reference for handwritten Swift framing, parsers and fresh readback; no hardware-compatibility claim",
+      "sourceFiles": {
+        "SonyULTMenu.swift": "5ca5768b2d50d7df477771e32b696ab40ebe2a3de1f193e108d96c720bba4f87",
+        "README.md": "59de1172aba81ecf4a224a4766978975feefc902fbe18ec30b9035d9b5702d66",
+        "LICENSE": "d4e18ec30eb776fb4d1dec4ec04352890a7b8577e5506231ec0a6eca4e9e98f2"
+      }
+    },
+    {
+      "name": "openNothing",
+      "url": "https://github.com/Evergaster/openNothing",
+      "commit": "0a3ba1c9a8f72f60c3ed436a1340560aa80e4f66",
+      "license": "MIT declared; license file absent (protocol facts only)",
+      "usage": "Model-specific Nothing interoperability facts; no upstream implementation copied",
+      "sourceFiles": {
+        "README.md": "e300aafa7df1870d3d610c5802d01a429f00f6faae40b9b6679d17b9a9543d6e",
+        "pyproject.toml": "02735b874f8d3ab09576c85191c63fae5a83aaa33e8d96cade320da0f4e7ef78",
+        "opennothing/protocol/packet.py": "5522853bc96c7141601afe4ef5c7ec2066f8bd9b4cce3a2e804726a0f95068e6",
+        "opennothing/protocol/constants.py": "55846efed30a1cbaedf863eac4003d61dc1d866851d8262d518ba9a0c3a628ca",
+        "opennothing/protocol/codec.py": "d49d1207e1ad4039089a05b49df9225f510fb78d92e1ef8bf4b1b5687a8440eb",
+        "opennothing/protocol/enums.py": "d973b8bc23f7fe40aba31e887b942894d9a78fed93e37c4b9e8e88d13fb985b0",
+        "opennothing/protocol/models.py": "e8f0cf71a3252e26a733747da62b1a30069ef9d28677af067823d48b4f50c31f",
+        "opennothing/device/cmf_pro_2.py": "d6355c3f08ab5b11f5b48f940d542889da5739f39fe8638212daf5eb41d68b36",
+        "tests/protocol/test_golden.py": "e6c0f3eb61eeef7544d64d05df31c05ae2de5ba458c9235065a8eb8d4f2688fa",
+        "tests/protocol/test_codec.py": "03f616f7e55b043d86880800e0edb5323504ea1054eee8f4dd2f2b4dbf7f5b04",
+        "tests/test_session.py": "63834de49f3578003877139769f8b1acf6376e6a6ec0939216a60d95913cfb93",
+        "opennothing/transport/fake.py": "4bc1d3cc336b4284a7c099606c1a5f2f4b6148fb7e1327e3d4d08713a76c5d95"
+      }
+    },
+    {
+      "name": "EarA-linux",
+      "url": "https://github.com/oneydef/EarA-linux",
+      "commit": "d633863e4ebdc18771c37424f1b7a67e57c0435e",
+      "license": "GPL-3.0-or-later",
+      "usage": "Model-specific Nothing interoperability facts; no upstream implementation copied",
+      "sourceFiles": {
+        "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "NOTICE": "a1097b92eeb1317a10c1fbf308273d06dec54fb0df723769abf0a614a4e5fb36",
+        "eara/protocol.py": "beddc710bba0969837879968748e0bc26258493b8d0d1c308e701a3aeb9dcb49",
+        "eara/session.py": "fffd4415694aa6846e171c987b0e7209d5e49af856df8fb1b7fbba0ae68ec239",
+        "tests/test_protocol.py": "13b17d80b2dcf55d7e5e97f50f1f529c7b36a2d157d093f4cde9debe9a3be8c5"
+      }
+    },
+    {
+      "name": "omarchy-headphones",
+      "url": "https://github.com/ncr/omarchy-headphones",
+      "commit": "607d1c86492e6d94541f4c615efc90f3e8f67328",
+      "license": "MIT (protocol facts only)",
+      "usage": "Model-specific Nothing interoperability facts; no upstream implementation copied",
+      "sourceFiles": {
+        "LICENSE": "cf04864900ff929e5e79a1c49b4634aba85901c165b6b813dee405eaa80fe967",
+        "README.md": "4aadee6e08858fcb561e5e7adec6702177c6450b8932c0315095dd7d43fd48d7",
+        "docs/captures/nothing-cmf-buds-2.txt": "f7b1960decf30f8ab6a09e6dc591455f92e91d904357d76d75ff14923bc88055",
+        "docs/CMF-REVIEW.md": "5155382996ed98ffbeeb6ea907f058da7adc05da2f4ea89474bf9f7f65065e2c"
+      }
+    },
+    {
+      "name": "MagicBuds",
+      "url": "https://github.com/artistro08/MagicBuds",
+      "license": "MIT",
+      "commit": "d5b1a354fe51f964b775f87ae38c2255a770fcf3",
+      "usage": "Pixel Pro 2 protocol fixtures and battery snapshot semantics; no UI assets",
+      "sourceFiles": {
+        "LICENSE": "5e51580b15737e70f8629fb9754ffe5191348e5f053e674d3b717d6624c81252",
+        "src/MagicBuds.Presentation/Headsets/PixelBudsHeadset.cs": "3a6c71a871428a188ecd6d3105fb5861002af6102625fdabbfdb7c5a1b63ded1",
+        "docs/protocol/notes.md": "afeddd32a0a564216e643cb7281aa700cbc9017ab42ae8002e2004518c707ff7"
       }
     }
   ],
@@ -150,7 +437,8 @@
     "Sources/HeyBudsProtocol/Resources/EqModeNames.json": "1e82f5b4e2cc92e1c1806cd4b86f97f7a2e09fb15a7645be3403c545aca1758b",
     "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "b8f7fab98e28b586e3b0000fc1357acc1ad6a2edf8351cb384394a7423bbdc2a",
     "Sources/HeyBudsProtocol/Resources/EncoDeckModels.json": "3fa94eb37f82e5ca2d8fccfa179c0d8aba0724f585403fba20214f8af8cafa06",
-    "Sources/HeyBudsProtocol/Resources/SonyModels.json": "d0dfac070222999930275c50bbdb2d2ff5b4331430ed33573fbbe914dae95264"
+    "Sources/HeyBudsProtocol/Resources/SonyModels.json": "d0dfac070222999930275c50bbdb2d2ff5b4331430ed33573fbbe914dae95264",
+    "Sources/HeyBudsProtocol/Resources/ExpansionModels.json": "1976f003f80bd1f23de4087abe718acb5dd6d269267532f784cedbc0dcc5c186"
   },
   "referenceResourceSHA256": {
     "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b",

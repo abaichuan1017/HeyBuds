@@ -1,0 +1,450 @@
+Bose interoperability references, license notices and transport audit
+Audit date: 2026-10-26
+
+This file attributes fixed upstream references for Bose protocol, transport,
+session and model configuration work. It retains the complete supplied MIT
+license texts and separately identifies the GPL reference; the filename does
+not relicense that reference as MIT. No AGPL or PolyForm material is included.
+
+Evidence scope: source inspection of four supplied snapshots, not Bluetooth,
+macOS pairing, hardware, build or runtime validation. Upstream device reports
+are identified as such. Commit identities below are recorded by the supplied
+snapshot metadata; file SHA-256 values were recomputed from those snapshots.
+The 14 file fingerprints for these four sources in the supplied focused-brand
+plan match. A source listing is an attribution/evidence inventory, not a claim
+that all listed implementation code has been incorporated into HeyBuds.
+
+FIXED SOURCES
+A. aaronsb/bosectl
+   Repository: https://github.com/aaronsb/bosectl
+   Frozen commit: 70570b29c1d3c9ba775b08a29eaea72385de27b5
+   Commit URL: https://github.com/aaronsb/bosectl/tree/70570b29c1d3c9ba775b08a29eaea72385de27b5
+   File URL base: https://github.com/aaronsb/bosectl/blob/70570b29c1d3c9ba775b08a29eaea72385de27b5/
+   License: MIT
+B. NerdySouth/bozo
+   Repository: https://github.com/NerdySouth/bozo
+   Frozen commit: db07cad042093a4abcfb37c3f31ab6ace6137d4a
+   Commit URL: https://github.com/NerdySouth/bozo/tree/db07cad042093a4abcfb37c3f31ab6ace6137d4a
+   File URL base: https://github.com/NerdySouth/bozo/blob/db07cad042093a4abcfb37c3f31ab6ace6137d4a/
+   License: MIT
+C. depau/bosectl-android
+   Repository: https://github.com/depau/bosectl-android
+   Frozen commit: 1ece0cd68e9b35496361ef3b186aa4af0783e7b7
+   Commit URL: https://github.com/depau/bosectl-android/tree/1ece0cd68e9b35496361ef3b186aa4af0783e7b7
+   File URL base: https://github.com/depau/bosectl-android/blob/1ece0cd68e9b35496361ef3b186aa4af0783e7b7/
+   License: GPL-3.0-or-later
+D. JimmyCalhoun/ANChor
+   Repository: https://github.com/JimmyCalhoun/ANChor
+   Frozen commit: 8d6e6663371fb968309d6b2e042a2e897d6e6208
+   Commit URL: https://github.com/JimmyCalhoun/ANChor/tree/8d6e6663371fb968309d6b2e042a2e897d6e6208
+   File URL base: https://github.com/JimmyCalhoun/ANChor/blob/8d6e6663371fb968309d6b2e042a2e897d6e6208/
+   License: MIT
+
+TRANSPORT AND SESSION FINDINGS
+
+Addresses [block.function] below are decimal; explicit wire-byte sequences are
+hexadecimal. Protocol facts are separate from HeyBuds integration requirements.
+
+1. Service selection and model scope
+
+- BMAP RFCOMM service UUID:
+  00000000-deca-fade-deca-deafdecacaff
+  Source A: python/pybmap/catalog.py; source C: RfcommTransport.kt.
+- Standard SPP service UUID:
+  00001101-0000-1000-8000-00805f9b34fb
+  Source A's docs/quietcomfort-headphones-prince.md and qc_prince.py explicitly
+  establish SPP SDP for prince (0x4075), with channel variation between units.
+  This is NOT direct QC45 SDP evidence. qc45.py establishes historical channel
+  8 and an initialization GET, but supplies no QC45 service-record capture.
+  QC45 SPP is therefore a profile-scoped candidate, not a verified UUID-to-model
+  mapping. A generic SPP UUID alone cannot identify Bose or a target model.
+- Source A's macOS transport performs an SDP query but subsequently opens the
+  configured channel directly; it does not extract a channel from the matching
+  service record. Its connect helper probes fallback channels 2/8/9. Source D
+  hardcodes channel 2. Neither behavior should be carried into HeyBuds.
+- Source C reports that the BMAP UUID resolves to a non-control ff55 status
+  beacon on its Android/Ultra Earbuds 2 setup. Its channel-2 reflection workaround
+  is not a portable SDP fix. A matched UUID or an open socket does not establish
+  BMAP. Require a complete, address-matched successful BMAP response; absent a
+  usable normally discovered control service, leave that transport unavailable.
+- qc45.py: duran, PID 0x4039, firmware report 4.0.4-4360+de6a887; RFCOMM init
+  GET [0.1], wire 00 01 01 00, before other queries. This is a BMAP-version read,
+  not an authentication key or a separate registration packet. Channel 8 is
+  historical evidence only. There is no QC45 BLE validation in these snapshots.
+- qc_ultra2.py: wolverine, PID 0x4082, firmware report 8.2.20+g34cf029;
+  historical RFCOMM channel 2, no INIT_PACKET. A BLE implementation for generic
+  QC Ultra headphones exists in source B, but does not establish gen-2 firmware
+  coverage. The two generations must retain separate profiles.
+- qc_ultra2_earbuds.py: edith, PID 0x4062. Source D reports macOS RFCOMM testing;
+  source C reports actual Android LE control on firmware 8.4.8+gbb2cb60, including
+  operation while another host owns audio. Those are upstream reports, not
+  HeyBuds/macOS BLE verification.
+
+2. GATT setup, security and registration
+
+Use BMAP service 0000febe-0000-1000-8000-00805f9b34fb, with one selected
+read/write/notify characteristic for commands AND responses:
+  secure:   c65b8f2f-aee2-4c89-b758-bc4892d6f2d8
+  unsecure: d417c028-9818-4354-99d1-2ac09d074591
+  CCCD:     00002902-0000-1000-8000-00805f9b34fb
+Sources B: docs/BMAP.md, ble/connection.rs; C: GattTransport.kt, PROTOCOL.md 15.
+
+Source B's scanner.rs has 0000febe-0000-0000-0000-000000000000 instead of the
+standard-base UUID above; its own BMAP document disagrees. Source C explicitly
+identifies the zero-base app constant as dead code. Use the actual standard-base
+service, not that scanner constant or a name substring as a service gate.
+
+Select the secure characteristic first; validate its properties and enable
+notifications before queries. Source C enables the CCCD with notification value
+01 00 and waits for descriptor completion. CoreBluetooth integration should wait
+for its notification-state completion rather than assume subscription succeeded.
+
+On source C's tested earbuds, unencrypted BLE returns BMAP ERROR 20 (0x14,
+InsecureTransport) for almost all useful reads, including [9.2]. The unsecure
+characteristic answers [0.1], [0.2], and [4.14] in the reported pre-bond sweep.
+A successful version GET therefore does not establish an encrypted usable control
+session. The reported classic bond supplies LE encryption via CTKD on Android;
+normal macOS pairing/CTKD behavior remains unverified. Selecting a characteristic
+named secure is not itself evidence that the link is encrypted. Do not silently
+fall back to unsecure to evade an encryption failure or copy the cloud/ECDH flow.
+
+Source B writes WithoutResponse; source C uses WRITE_TYPE_DEFAULT (with response)
+and waits for each write acknowledgement. The reported earbuds advertise both
+properties. Treat write policy as transport configuration, honor the discovered
+properties, and use the limit for the chosen write type. Neither upstream proves
+both policies across QC45 and every Ultra generation.
+
+GATT notification subscription and BMAP event registration are separate:
+  SETGET [9.2]: [mode][4-byte big-endian block mask]
+  mode 0=Overwrite, 1=Enable, 2=Disable; bit index is the function-block ID.
+  Source C default blocks {1,2,4,5,31} -> mask 80 00 00 36.
+  Bare BMAP request: 09 02 02 05 01 80 00 00 36
+  Single-segment BLE value: 00 09 02 02 05 01 80 00 00 36
+  GET [9.2]: 09 02 01 00; response is the active four-byte mask.
+  [9.1] is NotificationReset, NOT a generic GetAll. Do not use it for discovery.
+Sources C: BmapConnection.kt, Parsers.kt, PROTOCOL.md 10 and 15. Registration and
+multi-frame drains were reported working over LE, but delivery of an actual
+changed-value push over LE remains explicitly unobserved in GattTransport.kt.
+Do not present successful registration as verified push delivery.
+
+Source C reports idle LE disconnect at about 40 seconds, mitigated in its setup
+by GET [0.1] every 20 seconds; immediate reconnect needs backoff (three attempts,
+about 1.2 seconds apart). These are model/firmware observations, not universal
+protocol timing guarantees. They justify session lifecycle policy and freshness
+handling; no extra wire registration handshake is established by these sources.
+
+3. BLE message boundaries and codec contract
+
+Common BMAP frame:
+  [fblock, function, flags, payloadLength, payload...]
+  flags = (deviceID << 6) | (port << 4) | operator
+  payloadLength is one byte; frame length is 4 + payloadLength (maximum 259).
+  Operators: SET=0, GET=1, SETGET=2, STATUS=3, ERROR=4, START=5,
+             RESULT=6, PROCESSING=7.
+There is no added checksum, delimiter or second length field in the inspected
+BMAP/BLE framing. The existence of an error named Chksum does not define one.
+Sources A: protocol.py; B: bmap/packet.rs; C: Protocol.kt.
+
+Each ATT characteristic value, in BOTH directions, is:
+  [segmentHeader][BMAP message chunk]
+  segmentHeader = ((segmentCount - 1) << 4) | zeroBasedSegmentIndex
+  single segment = 00; two segments = 10,11; three = 20,21,22.
+Strip exactly one header per value. Do not prepend another 00 to the BMAP body;
+00 is already the single-segment header. Reassembled data can contain MULTIPLE
+complete BMAP frames. Parse each by its length, not by notification count.
+Sources B: bmap/segment.rs, ble/connection.rs, docs/BMAP.md;
+C: BleFraming.kt, GattTransport.kt, BleFramingTest.kt, PROTOCOL.md 15.
+
+Integration requirement for BoseGATTCodec.encode(Data, maximumWriteLength:):
+maximumWriteLength is the characteristic VALUE limit, not ATT MTU. With value
+limit W, chunk size is W - 1. In ATT-MTU notation M it is M - 4 (three ATT bytes
+plus the segment header). At M=23, W=20, chunk=19; source C requests M=247 and
+uses chunk=243 if granted. Source B fixes chunk=19. Do not subtract four from W,
+or assume all incoming values are 20 bytes. Reject unusable W and messages needing
+more than 16 chunks; a BMAP frame with payload >255 must already be rejected by
+the BMAP encoder. Encode must preserve the full BMAP bytes without adding another
+framing layer.
+
+Integration requirement for feed(Data)->Data?: each call consumes one complete
+notification value, not an arbitrary RFCOMM stream chunk. Return nil until a full
+segmented message is available; returned Data is a BMAP buffer and may hold many
+frames. reset must discard partial state on disconnect, timeout and errors.
+Do not merge two messages after a lost tail or an index-zero restart. Validate
+index <= last index, a stable last index and continuous segments; reject stray
+tails, duplicate/missing segments and inconsistent headers. Bound buffered bytes
+and partial-message lifetime. These strict validation requirements combine the
+wire evidence with defensive integration policy; neither upstream reassembler
+already supplies all of them (B accepts indexed storage; C does not check stable
+last-index values). Do not treat source test presence as passing local tests.
+
+Source C's report leaves multi-segment inbound notifications at MTU 23 unverified:
+Android granted 247 even when 23 was requested. A successful single short response
+or a synthetic fragmentation test does not close that hardware gap.
+
+RFCOMM instead carries bare BMAP frames: retain incomplete frame tails across
+callbacks and handle multiple frames per callback. Source D's callback-as-response
+logic is not a safe message-boundary model. Serialize requests and separate push
+STATUS from request completion; in source C, a START can be preceded by STATUS
+before its RESULT. Match address and expected operator; ERROR and PROCESSING are
+not completed settings. Preserve device/port fields for any routing validation.
+Source A's prince reports PROCESSING before asynchronous state change, reinforcing
+the need for profile-aware readback rather than a universal ACK success rule.
+
+4. ProductInfo and safe capability queries
+
+There is NO validated ProductInfo device-PID response address/layout in the four
+fixed snapshots sufficient to implement a runtime model parser. Source A has
+static DEVICE_INFO/catalog PIDs and OS discovery, not a ProductInfo PID decoder.
+Source B's enums.rs declares PRODUCT_ID_VARIANT=0x05 and FIRMWARE_VERSION=0x04;
+these conflict with executable source A profiles and source C BmapConnection.kt,
+which consistently query firmware at [0.5] and decode a string. Source B does not
+exercise those two constants in its initial queries. Do not infer PID from [0.5],
+or invent a [0.3]/[0.6] layout because those IDs appear in a historical function map.
+
+Established queries, with evidence limits:
+
+  [0.1] GET  00 01 01 00
+    BMAP version string. QC45 initialization; source C observed "1.2.0".
+    It identifies protocol version, not product identity or link security.
+  [0.2] GET  00 02 01 00
+    All-function-block vector; source C observed 8f cc 23 ff.
+    No validated generic decoder/bit-index mapping is supplied by these four.
+    Do not assume it uses [9.2]'s block-ID mask ordering.
+  [0.5] GET  00 05 01 00
+    Firmware UTF-8 string in source A profiles/parsers and source C API/parser.
+    Use as firmware evidence; do not reinterpret the bytes as a PID.
+  [1.2] GET  01 02 01 00
+    User-editable product name. Source C skips a leading flag byte, then reads
+    UTF-8 and trims trailing NULs. It is not an immutable model identifier.
+  [block.0] GET
+    FblockInfo/version, e.g. [1.0] and [4.0] report "1.1.0" in A/C.
+    Not an established generic list of implemented functions.
+  [31.2] GET  1f 02 01 00
+    AudioModes capabilities documented by B: byte 0 Bose-mode count, byte 1
+    user-mode count, bytes 2-4 reserved, byte 5 flags (CNC, autoCNC, spatial,
+    wind, user favorites, ANC toggle in bits 0-5), optional byte 6 minimum
+    favorites. This is upstream documentation, not target-wide runtime proof.
+  [31.8] GET  1f 08 01 00
+    Source C: [slotCount, favoritesMaskHigh, favoritesMaskLow]. The big-endian
+    mask selects starred indices. Validate fresh length/count and per-slot
+    responses; slot count alone does not establish write support or model.
+  [31.6] GET  1f 06 01 01 <slot>
+    ModeConfig. Require the model-appropriate full STATUS length (QC45 47;
+    Ultra gen2 48) and editability/configuration flags before enabling writes.
+  [31.1] START  1f 01 05 00
+    GetAll drains multiple state frames; source C observed eleven mode-config
+    frames. GET is the wrong operator on the reported firmware. Do not use
+    every block's function 1 as GetAll: [9.1] is the counterexample above.
+  [1.5] GET  01 05 01 00
+    Read CNC capability/state only; a successful read does not authorize SETGET.
+  [31.10] GET  1f 0a 01 00
+    Gen2 live audio settings: [cnc, autoCnc, spatial, wind, anc] in source C.
+    qc45.py explicitly reports FuncNotSupp here; do not fall back to a gen2 write.
+  [4.14] GET  04 0e 01 00
+    Device-management feature bits in C: bit0 CTKD, bit1 carousel, bit2 barge-in.
+    Useful for transport/routing features, not a general product/function ID.
+
+No verified generic available-functions parser is established. Source A's NOTES
+function map is a particular device's observed list; source C demonstrates both
+omissions and unsupported entries when applied to earbuds. Error 4 means function
+unsupported; error 5 means operator unsupported in context and must not always be
+reported as authentication required (GET on GetAll is an explicit example).
+
+Runtime identity evidence that is actually present:
+- Source A catalog: Bose vendor 0x05a7, QC45 0x4039, Ultra Headphones 2 0x4082,
+  Ultra Earbuds 2 0x4062. macOS discovery uses IOBluetoothDevice.productID();
+  Linux uses Bluetooth Modalias. Require associated vendor/service evidence
+  and exact device association in HeyBuds. Do not import A's Linux fallback
+  that assigns unknown BMAP devices the qc_ultra2 profile.
+- Source C Advertisement.kt: Bose manufacturer company 0x009e; after the company
+  bytes, require >=3 bytes and format byte 0. Product = 100 + (byte1 & 0x1f),
+  variant = byte1 >> 5; flags are byte2. Reported prefix 00 a8 06 identifies
+  edith as BLE product 108, variant 5. This is a different namespace from PID
+  0x4062. No equivalent QC45/gen2-headphone advertisement mapping is established
+  here. A product-class match does not bind a BLE peripheral to a particular
+  classic paired device; same-name/same-model fallback is insufficient.
+- Source C [4.5] GET with a six-byte peer address has a product layout when its
+  isBoseProduct flag is set: payload [peerAddress(6), flags, PID_hi, PID_lo,
+  variant, UTF-8 name...]. This describes a LISTED PEER, not necessarily the
+  controlled headphones. It is not a replacement for missing own ProductInfo.
+
+5. Configuration conflicts to preserve
+
+- QC45 ModeConfig is 47-byte STATUS / 39-byte SETGET; Ultra gen2 uses 48/40.
+  Source A qc45.py rejects the 40-byte QC45 write and lacks [31.10]. Never echo
+  an entire STATUS as SETGET or silently default missing layout fields to zero.
+- Source B's 48-byte ModeConfig document places wind at offset 46; source A's
+  48-byte parser uses 45, whereas its 47-byte parser uses 46. Layout/firmware
+  scope must remain explicit; this audit does not settle a universal offset.
+- Earbud battery records are four bytes each with component ID at offset 3;
+  invalid/absent levels such as ff remain unknown. A maps 1=right,2=left;
+  C and D map 1=left,2=right. Available equal-level examples cannot resolve the
+  direction. Preserve component IDs until asymmetric/single-ear evidence exists.
+  A and C agree 3=case,4=aggregate. D incorrectly conflates 3 and 4 as case;
+  do not carry that conflation into the implementation.
+- Source C's multipoint bit0 versus A's older bit1 interpretation and button
+  big-endian masks are additional model-sensitive differences. They must not
+  be resolved by copying a whole headphones profile into earbuds.
+- Full 47/48-byte config reads, fresh favorites counts, read-only [1.5], and
+  gen2-only [31.10] are suitable independent capability gates. They do not
+  replace identity evidence or establish a setting's success without readback.
+
+LICENSE ATTRIBUTION
+
+A. aaronsb/bosectl — Aaron Bockelie and contributors.
+   Protocol, RFCOMM, device profiles, parsers and catalog references listed below.
+   The complete upstream MIT text follows verbatim.
+
+MIT License
+
+Copyright (c) 2026 Aaron Bockelie
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+B. NerdySouth/bozo — Tristen and contributors.
+   BLE segmentation, GATT connection, framing and protocol references below.
+   The root LICENSE and the bozo-proto, bozod and bozo crate LICENSE files are
+   byte-identical. The following complete MIT text retains all four notices.
+
+MIT License
+
+Copyright (c) 2026 Tristen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+D. JimmyCalhoun/ANChor — JimmyCalhoun and contributors.
+   Native macOS RFCOMM/BMAP interoperability reference. Its supplied LICENSE
+   has no copyright line; none has been invented inside the retained text.
+   The complete upstream MIT text follows verbatim.
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+C. depau/bosectl-android — depau and contributors (Bose Control).
+   GPL-3.0-or-later protocol/transport/session reference. The upstream README
+   explicitly grants GNU General Public License version 3 or later, and credits
+   aaronsb/bosectl for the protocol groundwork; that attribution is retained here
+   along with Aaron Bockelie's complete MIT notice above. No software-author
+   copyright statement was found in the inspected C protocol files or README;
+   the Free Software Foundation copyright in LICENSE is for the license text.
+
+   Bose Control is free software: you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the Free
+   Software Foundation, either version 3 of the License, or (at your option)
+   any later version. It is distributed WITHOUT ANY WARRANTY; without even
+   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+   See ../LICENSE (the HeyBuds repository-root LICENSE) for the full GPL v3
+   text and the project's GPL-3.0-or-later notice. There is no root COPYING in
+   this checkout. The pinned upstream LICENSE and README are included in the
+   fingerprint list below. This attribution does not relicense GPL-derived
+   implementations as MIT or replace corresponding-source obligations.
+   No Android implementation is copied into this notice; the technical audit
+   above documents provenance and interoperability facts.
+
+SOURCE FILE FINGERPRINTS
+
+For each source, append the exact relative path below to its File URL base.
+Hashes are SHA-256 of the original supplied file bytes, including line endings.
+
+A. aaronsb/bosectl
+  e7c3673fef0c3e18c0f7b147264182427c076121b64a767f15bf574be7b80024  LICENSE
+  9fb7c7917a0a0f09af84b09b505f40238d13073509980cb78cb6e4f869cafc9c  README.md
+  07654878af8c31b6604342fbc21dc03abfa6f7db1dfc2f694b6bed610e351b37  NOTES.md
+  a45cc990ad674847a531353ade2c8fbdb105456d967fea04aa381ac7c0578b97  python/pybmap/catalog.py
+  c7c4b8b61b18d218934717a5cff0eeb3d032559bfbd272819a60f5305f806fa1  python/pybmap/discovery.py
+  1d88c29c15514bc41e0e9ba18a2a799d9d3df8f3f8073a2a5a1a06c023e01466  python/pybmap/__init__.py
+  0e9705f4c8322e8a6f65b20b05af97d8af4986fd66277062ff74b94ad0a50eae  python/pybmap/protocol.py
+  bbef5a362c5702326de76f2569474cf275c80a8784cf3c4ec65b6d430520821d  python/pybmap/transport.py
+  29b08e4a906b478d07325ce640a0cd4eb6030e414ba6a096c60ac11219f5ff07  python/pybmap/connection.py
+  d0f8df9de743c852615a75808d726f933a6d2e90f684aac73a4b8a533312cbca  python/pybmap/devices/qc45.py
+  761b2fe1dc816483bf0720cad18857349c0d9419fa36235cdc2b7dfa074c575e  python/pybmap/devices/qc_ultra2.py
+  94b8e5c18a63feff7a0a8e636aa91d1872b76102f073df00fd030fefd7667ee9  python/pybmap/devices/qc_ultra2_earbuds.py
+  de8f8d3434e592218626554767f32e9d0ea483cd98c8e0260a164650373eb729  python/pybmap/devices/parsers.py
+  7d4dac087e1580a4e1c72d85f5c11029d720151b6f75530de2f04b30ecf5fd75  python/pybmap/devices/qc_prince.py
+  170b39b35969d162e1620c05e7f29acf824b4d9064e83e39e621fd05ae9c9a98  docs/quietcomfort-headphones-prince.md
+
+B. NerdySouth/bozo
+  356052505e22e585ddd2c8ba98f9035121258112189c96392d5685708cdc57a9  LICENSE
+  356052505e22e585ddd2c8ba98f9035121258112189c96392d5685708cdc57a9  crates/bozo-proto/LICENSE
+  356052505e22e585ddd2c8ba98f9035121258112189c96392d5685708cdc57a9  crates/bozod/LICENSE
+  356052505e22e585ddd2c8ba98f9035121258112189c96392d5685708cdc57a9  crates/bozo/LICENSE
+  3e90ab1fb5d8392ab0bf72f2daec6be4d0d2684e9080ede9773f3fdb58647249  README.md
+  804fa60624462f5906735cadc442b13cef74578d2abb71edee3dce35ba6b6046  docs/BMAP.md
+  a2dee4e6662ed1a383736f898b17d8b734860d9e6efbc4194838a68ea6092c73  crates/bozo-proto/src/bmap/enums.rs
+  35c2f70d532688c324615f0d6fa4899f1a67dc9b9aa7036cbcefda190610567f  crates/bozo-proto/src/bmap/packet.rs
+  e1c7b993c7b5ac6fecb618aaa29d13340c15d1edb8ec41a20f25617098936d45  crates/bozo-proto/src/bmap/segment.rs
+  45d116fb33ebc34d5bc422b21699565233bde4920805ce47844de3946407dafd  crates/bozo-proto/src/protocol/audio_modes.rs
+  4514c6b494f21359a408f59ab5d68f06d9e1a4cf6c6858024a533f322337346c  crates/bozod/src/ble/scanner.rs
+  8f2a4a18dd99141e40d52f06a225d7b38b0aa405c51ac46d33ddec798fd29cdb  crates/bozod/src/ble/connection.rs
+  9b07ca782b94d78b5df27568a7a87b0e171ed8211a834fc272de8cad7c8b7c20  crates/bozod/src/ble/transport.rs
+  5ede67aebb54c0957051c384eb844a322234675fb3386c831e8e7fd884e8d998  crates/bozod/src/state.rs
+
+C. depau/bosectl-android
+  8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903  LICENSE
+  3e6a7964b3a05abfadc5031aabf2bea5e70d2af659f8027a3949fb3f38c97caf  README.md
+  b6f793f18757e5833a06a92fc0cb2e2fb84011a7b96575379adae7d0639e3b7b  docs/PROTOCOL.md
+  03f934dc34297cd9ec9fa5b7d6f531de407399f6895adab58637cc08f5f985a3  bmap/src/main/java/eu/depau/bosectl/bmap/GattTransport.kt
+  890addbaee978e2ccdd1bd0dd0ef4eb4690e23207eb5a376b5968399d53248c1  bmap/src/main/java/eu/depau/bosectl/bmap/RfcommTransport.kt
+  70b07799e2e79f63d6f2d4dc7652616946a1447c5204ae22720fdc21c647b671  bmap/src/main/java/eu/depau/bosectl/bmap/BleFraming.kt
+  71f9ab4ea2cf9c2345dc3d7b061385c42d7fbcb1d2487f4be1283e0a0f946dfa  bmap/src/main/java/eu/depau/bosectl/bmap/Protocol.kt
+  2d356243cf893149749b9baa7f4be50852b84ca853108bc2100b6930227c5541  bmap/src/main/java/eu/depau/bosectl/bmap/BmapConnection.kt
+  4af8f0632ad09be08c28703bb07a9e89db27ff267f0a5f571c1f08274eec259c  bmap/src/main/java/eu/depau/bosectl/bmap/Parsers.kt
+  cddc890f1a17bd2359c0473d1d43d59c7ad71c139b88c50d8c2bad35f2694240  bmap/src/main/java/eu/depau/bosectl/bmap/Types.kt
+  dd13edebb7f34e384e0f92c23d7ff6f588d3d019e1f5e6947047067be2e6444e  bmap/src/main/java/eu/depau/bosectl/bmap/Advertisement.kt
+  3eb177475cd92351c717e49a5bcc81c124e3f0d973b2a834194a8651731536ff  bmap/src/test/java/eu/depau/bosectl/bmap/BleFramingTest.kt
+  f2beafccc86b1936209d3d1928496cc5d0410f0258abba1e3367488353677de2  bmap/src/test/java/eu/depau/bosectl/bmap/AdvertisementTest.kt
+
+D. JimmyCalhoun/ANChor
+  508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1  LICENSE
+  a7e97477ac2a9932f348d11e8c4b5f0f8981b1f71ea36f95547926d50b3b5beb  README.md
+  059338212b5a67a01ca312010641522d281a2feeca4de167d6a6f0b60f20a606  Sources/ANChor/main.swift

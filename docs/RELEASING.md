@@ -4,7 +4,7 @@ Use Apple Silicon, Swift 6.4 and the macOS 27 SDK:
 
 ```sh
 python3 scripts/audit-source.py
-swift test
+swift test --no-parallel
 bash scripts/build.sh
 python3 scripts/audit-app.py
 ```

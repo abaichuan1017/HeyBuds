@@ -68,6 +68,7 @@ public struct DeviceModel: Identifiable, Sendable {
     public var function: JSONValue { raw["function"] }
     public var family: EarbudFamily { EarbudFamily(rawValue:raw["protocolFamily"].text ?? "oppo") ?? .oppo }
     public var singleBattery: Bool { function["singleBattery"].enabled }
+    public var unassignedEarbudBatteries:Bool { function["unassignedEarbudBatteries"].enabled }
     public var customEQMinimum: Int8 { Int8(exactly:function["customEqMinimum"].int ?? -6) ?? -6 }
     public var customEQMaximum: Int8 { Int8(exactly:function["customEqMaximum"].int ?? 6) ?? 6 }
     public var isT500: Bool { id == "066452" }
@@ -164,7 +165,7 @@ public struct ModelCatalog: Sendable {
             return DeviceModel(raw:entry,id:id,name:name,brand:entry["brand"].text ?? "OPPO",
                 aliases:entry["children"].elements.compactMap { $0["name"].text },noiseOptions:noise,presets:presets)
         }
-        for resource in ["MigratedModels","SonyModels"] {
+        for resource in ["MigratedModels","SonyModels","ExpansionModels"] {
             guard let file=resourceBundle.url(forResource:resource,withExtension:"json") else { throw ProtocolError.invalidPayload }
             let migrated=try decoder.decode(JSONValue.self,from:Data(contentsOf:file))
             for entry in migrated["models"].elements {
@@ -197,6 +198,9 @@ public struct ModelCatalog: Sendable {
         // Match longest names first: FreeBuds Pro must not capture Pro 2/3/4/5.
         let normalized=EarbudFamily.normalize(name)
         if let exact=byName[normalized] { return exact }
+        if let samsung=SamsungProfile.named(name) { return byID[samsung.modelID] }
+        if let bose=BoseProfile.named(name) { return byID[bose.modelID] }
+        if let nothing=NothingProfile.named(name) { return byID[nothing.modelID] }
         let tokens=Set(name.lowercased().split(whereSeparator:{ !$0.isLetter && !$0.isNumber }).map(String.init))
         return fallbackNames.first { match in
             switch match.model.family {
@@ -213,7 +217,7 @@ public struct ModelCatalog: Sendable {
         model(productID:nil,name:name)?.family ?? EarbudFamily.detect(name)
     }
     public func validOverride(_ id:String?,family:EarbudFamily?) -> String? {
-        guard let id,let family,family != .sony,byID[id]?.family == family else { return nil }
+        guard let id,let family,family.allowsModelOverride,byID[id]?.family == family else { return nil }
         return id
     }
     public func routingFamily(name:String,services:Set<EarbudFamily>) -> EarbudFamily? {

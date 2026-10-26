@@ -34,7 +34,12 @@ struct ConnectionTipView:View {
         guard connected, app.ready, device?.id == app.selectedID else { return nil }
         return app.state.placement[slot]
     }
-    private var missingBattery:Bool { reading(.left) == nil && reading(.right) == nil }
+    private func unassignedReading(_ id:UInt8) -> BatteryReading? {
+        guard connected,app.ready,device?.id == app.selectedID,
+              let value=app.state.unassignedBatteries[id],Date().timeIntervalSince(value.updatedAt) < 120 else { return nil }
+        return value
+    }
+    private var missingBattery:Bool { reading(.left) == nil && reading(.right) == nil && unassignedReading(1) == nil && unassignedReading(2) == nil }
     private var statusText:String {
         if preview && !connected { return L("连接提示预览","Connection preview") }
         if missingBattery {
@@ -57,9 +62,15 @@ struct ConnectionTipView:View {
     }
     private var batteryRow:some View {
         HStack(alignment:.top,spacing:8) {
+            if deviceModel?.unassignedEarbudBatteries == true {
+                ForEach([UInt8(1),2],id:\.self) { id in
+                    BatteryCell(title:L("耳机电量 ","Earbud battery ")+String(id),symbol:"earbuds",reading:unassignedReading(id),placement:nil,t500:false,compact:true).frame(width:88)
+                }
+            } else {
             BatteryCell(title:deviceModel?.singleBattery == true ? L("耳机","Headphones") : L("左耳","Left"),symbol:deviceModel?.singleBattery == true ? "headphones" : "airpods.pro.left",sideLabel:deviceModel?.singleBattery == true ? nil : "L",reading:reading(.left),placement:placement(.left),t500:deviceModel?.isT500 == true,compact:true).frame(width:88)
             if deviceModel?.singleBattery != true {
             BatteryCell(title:L("右耳","Right"),symbol:"airpods.pro.right",sideLabel:"R",reading:reading(.right),placement:placement(.right),t500:deviceModel?.isT500 == true,compact:true).frame(width:88)
+            }
             }
             if deviceModel?.singleBattery != true,let enclosure=reading(.enclosure) {
                 BatteryCell(title:L("充电盒","Case"),symbol:EarbudIcon.enclosure,reading:enclosure,placement:nil,t500:false,compact:true).frame(width:88)
@@ -165,7 +176,7 @@ private final class ConnectionNotificationPanel:NSPanel {
             let start=Date()
             let hasBattery:() -> Bool = { [weak app] in
                 guard let app, app.ready, app.selectedID == device?.id else { return false }
-                return app.state.batteries[.left] != nil || app.state.batteries[.right] != nil
+                return app.state.batteries[.left] != nil || app.state.batteries[.right] != nil || !app.state.unassignedBatteries.isEmpty
             }
             var received=hasBattery()
             var end=start.addingTimeInterval(received ? 5 : 8)

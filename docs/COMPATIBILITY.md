@@ -24,13 +24,32 @@ Apple / Beats 由 macOS 原生管理，已从本应用移除。
 - 自适应使用父级模式，不单独提供“更少／标准／更多噪音”档位。开启空间音频前，必须读到 Hi-Res 已关闭；可先在手机端关闭 Hi-Res 后刷新。
 - 本次验证包含上游公开帧重放和模拟会话；未在 HeyBuds/macOS 上完成 X4 实机验收。EncoDeck 的 Windows 实机报告不等于本应用的实机结果。
 
-## Sony 首批型号
+## Sony
 
-- WF-1000XM5 分别读取左右耳和充电盒电量；WH-1000XM5、WH-CH720N 使用单电池显示。设备未报告或无法确定的电量保持未知。
-- 连接仅使用 MDR V2 专用服务，确认 V2 Table 1 握手、耳机返回的型号及功能后开放控制；Sony 型号自动识别，不接受手动覆盖。V1 设备和其他 Sony 型号不在本次支持范围。
-- 接入关闭、降噪、通透，以及 1–20 级通透强度和语音聚焦。写入后需要新的完整状态回读，ACK 不代表设置成功；耳机报告功能暂不可用时禁用控制。
-- Sony EQ、DSEE、Speak-to-Chat、触控、查找和多设备管理尚未接入；不沿用其他品牌命令。既有品牌功能保持原有实现。
-- 三个型号均已实现并经过模拟协议验证，HeyBuds/macOS 的实机兼容性仍待验证。上游型号记录不是本应用的实机结果。
+- 原有 WF-1000XM5、WH-1000XM5、WH-CH720N 保留原功能；新增 WH-1000XM3、WH-1000XM4、WH-XB910N、ULT WEAR（WH-ULT900N）。
+- XM3/XM4 使用 MDR V1；其他已列型号使用 V2。先核对服务、协议握手、型号与功能，再开放控制；不能手动覆盖成另一型号。RFCOMM 通道来自对应 SDP 服务。
+- 支持电量、关闭/降噪/通透、语音聚焦。除 ULT WEAR 外支持 1–20 级通透强度；ULT 的该字段未确认，不显示强度控件。WF 分左右耳与盒，WH/ULT 使用单电池。
+- EQ、DSEE、Speak-to-Chat、查找与多设备管理未接入。新旧型号均须分别完成 HeyBuds/macOS 实机验收。
+
+## Samsung
+
+Galaxy Buds2、Buds2 Pro、Buds4 Pro 接入现代 SPP 帧、电量、关闭/降噪/通透和六组 EQ 预设。Buds4 Pro 另含自适应模式及 5 档降噪强度；只有有效状态字段存在时才启用。Buds2/2 Pro 触控锁保留各手势原设置，并按状态版本处理通话手势。旧代协议、其他型号、自定义 EQ 和 OTA 不在范围内。充电标志缺少确认的型号不推断充电状态。
+
+## Google
+
+Pixel Buds Pro、Pixel Buds Pro 2 使用 Maestro/Pigweed 控制服务，接入左右耳/盒电量、关闭/降噪/通透和五组五段 EQ 预设。逻辑路由只用只读请求探测，读写由独立 RPC 调用编号匹配。Pro 2 自适应模式、任意自定义曲线、其他 Pixel 型号与 Fast Pair 功能暂不开放。
+
+## Bose
+
+QuietComfort 45、QuietComfort Ultra Headphones (2nd Gen)、QuietComfort Ultra Earbuds (2nd Gen) 接入 BMAP 电量、已有 Quiet/Aware 模式及有有效回读的降噪级别。模式从设备完整列表识别，不覆盖自定义模式配置；EQ 未接入。头戴使用专用 SDP 服务；Ultra Earbuds 2 使用已配对链路的安全 BLE 特征和分包格式，不自动修复配对或使用不安全特征。
+
+Ultra Earbuds 2 的组件 1/2 左右映射在固定资料中不一致，因此显示“耳机电量 1/2”，充电盒单列。未知电量保持未知，不由是否入盒推断充电。其他代际或仅名字近似的 Bose 不套用此协议配置。
+
+## Nothing / CMF
+
+Nothing Ear (a)、Headphone (1)、CMF Buds 2、CMF Buds Pro 2 使用独立型号配置，接入电量及基础降噪/通透。预设 EQ 仅在该型号有明确映射且回读有效时开放；Headphone (1) 使用单电池。CRC 覆盖范围、消息类型及 EQ 范围按型号检查，不以通用 ACK 确认设置。高级 EQ、低延迟、空间音频和多设备控制尚未开放。CMF Buds Pro 2 的盒电量编号存在资料冲突，暂保持未知。
+
+以上新增型号均为源码和模拟协议接入，未进行 HeyBuds/macOS 实机兼容性验收。既有品牌的型号资源和控制功能保持原实现。
 
 ## 功能限制
 
