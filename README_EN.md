@@ -51,12 +51,14 @@ Features depend on the model, firmware and device responses. See the [model list
 
 ## Install and use
 
-Requires an **Apple Silicon Mac running macOS 26+**.
+Stable 0.6.0 requires an **Apple Silicon Mac running macOS 26+**. The [0.6.1-beta.1 prerelease](https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.1-beta.1) adds **macOS 15+** support: macOS 26+ retains the existing Liquid Glass interface, while macOS 15 uses compatible materials and buttons. Verification and feedback on physical Macs running macOS 15 are still pending.
 
 1. Download `HeyBuds-arm64.dmg` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest), open it and drag HeyBuds to Applications.
 2. Pair and connect your earbuds in Bluetooth settings, then quit other earbud controllers.
 3. Open HeyBuds, allow Bluetooth access and select your earbuds from its menu bar icon.
 4. Use the main panel for noise control and Advanced features for sound settings. Settings includes connection pop-ups, low-battery alerts, automatic reconnection and launch at login.
+
+On macOS 15, download the DMG from the prerelease page above. Prereleases are manual downloads; in-app updates continue to use the stable channel.
 
 The bottom of Settings shows the version and in-app update action. The separate coffee support entry displays a payment QR code for the selected amount; scan it with Alipay. The footer contains the app name and license, GitHub, redacted diagnostics and Quit.
 

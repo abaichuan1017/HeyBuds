@@ -57,7 +57,7 @@ with (app / 'Contents/Info.plist').open('rb') as stream:
 assert info['CFBundleIdentifier'] == 'local.heybuds.app'
 version = re.search(r'static let version="([^"]+)"', (ROOT / 'Sources/HeyBuds/AppIdentity.swift').read_text()).group(1)
 assert info['CFBundleShortVersionString'] == version
-assert info['LSMinimumSystemVersion'] == '26.0'
+assert info['LSMinimumSystemVersion'] == '15.0'
 assert info['LSUIElement'] is True
 assert info['SUFeedURL'] == 'https://raw.githubusercontent.com/abaichuan1017/HeyBuds/main/docs/appcast.xml'
 assert info['SURequireSignedFeed'] is True and info['SUVerifyUpdateBeforeExtraction'] is True
@@ -66,6 +66,8 @@ assert info['SUSendProfileInfo'] is False
 import base64
 assert len(base64.b64decode(info['SUPublicEDKey'], validate=True)) == 32
 assert subprocess.check_output(['lipo', '-archs', str(app / 'Contents/MacOS/HeyBuds')], text=True).strip() == 'arm64'
+build_metadata = subprocess.check_output(['xcrun', 'vtool', '-show-build', str(app / 'Contents/MacOS/HeyBuds')], text=True)
+assert re.search(r'^\s*minos 15\.0\s*$', build_metadata, re.MULTILINE), 'Executable deployment target differs from Info.plist'
 subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
 image = ROOT / 'dist/HeyBuds-arm64.dmg'
 subprocess.run(['hdiutil', 'verify', '-quiet', str(image)], check=True)

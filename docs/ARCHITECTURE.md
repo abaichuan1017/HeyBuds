@@ -20,6 +20,8 @@ OPPO 同时保留 RFCOMM 与 BLE GATT；vivo/华为/小米旧系列/漫步者由
 
 使用 `NSStatusItem` 和 `NSPopover` 的系统开合行为，SwiftUI 管理可滚动的 360pt 面板。SDK 27 同名 State 宏在 CLT 中没有插件，代码用指向原生 `SwiftUI.State` 的类型别名选择标准属性包装器；没有改动 SDK。
 
+运行最低版本为 macOS 15。`ControlAppearance` 在 macOS 26+ 使用原有 Liquid Glass API，在旧系统使用系统材质和 bordered/borderedProminent 按钮；布局、动作与会话状态共用同一实现。减少透明度时降噪按钮继续使用实色背景。
+
 型号资源是 GPL 上游 JSON（X4 使用独立 EncoDeck 补充表），保留完整未知字段及固件约束。支持的功能由型号、运行时能力位与已成功解析的响应共同约束。设备控制不依赖网络。用户主动检查更新时使用 Sparkle 的原生窗口与安装辅助服务，通过签名 feed 下载并验证发行包。
 
 ## 多品牌

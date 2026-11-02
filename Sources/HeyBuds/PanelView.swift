@@ -21,19 +21,6 @@ enum EarbudIcon {
     static let enclosure="airpods.pro.chargingcase.wireless.fill"
 }
 
-private struct ListeningSurface<S:Shape>:ViewModifier {
-    let selected:Bool
-    let shape:S
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @ViewBuilder func body(content:Content) -> some View {
-        if reduceTransparency {
-            content.background(selected ? Color.accentColor : Color(nsColor:.controlBackgroundColor),in:shape)
-        } else {
-            content.glassEffect(selected ? .regular.tint(.accentColor).interactive() : .regular.interactive(),in:shape)
-        }
-    }
-}
-
 struct PanelView: View {
     @Bindable var app:AppModel
     var onHeightChange:((CGFloat) -> Void)? = nil
@@ -120,7 +107,7 @@ struct PanelView: View {
             Button {
                 if app.ready || app.connecting { app.disconnect() } else { app.connect() }
             } label: { Image(systemName:"power").font(.system(size:14,weight:.medium)).frame(width:28,height:28) }
-            .buttonStyle(.glass).buttonBorderShape(.circle)
+            .compatibleButtonStyle().buttonBorderShape(.circle)
             .help(app.ready ? L("断开耳机","Disconnect earbuds") : L("连接耳机","Connect earbuds"))
             .accessibilityLabel(app.ready ? L("断开耳机","Disconnect earbuds") : L("连接耳机","Connect earbuds"))
         }
@@ -153,7 +140,7 @@ struct PanelView: View {
                 HStack {
                     Button(L("蓝牙设置","Bluetooth Settings")) { app.bluetoothSettings() }
                     Spacer()
-                    Button(L("连接","Connect")) { app.connect() }.buttonStyle(.glassProminent).disabled(app.connecting || app.candidates.isEmpty)
+                    Button(L("连接","Connect")) { app.connect() }.compatibleButtonStyle(prominent:true).disabled(app.connecting || app.candidates.isEmpty)
                 }
             }.card()
         }
@@ -212,7 +199,7 @@ struct PanelView: View {
         let options=app.model?.noiseOptions ?? []
         let hasStrengths=options.filter { $0.mode.group == .anc }.count > 1
         let groups:[NoiseMode]=[.off,.anc,.transparency,.adaptive].filter { group in options.contains { $0.mode.group == group } }
-        return GlassEffectContainer(spacing:8) {
+        return CompatibleGlassContainer(spacing:8) {
             HStack(spacing:0) {
                 ForEach(groups,id:\.self) { group in
                     let active=app.state.noise?.group == group
@@ -709,7 +696,7 @@ struct PanelNavigationHeader:View {
         HStack(spacing:10) {
             Button(action:onBack) {
                 Image(systemName:"chevron.left").font(.system(size:12,weight:.semibold)).frame(width:24,height:24)
-            }.buttonStyle(.glass).buttonBorderShape(.circle)
+            }.compatibleButtonStyle().buttonBorderShape(.circle)
                 .help(L("返回","Back")).accessibilityLabel(L("返回","Back"))
             Text(title).font(.system(size:16,weight:.semibold))
             Spacer(minLength:0)
@@ -981,7 +968,7 @@ private struct EQEditor:View {
                         if !Task.isCancelled,context.isCurrent(in:app) { dismiss() }
                         return result
                     }
-                }.buttonStyle(.glassProminent).disabled(!context.isCurrent(in:app) || !FeatureCodec.validEQName(name) || app.operationBusy)
+                }.compatibleButtonStyle(prominent:true).disabled(!context.isCurrent(in:app) || !FeatureCodec.validEQName(name) || app.operationBusy)
             }
         }.padding(20).frame(width:350)
     }

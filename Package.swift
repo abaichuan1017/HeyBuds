@@ -19,7 +19,7 @@ let testLinker:[LinkerSetting] = testingFrameworks.map { [.unsafeFlags(["-F",$0,
 
 let package = Package(
     name: "HeyBuds",
-    platforms: [.macOS("26.0")],
+    platforms: [.macOS("15.0")],
     products: [.executable(name: "HeyBuds", targets: ["HeyBuds"]),
                .executable(name: "heybuds-probe", targets: ["HeyBudsProbe"])],
     dependencies: [.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0")],

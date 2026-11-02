@@ -2,6 +2,8 @@
 
 Use Apple Silicon, Swift 6.4 and the macOS 27 SDK:
 
+The resulting application targets macOS 15 or later; the build SDK requirement is separate from the runtime requirement.
+
 ```sh
 python3 scripts/audit-source.py
 swift test --no-parallel
@@ -25,6 +27,8 @@ python3 scripts/package-source.py
 `prepare-update.py` signs the already-built app archive and `docs/appcast.xml`. Do not rebuild or change the archive after signing it. Commit the signed feed with the version tag, then publish the matching archive at the URL in the feed. Future releases keep the same signing key and feed URL.
 
 ## Publication
+
+For a GitHub prerelease, use a distinct version such as `0.6.1-beta.1` and increase `CFBundleVersion`. Keep `docs/appcast.xml` on the stable release: do not run `prepare-update.py` for a prerelease. Publish the matching tag and DMG with `gh release create --prerelease --latest=false`. Prerelease installations continue to use the stable update feed and receive a future stable release when its build number is higher.
 
 Upload the DMG directly, without wrapping it in a ZIP. Upload only `dist/HeyBuds-arm64.dmg`. Use GitHub’s automatically generated “Source code (zip)” for the matching tag; do not upload a duplicate source ZIP. GitHub also provides a source tarball automatically. Source packages, manifests and checksums generated under `releases/` remain local verification outputs.
 

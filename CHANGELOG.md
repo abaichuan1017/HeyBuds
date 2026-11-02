@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.1-beta.1 — 2026-11-02
+
+- 新增 Apple Silicon Mac 上的 macOS 15 支持，降噪、导航和操作按钮使用兼容样式，保留原有布局与功能。
+- macOS 26+ 继续使用原有 Liquid Glass 界面；减少透明度和减少动态效果设置继续生效。
+- 本版本为测试版，macOS 15 真机体验仍待验证与反馈，应用内更新继续使用正式版通道。
+
+- Add macOS 15 support on Apple Silicon, with compatible noise-control, navigation and action-button styles and the existing layout and features.
+- Retain the existing Liquid Glass interface on macOS 26+ and respect Reduce Transparency and Reduce Motion.
+- This is a prerelease. Verification and feedback on physical Macs running macOS 15 are still pending; in-app updates remain on the stable channel.
+
 ## 0.6.0 — 2026-11-02
 
 新增 16 款 Xiaomi / Redmi 的初步支持：10 款按型号开放降噪、EQ、手势等控制，6 款仅基础信息及电量；功能与连接限制见[小米支持范围](docs/XIAOMI_SUPPORT.md)。HeyBuds/macOS 实机兼容性待验证。

@@ -2,6 +2,8 @@
 
 Protocol and session tests cover simulated device responses. Application checks cover presentation, preference migration and signed update delivery. See [Actions](https://github.com/abaichuan1017/HeyBuds/actions) for build status.
 
+The macOS 15 prerelease compiles with a macOS 15 deployment target. Automated checks cover both control styles' layout and compatibility-style rendering in light/dark appearance with opaque/material surfaces on the development system. Liquid Glass uses native compositing and requires a window for visual inspection. These checks do not substitute for running the packaged application on macOS 15; runtime, Bluetooth permissions, reconnect and sleep/wake acceptance there remain pending.
+
 Enco Air5 Pro has historical read/write observations. X4 coverage uses public EncoDeck frames and simulated sessions; HeyBuds/macOS hardware acceptance is still pending. Catalog entries do not guarantee hardware compatibility.
 
 Sony WF-1000XM5, WH-1000XM5 and WH-CH720N coverage uses framing/parser fixtures and simulated MDR V2 sessions. Hardware acceptance for each model remains pending.
