@@ -4,6 +4,8 @@ Use Apple Silicon, Swift 6.4 and the macOS 27 SDK:
 
 The resulting application targets macOS 15 or later; the build SDK requirement is separate from the runtime requirement.
 
+The build script explicitly records the active SDK version when linking. Lowering the runtime target must not lower the linked SDK metadata and change the default interface behavior on macOS 26+.
+
 ```sh
 python3 scripts/audit-source.py
 swift test --no-parallel

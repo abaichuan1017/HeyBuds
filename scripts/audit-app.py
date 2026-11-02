@@ -68,6 +68,8 @@ assert len(base64.b64decode(info['SUPublicEDKey'], validate=True)) == 32
 assert subprocess.check_output(['lipo', '-archs', str(app / 'Contents/MacOS/HeyBuds')], text=True).strip() == 'arm64'
 build_metadata = subprocess.check_output(['xcrun', 'vtool', '-show-build', str(app / 'Contents/MacOS/HeyBuds')], text=True)
 assert re.search(r'^\s*minos 15\.0\s*$', build_metadata, re.MULTILINE), 'Executable deployment target differs from Info.plist'
+linked_sdk = re.search(r'^\s*sdk ([\d.]+)\s*$', build_metadata, re.MULTILINE)
+assert linked_sdk and tuple(map(int, linked_sdk.group(1).split('.'))) >= (26, 0), 'Linked SDK would opt new systems into legacy UI behavior'
 subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
 image = ROOT / 'dist/HeyBuds-arm64.dmg'
 subprocess.run(['hdiutil', 'verify', '-quiet', str(image)], check=True)

@@ -51,7 +51,7 @@
 
 ## 安装与使用
 
-正式版 0.6.0 需要 **Apple Silicon Mac、macOS 26+**。[0.6.1-beta.1 测试版](https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.1-beta.1)新增 **macOS 15+** 支持：macOS 26+ 保留原有玻璃界面，macOS 15 使用兼容材质和按钮。macOS 15 真机体验仍待验证与反馈。
+正式版 0.6.0 需要 **Apple Silicon Mac、macOS 26+**。[0.6.1-beta.2 测试版](https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.1-beta.2)新增 **macOS 15+** 支持：macOS 26+ 保留原有玻璃界面，macOS 15 使用兼容材质和按钮。macOS 15 真机体验仍待验证与反馈。
 
 1. 从 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.dmg`，打开后将 HeyBuds 拖入“应用程序”。
 2. 在系统蓝牙设置中配对并连接耳机，退出其他耳机控制器。

@@ -3,7 +3,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 config=${1:-release}
 if [[ "$config" != release && "$config" != debug ]]; then echo 'Usage: bash scripts/build.sh [release|debug]' >&2; exit 2; fi
-swift build -c "$config" --arch arm64 --product HeyBuds
+# Lower the runtime target without opting new systems into an older SDK's UI.
+sdk_version=$(xcrun --sdk macosx --show-sdk-version)
+swift build -c "$config" --arch arm64 --product HeyBuds \
+  -Xlinker -platform_version -Xlinker macos -Xlinker 15.0 -Xlinker "$sdk_version"
 bin_dir=$(swift build -c "$config" --arch arm64 --show-bin-path)
 mkdir -p dist
 stage=$(mktemp -d "$PWD/dist/.HeyBuds-build.XXXXXX")
@@ -94,8 +97,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>HeyBuds</string>
 <key>CFBundleDisplayName</key><string>HeyBuds</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.6.1-beta.1</string>
-<key>CFBundleVersion</key><string>18</string>
+<key>CFBundleShortVersionString</key><string>0.6.1-beta.2</string>
+<key>CFBundleVersion</key><string>19</string>
 <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
 <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>en</string></array>
 <key>CFBundleIconFile</key><string>HeyBuds.icns</string>
