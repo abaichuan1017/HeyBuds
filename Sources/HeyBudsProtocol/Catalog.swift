@@ -165,7 +165,7 @@ public struct ModelCatalog: Sendable {
             return DeviceModel(raw:entry,id:id,name:name,brand:entry["brand"].text ?? "OPPO",
                 aliases:entry["children"].elements.compactMap { $0["name"].text },noiseOptions:noise,presets:presets)
         }
-        for resource in ["MigratedModels","SonyModels","ExpansionModels"] {
+        for resource in ["MigratedModels","SonyModels","ExpansionModels","DesktopModels","XiaomiModels"] {
             guard let file=resourceBundle.url(forResource:resource,withExtension:"json") else { throw ProtocolError.invalidPayload }
             let migrated=try decoder.decode(JSONValue.self,from:Data(contentsOf:file))
             for entry in migrated["models"].elements {
@@ -198,15 +198,19 @@ public struct ModelCatalog: Sendable {
         // Match longest names first: FreeBuds Pro must not capture Pro 2/3/4/5.
         let normalized=EarbudFamily.normalize(name)
         if let exact=byName[normalized] { return exact }
+        if let xiaomi=XiaomiProfile.named(name) { return byID[xiaomi.modelID] }
         if let samsung=SamsungProfile.named(name) { return byID[samsung.modelID] }
         if let bose=BoseProfile.named(name) { return byID[bose.modelID] }
         if let nothing=NothingProfile.named(name) { return byID[nothing.modelID] }
+        if let soundcore=SoundcoreProfile.named(name) { return byID[soundcore.modelID] }
+        if let sennheiser=SennheiserProfile.named(name) { return byID[sennheiser.modelID] }
+        if let jbl=JBLProfile.named(name) { return byID[jbl.modelID] }
         let tokens=Set(name.lowercased().split(whereSeparator:{ !$0.isLetter && !$0.isNumber }).map(String.init))
         return fallbackNames.first { match in
             switch match.model.family {
             case .vivo:
                 return !tokens.isDisjoint(with:match.tokens) || normalized.contains(match.name)
-            case .huawei: return ([match.name]+match.aliases).contains(where:normalized.hasPrefix)
+            case .huawei: return !match.model.id.hasPrefix("honor:") && ([match.name]+match.aliases).contains(where:normalized.hasPrefix)
             case .edifier: return normalized.contains(match.name)
             default:return false
             }
@@ -218,12 +222,13 @@ public struct ModelCatalog: Sendable {
     }
     public func validOverride(_ id:String?,family:EarbudFamily?) -> String? {
         guard let id,let family,family.allowsModelOverride,byID[id]?.family == family else { return nil }
+        if family == .xiaomi,XiaomiProfile.allCases.contains(where:{$0.modelID == id}) { return nil }
         return id
     }
     public func routingFamily(name:String,services:Set<EarbudFamily>) -> EarbudFamily? {
         // A proprietary service is stronger evidence than a personal nickname.
         // Standard SPP alone cannot identify Huawei.
-        let specific=services.subtracting([.huawei])
+        let specific=services.subtracting([.huawei,.soundcore])
         if specific.count == 1 { return specific.first }
         let named=family(name:name)
         if specific.isEmpty { return named }

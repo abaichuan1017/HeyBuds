@@ -122,7 +122,7 @@ private func expansionHex(_ text:String) -> [UInt8] {
 
 @Test func expansionCatalogKeepsOriginalRoutingAndAddsExactNewModelNames() throws {
     let catalog=try ModelCatalog()
-    #expect(catalog.models.count == 228)
+    #expect(catalog.models.count == 283)
     #expect(Set(catalog.models.map(\.id)).count == catalog.models.count)
     for (name,id,family) in [
         ("Galaxy Buds2","samsung:buds2","samsung"),
@@ -140,7 +140,7 @@ private func expansionHex(_ text:String) -> [UInt8] {
                           ("Redmi Buds 6","xiaomi"),("W820NB Plus","edifier"),("WH-1000XM5","sony")] {
         #expect(catalog.family(name:name)?.rawValue == family)
     }
-    for name in ["Galaxy Buds2 FE","Galaxy Buds2 Pro Max","Galaxy Buds4","Galaxy Buds FE",
+    for name in ["Galaxy Buds2 FE","Galaxy Buds2 Pro Max",
                  "Galaxy Buds2 (test)","Pixel Buds Pro 3","Pixel Buds A-Series","Pixel Buds Pro 2 Case"] {
         #expect(catalog.model(productID:nil,name:name) == nil)
     }

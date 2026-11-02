@@ -1,0 +1,20 @@
+# Xiaomi interoperability sources
+
+The explicit Xiaomi profiles use a separate handwritten MMA frame codec, model-bound session and readback checks. The legacy family backend and its cipher remain separate. No manufacturer application, binary, artwork, serial number or device capture containing personal identifiers is bundled.
+
+| Reference | Fixed revision | Use |
+| --- | --- | --- |
+| [maniacx/BudsLink](https://github.com/maniacx/BudsLink/tree/e0b8466ade194ca1fb0b9f87a45bf22d0c3a020f) | `e0b8466ade194ca1fb0b9f87a45bf22d0c3a020f` | GPL v3 authentication algorithm/tables ported to Swift; model and setting interoperability facts |
+| [CesurPolat/MiBudsClient](https://github.com/CesurPolat/MiBudsClient/tree/0959df35c6e866c7b95ae1278ab9ec58657256c6) | `0959df35c6e866c7b95ae1278ab9ec58657256c6` | GPL v3 device-catalog facts, per-gesture action allowlists, command IDs and mutual-authentication observations/tests |
+| [robin-liquidium/redmi-buds-bar](https://github.com/robin-liquidium/redmi-buds-bar/tree/4fd941610415b7e3e78931267e0010fd61a2050d) | `4fd941610415b7e3e78931267e0010fd61a2050d` | GPL v3 documented Mac 8 Pro endpoint, public non-identifying frame vectors, mode/strength and notification semantics |
+| [LeoLee0812/buds-ctl](https://github.com/LeoLee0812/buds-ctl/tree/65cd1da0c26892c81be0586f510cc4cbd557fe5b) | `65cd1da0c26892c81be0586f510cc4cbd557fe5b` | AGPL v3 interoperability facts only, including BLE and custom-EQ fields; no implementation code or assets copied |
+| [JackWPP/MiPods](https://github.com/JackWPP/MiPods/tree/eb1376e397fe557b9dcf94a260641d81b65f02d8) | `eb1376e397fe557b9dcf94a260641d81b65f02d8` | AGPL v3 clip-on name, read-only BLE discovery and battery-field facts only; no implementation copied |
+| [gortepe-svg/bluetooth-kulaklik-kontrol](https://github.com/gortepe-svg/bluetooth-kulaklik-kontrol/tree/86c85cd336a25d86a41a6bf10ba9059146c4fa42) | `86c85cd336a25d86a41a6bf10ba9059146c4fa42` | Basic S model evidence and Windows HFP limitations only; no code copied and no claim that Windows transport works on macOS |
+
+`XiaomiMMAAuth.swift` is a Swift port of BudsLink's `src/lib/devices/redmiBuds/redmiBudsAuthenticator.js`. Credit belongs to maniacx and the BudsLink contributors. The port retains GPL version 3; its full text is included in [BudsLink-GPL-3.0.txt](../../Licenses/BudsLink-GPL-3.0.txt). HeyBuds-authored code remains GPL-3.0-or-later and the combined distribution is under GPL version 3. The upstream protocol sources acknowledge Gadgetbridge and XiaomiTWS research; their original project histories and notices are not represented as a relicensing of unrelated implementations.
+
+`XiaomiModels.json` is a new, restricted model table. Settings and supported gesture actions are derived from the public Xiaomi device-catalog response preserved by MiBudsClient and checked against the corresponding BudsLink profiles. Only the requested models are included; neither the upstream application nor its complete catalog is vendored. Hardware capabilities in that metadata do not independently enable a command: the session requires a supported model and a valid response.
+
+The five published authentication challenge/answer pairs and documented Mac frames are protocol test vectors. The new request lifecycle, strict TLV parsing, write confirmation, cancellation handling and system battery parser are expressed locally; upstream source was inspected, so this is not claimed to be a clean-room implementation. AGPL sources supplied numeric protocol facts, not copied implementation code.
+
+For the five system-only profiles, the system battery parser reads `system_profiler SPBluetoothDataType -json` and uses only the exact currently connected device's reported fields. This does not transplant a Windows HFP socket or infer missing values. See [model scope](../XIAOMI_SUPPORT.md) for the separate clip-on BLE profile and hardware-validation limits. Exact read-file SHA-256 values are recorded in [upstream-sources.json](../upstream-sources.json).

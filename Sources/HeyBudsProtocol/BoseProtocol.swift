@@ -91,12 +91,14 @@ public struct BoseGATTCodec: Sendable {
 }
 
 public enum BoseProfile: String, CaseIterable, Sendable {
-    case qc45, ultraHeadphones2, ultraEarbuds2
+    case qc35, qc35II, qc45, ultraHeadphones2, ultraEarbuds2
     public static let bmapServiceUUID = "00000000-DECA-FADE-DECA-DEAFDECACAFF"
     public static let bleServiceUUID = "0000FEBE-0000-1000-8000-00805F9B34FB"
     public static let bleSecureCharacteristicUUID = "C65B8F2F-AEE2-4C89-B758-BC4892D6F2D8"
     public var modelID: String {
         switch self {
+        case .qc35: return "bose:qc35"
+        case .qc35II: return "bose:qc35-ii"
         case .qc45: return "bose:qc45"
         case .ultraHeadphones2: return "bose:qc-ultra-headphones-2"
         case .ultraEarbuds2: return "bose:qc-ultra-earbuds-2"
@@ -104,10 +106,11 @@ public enum BoseProfile: String, CaseIterable, Sendable {
     }
     /// Catalog/Modalias identity, not a fabricated BMAP ProductInfo response.
     public var productID: UInt16 {
-        switch self { case .qc45: return 0x4039; case .ultraHeadphones2: return 0x4082; case .ultraEarbuds2: return 0x4062 }
+        switch self { case .qc35:return 0x400C; case .qc35II:return 0x4020; case .qc45: return 0x4039; case .ultraHeadphones2: return 0x4082; case .ultraEarbuds2: return 0x4062 }
     }
+    public var legacyNoise:Bool { self == .qc35 || self == .qc35II }
     public var prefersBLE: Bool { self == .ultraEarbuds2 }
-    public var rfcommServiceUUIDs: [String] { [Self.bmapServiceUUID] }
+    public var rfcommServiceUUIDs: [String] { legacyNoise ? [Self.bmapServiceUUID,"00001101-0000-1000-8000-00805F9B34FB"] : [Self.bmapServiceUUID] }
     public var maximumModeCount: Int { self == .qc45 ? 4 : 11 }
     public var modeStatusLength: Int { self == .qc45 ? 47 : 48 }
     public var hasLiveCNC: Bool { self != .qc45 }
@@ -119,6 +122,8 @@ public enum BoseProfile: String, CaseIterable, Sendable {
         let name=name.lowercased().filter { $0.isLetter || $0.isNumber }
         let bare=name.hasPrefix("bose") ? String(name.dropFirst(4)) : name
         switch bare {
+        case "qc35","quietcomfort35","qc35i":return .qc35
+        case "qc35ii","qc352","quietcomfort35ii","quietcomfort352":return .qc35II
         case "qc45", "quietcomfort45": return .qc45
         case "qcultraheadphones2ndgen", "qcultraheadphones2ndgeneration", "qcultraheadphones2", "quietcomfortultraheadphones2", "quietcomfortultraheadphones2ndgen", "quietcomfortultraheadphones2ndgeneration": return .ultraHeadphones2
         case "qcultraearbuds2ndgen", "qcultraearbuds2ndgeneration", "qcultraearbuds2", "quietcomfortultraearbuds2", "quietcomfortultraearbuds2ndgen", "quietcomfortultraearbuds2ndgeneration": return .ultraEarbuds2

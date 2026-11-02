@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0 — 2026-11-02
+
+新增 16 款 Xiaomi / Redmi 的初步支持：10 款按型号开放降噪、EQ、手势等控制，6 款仅基础信息及电量；功能与连接限制见[小米支持范围](docs/XIAOMI_SUPPORT.md)。HeyBuds/macOS 实机兼容性待验证。
+
+Initial support for 16 explicit Xiaomi / Redmi models: 10 model-specific control profiles and 6 read-only information/battery profiles. Hardware acceptance remains pending.
+
+新增 39 款耳机的初步支持：Soundcore、MOMENTUM、JBL、HONOR，以及更多 Sony、Galaxy Buds、Bose QC35 和 Nothing/CMF 型号。按型号提供电量、降噪及有明确依据的音效/设备功能，详见[功能与限制](docs/DESKTOP_EXPANSION.md)。新增型号均待 HeyBuds/macOS 实机验证。
+
+Initial support for 39 additional models across Soundcore, Sennheiser, JBL, HONOR, Sony, Samsung, Bose and Nothing/CMF. Features vary by model and firmware; hardware compatibility remains unverified.
+
+- Soundcore 接入预设与自定义 EQ、部分型号双连；MOMENTUM 接入 EQ、佩戴检测与设备列表。
+- M5 写入限定固件 6.21.5；WF-C700N 降噪写入限定 2.0.7。QC35 不显示通透，Ear (stick) 不显示降噪。
+- JBL Wave Buds 2 接入电量；TUNE230NC/770NC 仅接入降噪控制，JBL EQ 尚未开放。
+
+### 致谢 / Thanks
+
+- **Xiaomi / Redmi**：[BudsLink](https://github.com/maniacx/BudsLink)、[MiBudsClient](https://github.com/CesurPolat/MiBudsClient)、[buds-ctl](https://github.com/LeoLee0812/buds-ctl)、[redmi-buds-bar](https://github.com/robin-liquidium/redmi-buds-bar)、[MiPods](https://github.com/JackWPP/MiPods)。
+- **Soundcore**：[OpenSCQ30](https://github.com/Oppzippy/OpenSCQ30)。
+- **Sennheiser**：[momentum4-control](https://github.com/Ariazonaa/momentum4-control)。
+- **JBL**：[Omaphones](https://github.com/ncr/omarchy-headphones)、[JBL Control](https://github.com/AhmadRun/jbl-control)、[770NC Windows Controller](https://github.com/Xeo23/JBL-Tune-770NC-Windows-Controller)。
+- **HONOR**：[OpenFreebuds](https://github.com/melianmiko/OpenFreebuds)。
+- **Sony / Bose**：[SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[Sound Connect](https://github.com/aecca/sound-connect)、Omaphones。
+- **Samsung**：[GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient)。
+- **Nothing / CMF**：[ear-web](https://github.com/radiance-project/ear-web) 与 Omaphones（协议事实参考；未采用许可声明冲突的实现代码）。
+
 ## 0.5.0 — 2026-10-26
 
 新增 16 款耳机的初步支持，保留原有型号与功能。所有新增型号的 HeyBuds/macOS 实机兼容性仍待验证；具体功能取决于型号、固件和设备响应。

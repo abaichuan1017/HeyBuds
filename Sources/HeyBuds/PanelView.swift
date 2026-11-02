@@ -434,7 +434,7 @@ struct PanelView: View {
                 Text((entry.side == 1 ? L("左耳 · ","Left · ") : L("右耳 · ","Right · "))+gestureLabel(entry.gesture))
                 Spacer(minLength:8)
                 Picker(L("操作","Action"),selection:Binding(get:{entry.action},set:{ value in app.perform { try await $0.setGesture(entry,action:value) } })) {
-                    ForEach(Array(Set((app.session?.gestureActions(entry) ?? [])+[entry.action])).sorted(),id:\.self) { Text(actionLabel($0)).tag($0) }
+                    ForEach(Array(Set((app.session?.gestureActions(entry) ?? [])+[entry.action])).sorted(),id:\.self) { Text(actionLabel($0,family:app.model?.family)).tag($0) }
                 }.labelsHidden().frame(maxWidth:138).disabled(app.operationBusy)
                     .accessibilityLabel((entry.side == 1 ? L("左耳 · ","Left · ") : L("右耳 · ","Right · "))+gestureLabel(entry.gesture))
             }.padding(.vertical,6)
@@ -586,7 +586,7 @@ struct PanelView: View {
             settingsGroup(L("设备","Device")) {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
-                settingPicker(L("设备型号","Device model"),helpText:app.connectionFamily?.allowsModelOverride == false ? L("此品牌按型号自动识别协议，不能手动切换型号。","This brand selects its protocol automatically by model; manual overrides are unavailable.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.connectionFamily?.allowsModelOverride != true || app.operationBusy,
+                settingPicker(L("设备型号","Device model"),helpText:app.modelOverrideAllowed == false ? L("此品牌按型号自动识别协议，不能手动切换型号。","This brand selects its protocol automatically by model; manual overrides are unavailable.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.modelOverrideAllowed != true || app.operationBusy,
                     selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
                     choices:[.init("auto",L("自动识别","Automatic"))]+app.overrideModels.map { .init($0.id,$0.name) })
             }
@@ -1007,4 +1007,7 @@ func featureLabel(_ key:String) -> String {
     }
 }
 func gestureLabel(_ value:UInt8) -> String { [1:L("单击","Single press"),2:L("双击","Double press"),3:L("三击","Triple press"),4:L("长按","Hold"),5:L("滑动","Swipe")][Int(value)] ?? L("手势 ","Gesture ")+String(value) }
-func actionLabel(_ value:UInt8) -> String { [0:L("无","None"),1:L("播放／暂停","Play / pause"),3:L("语音助手","Voice assistant"),5:L("上一首","Previous track"),6:L("下一首","Next track"),7:L("音量","Volume"),10:L("切换歌曲","Skip track"),17:L("游戏模式","Game mode")][Int(value)] ?? L("操作 ","Action ")+String(value) }
+func actionLabel(_ value:UInt8,family:EarbudFamily?=nil) -> String {
+    if family == .xiaomi,let label=[0x30:L("增大音量","Volume up"),0x31:L("减小音量","Volume down"),0x32:L("切换降噪模式","Cycle noise modes")][Int(value)] { return label }
+    return [0:L("无","None"),1:L("播放／暂停","Play / pause"),3:L("语音助手","Voice assistant"),5:L("上一首","Previous track"),6:L("下一首","Next track"),7:L("音量","Volume"),10:L("切换歌曲","Skip track"),17:L("游戏模式","Game mode")][Int(value)] ?? L("操作 ","Action ")+String(value)
+}

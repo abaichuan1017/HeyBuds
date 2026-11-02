@@ -2,15 +2,18 @@
 import Foundation
 
 public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
-    case oppo, vivo, huawei, xiaomi, edifier, sony, samsung, google, bose, nothing
+    case oppo, vivo, huawei, xiaomi, edifier, sony, samsung, google, bose, nothing, soundcore, sennheiser, jbl
     public var allowsModelOverride:Bool { [.oppo,.vivo,.huawei,.xiaomi,.edifier].contains(self) }
     public func transportKinds(for name:String) -> [String] {
+        if self == .xiaomi,let profile=XiaomiProfile.named(name) { return profile.transportKinds }
+        if self == .jbl { return JBLProfile.named(name)?.usesBLE == true ? ["BLE"] : ["RFCOMM"] }
         if self == .oppo { return ["RFCOMM","BLE"] }
         if self == .bose,BoseProfile.named(name)?.prefersBLE == true { return ["BLE"] }
         return ["RFCOMM"]
     }
-    public static func normalize(_ name:String) -> String { name.lowercased().filter { $0.isLetter || $0.isNumber } }
+    public static func normalize(_ name:String) -> String { name.lowercased().replacingOccurrences(of:"+",with:"plus").filter { $0.isLetter || $0.isNumber } }
     public static func detect(_ name:String) -> EarbudFamily? {
+        if XiaomiProfile.named(name) != nil { return .xiaomi }
         let n=normalize(name)
         if ["oppo","enco","oneplus","realme"].contains(where:n.contains) { return .oppo }
         if n.hasPrefix("vivotws") || n.hasPrefix("iqootws") || n == "vivoheadphones" || n == "iqooheadphones" { return .vivo }
@@ -21,15 +24,24 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         if SamsungProfile.named(name) != nil { return .samsung }
         if BoseProfile.named(name) != nil { return .bose }
         if NothingProfile.named(name) != nil { return .nothing }
+        if SoundcoreProfile.named(name) != nil { return .soundcore }
+        if SennheiserProfile.named(name) != nil { return .sennheiser }
+        if JBLProfile.named(name) != nil { return .jbl }
+        if ["honorearbuds2","honorearbuds2se","honorearbuds2lite","荣耀earbuds2","荣耀earbuds2se","荣耀earbuds2lite"].contains(n) { return .huawei }
         if ["Pixel Buds Pro","Pixel Buds Pro 2"].contains(where:{n == normalize($0) || n == normalize("Google "+$0)}) { return .google }
         return nil
     }
     public var classicServiceUUIDs:[String] {
         if self == .sony { return [SonyProtocol.serviceV2,SonyProtocol.serviceV1] }
+        if self == .samsung { return [SamsungProfile.service,SamsungProfile.legacyService] }
+        if self == .soundcore || self == .jbl { return [] } // SPP is not brand identity; JBL uses BLE or a model-bound RACE route.
         return serviceUUID.map { [$0] } ?? []
     }
     public func serviceUUID(for name:String) -> String? {
-        self == .sony ? SonyProtocol.serviceUUID(for:name) ?? serviceUUID : serviceUUID
+        if self == .xiaomi,let profile=XiaomiProfile.named(name),!profile.systemBatteryOnly { return profile.services.first }
+        if self == .sony { return SonyProtocol.serviceUUID(for:name) ?? serviceUUID }
+        if self == .samsung { return SamsungProfile.named(name)?.serviceUUID }
+        return serviceUUID
     }
     public var serviceUUID:String? {
         switch self {
@@ -43,6 +55,9 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         case .google:return GoogleMaestro.service
         case .bose:return BoseProfile.bmapServiceUUID
         case .nothing:return NothingProfile.service
+        case .soundcore:return SoundcoreProfile.service
+        case .sennheiser:return SennheiserProfile.service
+        case .jbl:return nil
         }
     }
 }

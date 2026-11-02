@@ -1,5 +1,5 @@
 {
-  "checkedDate": "2026-10-26",
+  "checkedDate": "2026-11-02",
   "upstreamProjects": [
     {
       "name": "OppoPodsManager",
@@ -345,12 +345,16 @@
       "url": "https://github.com/ncr/omarchy-headphones",
       "commit": "607d1c86492e6d94541f4c615efc90f3e8f67328",
       "license": "MIT (protocol facts only)",
-      "usage": "Model-specific Nothing interoperability facts; no upstream implementation copied",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
       "sourceFiles": {
         "LICENSE": "cf04864900ff929e5e79a1c49b4634aba85901c165b6b813dee405eaa80fe967",
         "README.md": "4aadee6e08858fcb561e5e7adec6702177c6450b8932c0315095dd7d43fd48d7",
         "docs/captures/nothing-cmf-buds-2.txt": "f7b1960decf30f8ab6a09e6dc591455f92e91d904357d76d75ff14923bc88055",
-        "docs/CMF-REVIEW.md": "5155382996ed98ffbeeb6ea907f058da7adc05da2f4ea89474bf9f7f65065e2c"
+        "docs/CMF-REVIEW.md": "5155382996ed98ffbeeb6ea907f058da7adc05da2f4ea89474bf9f7f65065e2c",
+        "bose-bridge": "d93045aa0f6755bc44a3f24f09eb5ac935f453dc10e14b1fdd6e925586c7a6c8",
+        "nothing-bridge": "e7bf970aa8fac9d8f83d42c7e91caca1b380c2b8751cf10c2b9e056848eb495d",
+        "jbl-bridge": "3a5a63a48e3ddf5e61054f066dfb027909390dfa909801759147c5ab9f309a16",
+        "tests/pins/nothing/headphone-pro.json": "b2360b8717c5f1f46f31640ff8d1986d21e828ae84c88a2b3ad235206a9304be"
       }
     },
     {
@@ -363,6 +367,247 @@
         "LICENSE": "5e51580b15737e70f8629fb9754ffe5191348e5f053e674d3b717d6624c81252",
         "src/MagicBuds.Presentation/Headsets/PixelBudsHeadset.cs": "3a6c71a871428a188ecd6d3105fb5861002af6102625fdabbfdb7c5a1b63ded1",
         "docs/protocol/notes.md": "afeddd32a0a564216e643cb7281aa700cbc9017ab42ae8002e2004518c707ff7"
+      }
+    },
+    {
+      "name": "OpenSCQ30",
+      "url": "https://github.com/Oppzippy/OpenSCQ30",
+      "commit": "200d9e1657dff67d516ed1b6347f312d7a1b01a7",
+      "license": "GPL-3.0-or-later",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "LICENSE.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "lib/src/devices/soundcore.rs": "b88c7e79fa3e37cea8eaa59f9759ea8df02d91074cda6dd17e0c73cf8a2e0254",
+        "lib/src/devices/soundcore/common/device.rs": "19fb2b05b77d8c2b8028084a8dbc74f75868ca27e6974f28c6248c34af443548",
+        "lib/src/devices/soundcore/common/structures/volume_adjustments.rs": "1146afd7c68fd032fdead7644a1a13bc3e5e4b09acb37c968c67f460efd10bcd",
+        "lib/src/devices/soundcore/common/structures/custom_hear_id.rs": "be226f14541eb3aff77160741fe1b8c202b4df004646755e9cde87635b99d6f6",
+        "lib/src/devices/soundcore/common/structures/basic_hear_id.rs": "ca9389a80bc9c8a8f7872357806ff90078b0a0a4a3db1dfc9f5bd88a54490139",
+        "lib/src/devices/soundcore/a3028/packets/state_update_packet.rs": "563453e9cdc5b2bf3a82a552a11caa52cc2ca179a7c770963b4f0356283fa2ef",
+        "lib/src/devices/soundcore/a3027/packets/state_update_packet.rs": "9258582c9e7f53a4a9131a9705c76b778d2d420bb8143dfd22b82612e7f0f2ed",
+        "lib/src/devices/soundcore/a3040/modules/sound_modes.rs": "d5e5dea0c0287ab65357bda11dffc4af7b426a8be5e412ba41f5456c1d8de007",
+        "lib/src/devices/soundcore/a3040/packets/set_equalizer.rs": "671e53f2d3d572ed07b15e54337c805725b614641bc801a85276e7a679d65474",
+        "lib/src/devices/soundcore/a3040/packets/state_update.rs": "882a19d4427543e197eaf63483dc5747ab4f26858a013cdc6a51da533850ca6e",
+        "lib/src/devices/soundcore/a3062/modules/sound_modes.rs": "8e86299e5102e74b342bd064c18452c291da05a1740a7bfc0336935d64569366",
+        "lib/src/devices/soundcore/a3062/packets/inbound/state_update.rs": "d05ffa31d5743050b596b2f6d573dd54389bc52634db180b3fdf0e09c8c20de5",
+        "lib/src/devices/soundcore/a3062/packets/outbound.rs": "f329b58ceea7302f3055a3f36399c67a3e5b9ca7039adda377d22ffd125530b7",
+        "lib/src/devices/soundcore/a3947/modules/sound_modes.rs": "489c97c74612dba70ab7b58f6f779f3dbef7c62abe8ec2389b0a3e92976dcb52",
+        "lib/src/devices/soundcore/a3947/packets/set_equalizer_configuration.rs": "e9657e5a77f8499459e3ce53f755a6bad12a081baa6d4feb8d65d49097d107ea",
+        "lib/src/devices/soundcore/a3947/packets/state_update.rs": "567f8fa213420689b66c6dd6b8e873b448177baac9afbc2727c66813269dad4e",
+        "lib/src/devices/soundcore/a3954/modules/sound_modes.rs": "025250063c369ce6d8aa18a2c600c856dc0d3321ca70edee54e92cfeedc60d35",
+        "lib/src/devices/soundcore/a3954/packets/inbound/state_update.rs": "1d2f696bc45ad5b0ff91d6a94c6ce3af54261bfbd69a590b853d25ff8cda530e",
+        "lib/src/devices/soundcore/a3954/packets/outbound.rs": "5890ab99e64338784e0a08812c49272e744664d6d9e5ec604aab103e2baa998b",
+        "lib/src/devices/soundcore/a3957/modules/sound_modes.rs": "d4ca608ffc1aa77e19e5bd5fb736ecbbb7d67396cf8db38e7efd57cebae71505",
+        "lib/src/devices/soundcore/a3957/packets/inbound/state_update.rs": "5447692ca16888a9ee234df5b3abe5df84d0ff8969c034e8d86af86c91e590e5",
+        "lib/src/devices/soundcore/a3957/packets/outbound.rs": "867f52929feab9f5481341cae507a1aed84cddb0d9f2b0b757d44a84128c37b3",
+        "lib/src/devices/soundcore/a3957/structures/sound_modes.rs": "b911daeef452fdacf702bcf53c44e3053216fb1d1c403a2afd74d862fe70985e",
+        "lib/src/devices/soundcore/common/modules/equalizer.rs": "96ba2ed82b692a2275794a204e47eefb776e142209d273c80fe918f42c4d8e3d",
+        "lib/src/devices/soundcore/a3040/modules/equalizer.rs": "5f54c4ff629994093d2ef2a691948dd60de6d6f8fa80b25093102f33b83b4f1a",
+        "lib/src/devices/soundcore/a3062/modules/equalizer.rs": "ef78cfe5e8944de40388723e5020e2aeab6dbe48a736a27820082b1f267a9504"
+      }
+    },
+    {
+      "name": "momentum4-control",
+      "url": "https://github.com/Ariazonaa/momentum4-control",
+      "commit": "17aeea90ce12ffbb4521df1832b22de0bc08c666",
+      "license": "MIT",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "LICENSE": "ccfb35daa4d2d80725ea45ab46c3155c72e12aa3a13e9b4469ac4af9fcd0e962",
+        "src/Momentum4.Core/Services/FeatureGate.cs": "8d7c2775ce6cc3b04deeccdbb25b654215448999a146dca0ba48e169f444f731",
+        "src/Momentum4.Core/Services/Momentum4Service.cs": "24145fe9f6f08730c6ed94bae19aac7bbb5ef662f5212025bccf43dc04887974",
+        "src/Momentum4.Core/Device/Momentum4Client.cs": "d5fd8c5031802b26bfcaa4ce58f9c2c7fc181ec508ff2ad4e12073954a71c6a8",
+        "src/Momentum4.Protocol/Catalog/FrameDescriber.cs": "de397306c0a224f5e8509456a88a29e31e70dac48ad50f575611edd2c3422958",
+        "src/Momentum4.Protocol/Catalog/CommandCatalog.cs": "0a470c8a7bf807b1cd17206c62845f8889bd52c79f1caa66cfdfd4d0f063f054",
+        "src/Momentum4.Protocol/Catalog/CommandDescriptor.cs": "fecbcbf2bd7c95215011ada17e24d546552575fe9e53cb56fd7dc74e23ee0ca7",
+        "src/Momentum4.Protocol/Features/MmiCodec.cs": "86deef6e532adc52f0cff505828d9455f1cac43964188f95ec43d119823c11c9",
+        "src/Momentum4.Protocol/Features/GenericAudioCodec.cs": "f16f71dec62a48798151ac6f41a7224ebaa6cb3560c4b8e8e91f8f33e3604ed3",
+        "src/Momentum4.Protocol/Features/BatteryCodec.cs": "005eb754b076ea0d236328de9ebfcebb1518fca747387e5c9b495b6da2166f1a",
+        "src/Momentum4.Protocol/Features/VersionsCodec.cs": "3750e248b2ce9be08d458c2084c5d39623839d268da76589c987e8886194b0d8",
+        "src/Momentum4.Protocol/Features/SwitchCodec.cs": "e639c5397797667d705abf5d589e51f1cf832a1439c927a757921b6e82788c6c",
+        "src/Momentum4.Protocol/Features/CoreCodec.cs": "6b374800363f2dcf9a7ceaac015e0c4601d2d50382b884bb14c246acd85e6eaa",
+        "src/Momentum4.Protocol/Features/UserEqCodec.cs": "4367053b4a3e3996df4fd5b893fb1ee79e35b000eef7ee16338c3b801c8b5338",
+        "src/Momentum4.Protocol/Features/AncCodec.cs": "e2630966e613b83d3a1aa6c6de7360d2cc3d685b8dede57de8e7f2205f249c82",
+        "src/Momentum4.Protocol/Features/SharedHeadsetCodec.cs": "e52a336ef3ec0e86321da891e10b2930b67ac64d6d46dd00a87eba080c8907f1",
+        "src/Momentum4.Protocol/Features/DeviceCodec.cs": "d52f8c8e993b72712ba73698b852ffbc77bc6c3d54e2f07e27f20a67dd9511ad",
+        "src/Momentum4.Protocol/Features/DeviceManagementCodec.cs": "790e029fe8001326ade7017a40885745fd940736d2ab1ab8e4612f504799b0d5",
+        "src/Momentum4.Protocol/Gaia/GaiaFrame.cs": "8191c8a91b04aff4399ba21b84839701d7f794bd0820b86f82692646ce02cf3b",
+        "src/Momentum4.Protocol/Gaia/GaiaFrameCodec.cs": "e88eb52b4a9f99242cceca48c17c3b9489e0980cc92f9cbcffaab2decf699dca",
+        "src/Momentum4.Protocol/Gaia/CommandWord.cs": "85a171e96ded843e975a40f1f35aa09ca1954e3c0fc0232a7422c0db870c9523",
+        "src/Momentum4.Protocol/Gaia/GaiaFrameReader.cs": "be52e087ef5103644324f7eab78fe8e65a1216f81b8444c384699918dfbcd40e"
+      }
+    },
+    {
+      "name": "jbl-control",
+      "url": "https://github.com/AhmadRun/jbl-control",
+      "commit": "a276b8561c15fc5a3effa76cb75500847219d750",
+      "license": "MIT",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "LICENSE": "2d0886382498e948d4dd623c2d703e275eb424cbf514c74c642ba9e25792253e",
+        "bin/jbl/protocol.py": "092d563d569d6507f1d7a28302636bd1542748975db42906bc88b8cb24f985c3",
+        "tests/fake_buds.py": "b33f5915c279351cd921b3e1a87e877bc6a5fd1591fcce5f6700ce1f4e772037"
+      }
+    },
+    {
+      "name": "JBL-Tune-770NC-Windows-Controller",
+      "url": "https://github.com/Xeo23/JBL-Tune-770NC-Windows-Controller",
+      "commit": "653f75af8b45071011995fce2d2a623b4de4f128",
+      "license": "MIT",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "LICENSE": "8a21c69d5e0ef34d2b6ac04d2e360448c330462fe2d63198d58f03ad2ff91ec4",
+        "anc.py": "07c2558f467fa267f56b67bb0630494498ff277a67940ad2fb1c42df7aecb709"
+      }
+    },
+    {
+      "name": "sound-connect",
+      "url": "https://github.com/aecca/sound-connect",
+      "commit": "749e54438ec7be055a45021fea30dff87de22975",
+      "license": "MIT",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "LICENSE": "d0ca41e484cac5c11d703a79adcdd05aea8092bb7d3d9b5a3d863cb7dbbc0f09",
+        "crates/core/src/drivers/bose/mod.rs": "c2fad41e1fcb1519b28fe5f00dec4e0f6357ec28629aaa89eadd7828145c1a71",
+        "crates/core/src/drivers/sony/profile.rs": "c698edbe8e81a8695b72f63782d7c10a89db6cbf58e360f5ae717755ce697508",
+        "crates/core/src/drivers/sony/command.rs": "7c42a9a6d18ceaa1c14e0cfd5bf5be1fbab75aad4bfe626985116c1e3369155e"
+      }
+    },
+    {
+      "name": "OpenFreebuds",
+      "url": "https://github.com/melianmiko/OpenFreebuds",
+      "commit": "0b4f14c0b500d491f0fb4ea38f2984ec334e3649",
+      "license": "GPL-3.0",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "README.md": "2c842591909f6235228d1caf093ab4f1a48c0366f27f7715728e980ced4082f1",
+        "docs/devices/HUAWEI_FreeBuds_4i.md": "378aea7305ee868297b0cf69c6f2f76842294e2ada993ab4cc5e7a482d43a89e",
+        "openfreebuds/driver/huawei/driver/per_model/buds_4i.py": "d44a6ab34221021d8072d250e6791f328d8e1789fe1421f9337dc18fe8dfef52"
+      }
+    },
+    {
+      "name": "SonyHeadphonesClient",
+      "url": "https://github.com/mos9527/SonyHeadphonesClient",
+      "commit": "68dfced0403b38114b77f2b374e606ce12a206a8",
+      "license": "MIT",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Attribution retained in THIRD_PARTY_NOTICES.md.",
+      "sourceFiles": {
+        "libmdr/include/mdr/ProtocolV2.hpp": "81c01b10804e54e4f972932f7c0e9d0aaf5bd77e63562ac5877b3a2e1c5acf8e",
+        "libmdr/include/mdr/ProtocolV2T1.hpp": "d4c90a3a438899a94dfc98b9b418126e30916585446d542ebb85214d6bd5c1a9"
+      }
+    },
+    {
+      "name": "ear-web",
+      "url": "https://github.com/radiance-project/ear-web",
+      "commit": "d076e1371572fbf0a14b441f9b3cafbf9a237e04",
+      "license": "AGPL-3.0 LICENSE conflicts with GPL README; protocol facts only",
+      "usage": "Model-specific desktop protocol reference; no HeyBuds hardware verification. Independent interoperability facts only; no implementation or assets copied.",
+      "sourceFiles": {
+        "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+        "README.md": "94557e3dfa1d1219922b90a845fea28a5983b33c1590d08c87dcf80df24b5bb7",
+        "res/js/control.js": "11858e94e2bd6e8a055d86c067093bf6361250d9c4f7305350a6dae4b0151e9f",
+        "res/js/bluetooth_socket.js": "c02e6f301c4e184596f6ea0a8247a94afea2262660d3e3414e166010ee8521ad",
+        "res/js/ear_config_file.json": "44b52bd5533d5cb000b12e631fd8d83ece13a92bd09e272610f49c7d811357e5"
+      }
+    },
+    {
+      "name": "maniacx/BudsLink",
+      "url": "https://github.com/maniacx/BudsLink",
+      "license": "GPL-3.0",
+      "commit": "e0b8466ade194ca1fb0b9f87a45bf22d0c3a020f",
+      "checkedDate": "2026-11-02",
+      "usage": "GPL v3 authentication algorithm/tables ported to Swift with attribution; model/configuration interoperability facts; no application assets copied",
+      "sourceFiles": {
+        "LICENSE": "e73f724ee2920492bcbe58f4cc8f813da140eb0a4b9b4fc2dc4823fbe65d910c",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds5.js": "b4b731247f444c9f5edeae8ff232a9a22f2a53d021f90b52d62de05f1718e1bd",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds5Pro.js": "91db4d59f5c85f5a1a1fea382e634b9cfa20b0187a7b0bbf581874b453b1c399",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds6Lite.js": "3851090aecf9275e8e962a3474ee9a0f94de602e56b5184543aa936cde79fc51",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds6Play.js": "91982b772083eb6917fb3a974ef6c8dcf4b7e3beadaef0a77943e7c042858cdd",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds6Pro.js": "19281f12f12d2e1e9cb35f8032b4ebacc83f334e274f0c5dc0d351872a333dec",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds8.js": "f4cbb18fedce92a9d688a8c165003c91ede222202e33f278ab1407ca50531c63",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds8Active.js": "34c8c4e141a0cd4670574c867a0266a8719748d83a01c12d51af73e5ffa1a1dd",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds8Lite.js": "a87230b1e6f6d882a4a656f96617c4262a164c6321ffe19254743c8596862cba",
+        "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds8Pro.js": "b4cede386ddb1d90c51992f48e2eafdbfef4baa428dc4c96626a403fd9c667ab",
+        "src/lib/devices/redmiBuds/deviceConfigs/XiaomiBuds5Pro.js": "b4539cca48e267ae7efaa5124ac7ca8c187bba5fedcf371953dcaa53c08a719a",
+        "src/lib/devices/redmiBuds/redmiBudsAuthenticator.js": "365e3100f061f826dddd1a3545466c8abe81e5e67bb7c35f5bd1b6d013eedf3a",
+        "src/lib/devices/redmiBuds/redmiBudsConfig.js": "c356de7c03fea29c34e03007917e118e36d6ac5753fc6acd96c1ba114eadca13",
+        "src/lib/devices/redmiBuds/redmiBudsDevice.js": "d3a4a36e7548c479f57c3b3fed51ba26b51c80d2e035b825a822e28cad16f8d4",
+        "src/lib/devices/redmiBuds/redmiBudsSocket.js": "74bfd16c73bbb3260dbc15a3d7360cfdfe21dfaa3f3c4d30c6b2dea05ee03fc8"
+      }
+    },
+    {
+      "name": "CesurPolat/MiBudsClient",
+      "url": "https://github.com/CesurPolat/MiBudsClient",
+      "license": "GPL-3.0",
+      "commit": "0959df35c6e866c7b95ae1278ab9ec58657256c6",
+      "checkedDate": "2026-11-02",
+      "usage": "Restricted device-catalog facts, per-model gesture allowlists, mutual command-authentication observations and published protocol vectors; no Python implementation copied",
+      "sourceFiles": {
+        "LICENSE": "3c7778357929ff3299b56be48c0ab33ba00189cbdca838b0b11102e9e95c28e7",
+        "assets/device_catalog.json": "665932ad9ef2464353d0d2aafb90d12ea54344f94da6ec4e6817bb282971a837",
+        "controllers/bluetooth/auth_codec.py": "6189b186ed411fc0f9631c918f9dac7790dd3ecf484d5ea759b0bbf56f906be4",
+        "controllers/bluetooth/auth_session.py": "ed95d6f7b9df2e98c66b3d38c7b2c7bbd6be43ca354fa92646e9f32fedcfa693",
+        "controllers/bluetooth/capabilities.py": "3fa63981b4daab20a025ec0eede78e14debc48d9b27f0a4f0a6443fff3891f9a",
+        "controllers/bluetooth/device_catalog.py": "ba8fa41d49ea9b1206fdc423f29e233f4b26d677bafd628d3bc0aca53baab26b",
+        "controllers/bluetooth/eq_transport.py": "4fc4e660fb9728f11742e21aa21d8a916fb2e182a9ec2e8fbaa3779cf558f1ff",
+        "controllers/bluetooth/gesture_transport.py": "bebc948bbf197f742e3ea498e01bb19c73f323f8e47538c548a71ee483f822e1",
+        "controllers/bluetooth/gestures.py": "d889ed3b6bd8295149dff0ff7651b1746f84469a9b922cc04d582aa0046de313",
+        "controllers/bluetooth/noise_transport.py": "1dada681f3ae5f5afd9c20d7455c92192e60d4a5158330c081e39bb93da5fbe5",
+        "controllers/bluetooth/rcsp.py": "a66222d18eb15b127408c80d98937b4b14df1ae220f6021026310e378f0afce5",
+        "controllers/bluetooth/safer_plus.py": "5944e19f586ec1f415b4675474d35a3e4833df2652333cb496cfe1f43ff2577b",
+        "docs/command-auth.md": "7835015c56bc13aacec316299af0ff090f2ca58656db52ad8b72cd26a0c229da",
+        "tests/test_command_auth.py": "5ba0ee4a90b798d1601bf635efbbcb90ceeb072e286b3eebe717098aa59e6f26"
+      }
+    },
+    {
+      "name": "robin-liquidium/redmi-buds-bar",
+      "url": "https://github.com/robin-liquidium/redmi-buds-bar",
+      "license": "GPL-3.0",
+      "commit": "4fd941610415b7e3e78931267e0010fd61a2050d",
+      "checkedDate": "2026-11-02",
+      "usage": "Mac 8 Pro C0/FD2D endpoint, public non-identifying frame vectors and mode/strength facts; no application implementation copied",
+      "sourceFiles": {
+        "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+        "PROTOCOL.md": "a595b4f0e814c7b06c25999b7e4c33bc4dffc7b2d280572a18627c02f2fc60b4",
+        "Sources/BudsCore/Protocol.swift": "4aae91e433834938d30fe60c3f324e88e5f958b0fffd09f2a4492b2b5c7f539e",
+        "iOS/Shared/MMAAuthentication.swift": "b244b542d3432ebfca41b0b77a3085805561e935e3ef93639574ee09fc5b42f3"
+      }
+    },
+    {
+      "name": "LeoLee0812/buds-ctl",
+      "url": "https://github.com/LeoLee0812/buds-ctl",
+      "license": "AGPL-3.0",
+      "commit": "65cd1da0c26892c81be0586f510cc4cbd557fe5b",
+      "checkedDate": "2026-11-02",
+      "usage": "AGPL interoperability facts only for BLE and custom EQ; no source code or assets copied",
+      "sourceFiles": {
+        "App/Model.swift": "fe09715bfb516506f769ab909d6c8eae737f0370962f3bc287792fb9266707fe",
+        "LICENSE": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+        "PROTOCOL.md": "0082bc9b6bafa4cdcf3dbe5ea1ba0686500470c6ded3e783b21542560c729697",
+        "Shared/Protocol.swift": "34ed489881d8dcb7ca81deabf9eca63c4e4fd4ac7598fd22a658fdcf67d62e87"
+      }
+    },
+    {
+      "name": "JackWPP/MiPods",
+      "url": "https://github.com/JackWPP/MiPods",
+      "license": "AGPL-3.0",
+      "commit": "eb1376e397fe557b9dcf94a260641d81b65f02d8",
+      "checkedDate": "2026-11-02",
+      "usage": "AGPL interoperability facts only for clip-on model, BLE and read-only battery fields; no source code or assets copied",
+      "sourceFiles": {
+        "README.md": "1b30735d9ebc050be8668d25a3f466ebe826e5026506e0da96c700f74b4ed5c9",
+        "app/MiPods/Sources/MiPodsCore/Protocol.swift": "039677a15b37d3797adc2b915c4bae79ee7196b7cf799705da3840a0a5ce753b"
+      }
+    },
+    {
+      "name": "gortepe-svg/bluetooth-kulaklik-kontrol",
+      "url": "https://github.com/gortepe-svg/bluetooth-kulaklik-kontrol",
+      "license": "Not declared; protocol facts only",
+      "commit": "86c85cd336a25d86a41a6bf10ba9059146c4fa42",
+      "checkedDate": "2026-11-02",
+      "usage": "Basic S model evidence and Windows HFP limitation only; no code copied or Windows transport ported",
+      "sourceFiles": {
+        "README.md": "c47716b0feaf3e2e5f68ff0098b5f45a32d4db4d92a0ac8f542cb030500e94e0",
+        "mibasic.py": "3a65c115a3a2225864338e1c611bd017da1a705e703c9a500ff9cc954fee0be0"
       }
     }
   ],
@@ -438,7 +683,9 @@
     "Sources/HeyBudsProtocol/Resources/MigratedModels.json": "b8f7fab98e28b586e3b0000fc1357acc1ad6a2edf8351cb384394a7423bbdc2a",
     "Sources/HeyBudsProtocol/Resources/EncoDeckModels.json": "3fa94eb37f82e5ca2d8fccfa179c0d8aba0724f585403fba20214f8af8cafa06",
     "Sources/HeyBudsProtocol/Resources/SonyModels.json": "d0dfac070222999930275c50bbdb2d2ff5b4331430ed33573fbbe914dae95264",
-    "Sources/HeyBudsProtocol/Resources/ExpansionModels.json": "1976f003f80bd1f23de4087abe718acb5dd6d269267532f784cedbc0dcc5c186"
+    "Sources/HeyBudsProtocol/Resources/ExpansionModels.json": "1976f003f80bd1f23de4087abe718acb5dd6d269267532f784cedbc0dcc5c186",
+    "Sources/HeyBudsProtocol/Resources/DesktopModels.json": "bd6030ba1becf8e15b69e8b27bd2c7f832523bd7dfab273c210743c3c7e1f596",
+    "Sources/HeyBudsProtocol/Resources/XiaomiModels.json": "239677d7e58db7c3c4a3355f48cef7e35f8a22c1323a905fb884dabc393c33a9"
   },
   "referenceResourceSHA256": {
     "docs/reference/VivoDeviceModels.json": "9f6b95482058a6b63944bc1564a8721b253b432794075f0b81b1b840a9ce1d3b",

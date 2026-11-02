@@ -12,6 +12,7 @@ import HeyBudsProtocol
     var onChange: (() -> Void)?
     var onClose: ((String?) -> Void)?
     private let profile: NothingProfile?
+    private let identityTransport: (any NothingIdentityTransport)?
     private let channel: ControlChannel<NothingFrame>
     private let resetDecoder: () -> Void
     private let operations = RequestGate()
@@ -26,6 +27,7 @@ import HeyBudsProtocol
     init(transport: EarbudTransport, name: String, catalog: ModelCatalog, timeout: Double = 3) {
         let selected = NothingProfile.named(name)
         profile = selected
+        identityTransport = transport as? any NothingIdentityTransport
         model = selected.flatMap { p in catalog.models.first { $0.id == p.modelID } }
         var codec = NothingFrameCodec(profile: selected ?? .earA)
         resetDecoder = { codec.reset() }
@@ -47,8 +49,15 @@ import HeyBudsProtocol
         do {
             try await channel.open()
             try check(token)
-            let identity = try await read(profile.identityRead)
-            guard profile.identityCode(identity.payload) == profile.modelCode else { throw ProtocolError.unsupported }
+            if profile.fastPairIDs.isEmpty {
+                let identity = try await read(profile.identityRead)
+                guard profile.identityCode(identity.payload) == profile.modelCode else { throw ProtocolError.unsupported }
+            } else {
+                guard identityTransport?.verifiedModelCode == profile.modelCode else { throw ProtocolError.unsupported }
+                // Some CMF firmware only starts responding after this read. Identity
+                // is already known; discard the configuration/serial payload.
+                _ = try await probe(profile.identityRead)
+            }
             state.productID = profile.modelCode
             state.observedQueries.insert(Command.product)
             // Firmware is needed for the B179 EQ gate; absence never enables it.
@@ -58,7 +67,7 @@ import HeyBudsProtocol
             }
             try check(token)
             try await readBattery()
-            if let frame = try await probe(profile.noiseRead), let mode = profile.parseNoise(frame.payload) {
+            if profile.supportsNoise, let frame = try await probe(profile.noiseRead), let mode = profile.parseNoise(frame.payload) {
                 state.noise = mode; noiseAvailable = true
                 state.observedQueries.insert(Command.noise)
             }

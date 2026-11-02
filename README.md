@@ -33,16 +33,19 @@
 | --- | --- |
 | OPPO / OnePlus / realme | 电量、降噪、EQ、空间与游戏音效、多设备 |
 | vivo / iQOO | 电量、降噪、EQ、空间与游戏音效、多设备 |
-| HUAWEI | 电量、降噪、EQ、自定义 EQ、多设备 |
-| Xiaomi / Redmi | 系列识别、电量；低延迟需有效状态回读 |
+| HUAWEI / HONOR | 华为原有功能；荣耀 Earbuds 2 / 2 SE / 2 Lite 按 FreeBuds 4i 配置接入 |
+| Xiaomi / Redmi | 16 款明确型号：10 款按型号接入降噪、EQ、手势等控制，6 款仅基础信息/电量；详见[功能范围](docs/XIAOMI_SUPPORT.md) |
 | EDIFIER | 支持 SPP 的系列电量及降噪 |
-| Samsung | Galaxy Buds2 / Buds2 Pro / Buds4 Pro：电量、降噪与预设 EQ；前两款触控锁、Buds4 Pro 降噪强度 |
+| Soundcore / 声阔 | Q30 / Q35 / Q45 / Space One Pro / Liberty 4 NC / 4 Pro / 5：电量、降噪、预设与自定义 EQ；部分型号双连开关 |
+| Sennheiser / 森海塞尔 | MOMENTUM 4 / 5：电量、降噪、EQ、佩戴检测与设备列表；M5 写入限 6.21.5 固件 |
+| JBL | TUNE230NC TWS / Wave Buds 2 / Tune 770NC：降噪与环境声；Wave Buds 2 另有电量 |
+| Samsung | 13 款 Galaxy Buds：电量、各型号具备的降噪/环境声和预设 EQ；Buds2/2 Pro 触控锁、Buds4 Pro 降噪强度 |
 | Google | Pixel Buds Pro / Pro 2：电量、降噪与五组 EQ 预设 |
-| Bose | QuietComfort 45 / Ultra Headphones (2nd Gen) / Ultra Earbuds (2nd Gen)：电量、Quiet / Aware 模式及有回读的降噪级别 |
-| Nothing / CMF | Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2：电量、降噪；预设 EQ 按型号及有效回读开放 |
-| Sony | 原有三款及 WH-1000XM3 / XM4 / WH-XB910N / ULT WEAR：电量、降噪与语音聚焦；ULT WEAR 无通透强度控件 |
+| Bose | QC35 / QC35 II：电量、ANC 开关，无通透；QC45 / Ultra 二代头戴及耳塞保留模式与降噪级别控制 |
+| Nothing / CMF | 11 款型号的电量与预设 EQ，具备降噪的型号开放基础模式；Ear (stick) 无降噪 |
+| Sony | 12 款型号的电量与降噪/通透；WF-C700N 降噪写入限 2.0.7 固件，ULT WEAR 无通透强度控件 |
 
-新增型号均为初步协议接入，HeyBuds/macOS 实机兼容性待验证。
+新增 39 款的[功能与限制](docs/DESKTOP_EXPANSION.md)已逐组列出，另增加 [16 款 Xiaomi / Redmi 配置](docs/XIAOMI_SUPPORT.md)，源码目录共 283 条。新增型号均为初步协议接入，HeyBuds/macOS 实机兼容性待验证。
 
 具体功能取决于型号、固件和设备响应。详见[型号清单](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md)与[兼容性说明](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md)。
 

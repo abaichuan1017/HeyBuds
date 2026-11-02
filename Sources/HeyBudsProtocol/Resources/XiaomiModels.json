@@ -1,0 +1,1233 @@
+{
+  "models": [
+    {
+      "id": "xiaomi:buds5pro",
+      "name": "Xiaomi Buds 5 Pro",
+      "brand": "Xiaomi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 14,
+          "zh": "哈曼 AudioEFX",
+          "en": "Harman AudioEFX"
+        },
+        {
+          "id": 15,
+          "zh": "哈曼大师",
+          "en": "Harman Master"
+        },
+        {
+          "id": 13,
+          "zh": "低音舒缓",
+          "en": "Soothing bass"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 12,
+          "zh": "传奇听感",
+          "en": "Legendary"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          29,
+          2,
+          12
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            6,
+            0
+          ],
+          "5": [
+            11,
+            8
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": false,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "children": [
+        {
+          "name": "Xiaomi Buds 5 Pro M2437E1"
+        }
+      ]
+    },
+    {
+      "id": "xiaomi:redmi8pro",
+      "name": "Redmi Buds 8 Pro",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          29,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            8,
+            0,
+            6
+          ],
+          "5": [
+            11,
+            8
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": true,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi8lite",
+      "name": "Redmi Buds 8 Lite",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 7,
+          "zh": "音量增强",
+          "en": "Volume boost"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          2,
+          12
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            8,
+            0,
+            6
+          ]
+        },
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi8",
+      "name": "Redmi Buds 8",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 7,
+          "zh": "音量增强",
+          "en": "Volume boost"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          2,
+          12
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            8,
+            0,
+            6
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": false,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi8active",
+      "name": "Redmi Buds 8 Active",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 7,
+          "zh": "音量增强",
+          "en": "Volume boost"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          7,
+          55,
+          4,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            0,
+            8
+          ]
+        },
+        "xiaomiWearDetection": false,
+        "gameMode": true,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi6pro",
+      "name": "Redmi Buds 6 Pro",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          29,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            0,
+            6
+          ],
+          "5": [
+            11,
+            8
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": true,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": [
+          0,
+          1,
+          2
+        ]
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi6lite",
+      "name": "Redmi Buds 6 Lite",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            0,
+            6
+          ]
+        },
+        "xiaomiWearDetection": false,
+        "gameMode": true,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": false,
+        "singleBattery": false,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi6play",
+      "name": "Redmi Buds 6 Play",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        },
+        {
+          "id": 7,
+          "zh": "音量增强",
+          "en": "Volume boost"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          7,
+          47,
+          2,
+          12
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            1,
+            4,
+            5,
+            2,
+            3
+          ],
+          "1": [
+            1,
+            4,
+            5,
+            2,
+            3,
+            8
+          ],
+          "2": [
+            3,
+            2,
+            1,
+            4,
+            5,
+            8
+          ],
+          "3": [
+            0,
+            8
+          ]
+        },
+        "xiaomiWearDetection": false,
+        "gameMode": true,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi5pro",
+      "name": "Redmi Buds 5 Pro",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          55,
+          4,
+          29,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "2": [
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "3": [
+            0,
+            6
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": true,
+        "customEqualizer": true,
+        "customEqMax": 1,
+        "customEqFrequency": [
+          62,
+          125,
+          250,
+          500,
+          1000,
+          2000,
+          4000,
+          8000,
+          12000,
+          16000
+        ],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": [
+          0,
+          1
+        ]
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi5",
+      "name": "Redmi Buds 5",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [
+        {
+          "mode": "off",
+          "bytes": [
+            0
+          ]
+        },
+        {
+          "mode": "anc",
+          "bytes": [
+            1
+          ]
+        },
+        {
+          "mode": "transparency",
+          "bytes": [
+            2
+          ]
+        }
+      ],
+      "presets": [
+        {
+          "id": 0,
+          "zh": "默认",
+          "en": "Default"
+        },
+        {
+          "id": 6,
+          "zh": "高音",
+          "en": "Treble"
+        },
+        {
+          "id": 5,
+          "zh": "低音",
+          "en": "Bass"
+        },
+        {
+          "id": 1,
+          "zh": "人声",
+          "en": "Voice"
+        }
+      ],
+      "function": {
+        "xiaomiConfigIDs": [
+          11,
+          7,
+          4,
+          2,
+          12,
+          47
+        ],
+        "xiaomiGestureActions": {
+          "4": [
+            8,
+            2,
+            3,
+            4,
+            5,
+            1
+          ],
+          "1": [
+            1,
+            2,
+            3
+          ],
+          "2": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "3": [
+            0,
+            6
+          ]
+        },
+        "xiaomiWearDetection": true,
+        "gameMode": true,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": true,
+        "singleBattery": false,
+        "multiDevicesConnect": true,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:clip",
+      "name": "Xiaomi 耳夹式耳机",
+      "brand": "Xiaomi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": false,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": [
+        {
+          "name": "Xiaomi Clip-on Earbuds"
+        },
+        {
+          "name": "M2529E1"
+        },
+        {
+          "name": "Xiaomi 耳夹式耳机 M2529E1"
+        }
+      ]
+    },
+    {
+      "id": "xiaomi:redmi6",
+      "name": "Redmi Buds 6",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": true,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi6active",
+      "name": "Redmi Buds 6 Active",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": true,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi4pro",
+      "name": "Redmi Buds 4 Pro",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": true,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:redmi3",
+      "name": "Redmi Buds 3",
+      "brand": "Redmi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": true,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": []
+    },
+    {
+      "id": "xiaomi:basicS",
+      "name": "Mi True Wireless Earbuds Basic S",
+      "brand": "Xiaomi",
+      "protocolFamily": "xiaomi",
+      "noise": [],
+      "presets": [],
+      "function": {
+        "xiaomiConfigIDs": [],
+        "xiaomiGestureActions": {},
+        "xiaomiWearDetection": false,
+        "gameMode": false,
+        "customEqualizer": false,
+        "customEqMax": 1,
+        "customEqFrequency": [],
+        "findDevice": false,
+        "singleBattery": true,
+        "multiDevicesConnect": false,
+        "spatialTypes": []
+      },
+      "children": [
+        {
+          "name": "Mi True Wireless EBs Basic S"
+        },
+        {
+          "name": "Mi TW Earphones Basic S"
+        },
+        {
+          "name": "TWSEJ05LS"
+        }
+      ]
+    }
+  ]
+}

@@ -26,8 +26,8 @@ private func nothingRX(_ command: UInt16, _ payload: [UInt8], sequence: UInt8 = 
 
 @Test func nothingExactProfilesNeverMatchOtherGenerationsOrSuffixes() {
     let ids = ["nothing:ear-a", "nothing:headphone-1", "nothing:cmf-buds-2", "nothing:cmf-buds-pro-2"]
-    #expect(NothingProfile.allCases.map(\.modelID) == ids)
-    #expect(NothingProfile.allCases.map(\.modelCode) == ["B162", "B170", "B179", "B172"])
+    #expect(NothingProfile.allCases.prefix(4).map(\.modelID) == ids)
+    #expect(NothingProfile.allCases.prefix(4).map(\.modelCode) == ["B162", "B170", "B179", "B172"])
     for profile in NothingProfile.allCases {
         #expect(profile.service == "AEAC4A03-DFF5-498F-843A-34487CF133EB")
         #expect(profile.serviceUUID == NothingProfile.service)
@@ -35,11 +35,11 @@ private func nothingRX(_ command: UInt16, _ payload: [UInt8], sequence: UInt8 = 
         for alias in profile.aliases {
             #expect(NothingProfile.named(alias) == profile)
             #expect(NothingProfile.matching(name: " \(alias.uppercased())\n") == profile)
-            #expect(NothingProfile.named(alias + " Pro") == nil)
+            #expect(NothingProfile.named(alias + " Clone") == nil)
         }
     }
-    for unknown in ["Nothing", "Ear", "B162", "Ear (1)", "Nothing Ear (2024)", "Nothing Ear (a) 2",
-                    "Nothing Headphone (1) Pro", "CMF Buds 2a", "CMF Buds 2 Plus", "CMF Buds Pro",
+    for unknown in ["Nothing", "Ear", "B162", "Nothing Ear (a) 2",
+                    "Nothing Headphone (1) Pro", "CMF Buds 2a", "CMF Buds 2 Plus",
                     "my CMF Buds Pro 2", "CMF Buds Pro 2 (1234)", "CMF-Buds-2"] {
         #expect(NothingProfile.named(unknown) == nil)
     }
@@ -50,6 +50,9 @@ private func nothingRX(_ command: UInt16, _ payload: [UInt8], sequence: UInt8 = 
         #expect(profile.batteryRead == NothingRequest(command: 0xC007, responseCommand: 0x4007))
         #expect(profile.firmwareRead == NothingRequest(command: 0xC042, responseCommand: 0x4042))
         #expect(profile.noiseRead.command == 0xC01E && profile.noiseRead.responseCommand == 0x401E)
+        if !profile.supportsNoise {
+            #expect(profile.noiseWrite(.transparency) == nil); continue
+        }
         let write = try #require(profile.noiseWrite(.transparency))
         #expect(write.command == 0xF00F && write.payload == [1, 7, 0] && write.responseCommand == nil)
         #expect(!write.matches(NothingFrame(command: 0x700F, sequence: 9, payload: [0]), sequence: 9))

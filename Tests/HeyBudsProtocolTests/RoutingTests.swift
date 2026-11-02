@@ -20,7 +20,7 @@ import HeyBudsProtocol
 
 @Test func expansionUsesOnlyModelSpecificControlRoutes() throws {
     let catalog=try ModelCatalog()
-    #expect(catalog.models.count == 228)
+    #expect(catalog.models.count == 283)
     #expect(EarbudFamily.oppo.transportKinds(for:"OPPO Enco X4") == ["RFCOMM","BLE"])
     #expect(EarbudFamily.bose.transportKinds(for:"Bose QuietComfort Ultra Earbuds (2nd Gen)") == ["BLE"])
     #expect(EarbudFamily.bose.transportKinds(for:"Bose QuietComfort 45") == ["RFCOMM"])
@@ -31,7 +31,7 @@ import HeyBudsProtocol
         #expect(EarbudFamily.sony.serviceUUID(for:name) == SonyProtocol.serviceV2)
     }
     let added=catalog.models.filter { [.samsung,.google,.bose,.nothing].contains($0.family) }
-    #expect(added.count == 12)
+    #expect(added.count == 31)
     for model in added {
         #expect(catalog.validOverride(model.id,family:model.family) == nil)
         for name in [model.name]+model.aliases {
@@ -41,7 +41,7 @@ import HeyBudsProtocol
             if model.family == .samsung { #expect(SamsungProfile.named(name)?.modelID == model.id) }
         }
     }
-    for name in ["Galaxy Buds2 FE","Pixel Buds A-Series","Bose QuietComfort Ultra Earbuds","Nothing Ear (2)","CMF Buds 2 Plus"] {
+    for name in ["Galaxy Buds2 FE","Pixel Buds A-Series","Bose QuietComfort Ultra Earbuds","CMF Buds 2 Plus"] {
         #expect(catalog.model(productID:nil,name:name) == nil)
         #expect(catalog.family(name:name) == nil)
     }

@@ -146,20 +146,22 @@ private struct SonyInbound {
     }
     private func readNoise() async throws -> SonyFrame {
         guard let profile else { throw ProtocolError.unsupported }
-        return try await read([0x66,profile.noiseSubtype],reply:0x67)
+        return try await read([0x66,noiseSubtype],reply:0x67)
     }
+    private var noiseSubtype:UInt8 { profile?.supportsNoiseAdaptation == true && functions.contains(0x6D) ? 0x19 : profile?.noiseSubtype ?? 0x17 }
+    private var noiseFunctionAvailable:Bool { guard let profile else { return false }; return functions.contains(profile.noiseFunction) || (profile.supportsNoiseAdaptation && functions.contains(0x6D)) }
     func canQuery(_ command:UInt16) -> Bool {
         guard active,let profile,verifiedGeneration == profile.generation,model != nil else { return false }
         switch command {
         case Command.battery:return !batterySubtypes.isEmpty
-        case Command.noise:return functions.contains(profile.noiseFunction)
+        case Command.noise:return noiseFunctionAvailable
         case Command.firmware:return profile != .whXB910n
         default:return false
         }
     }
     func canWrite(_ command:UInt16,reading:UInt16?=nil) -> Bool {
         ready && command == Command.setNoise && (reading == nil || reading == Command.noise)
-            && canQuery(Command.noise) && noiseAvailable && state.sonyNoise?.settled == true
+            && profile?.allowsNoiseWrite(firmware:state.firmware) == true && canQuery(Command.noise) && noiseAvailable && state.sonyNoise?.settled == true
     }
     func setEQ(_ id:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
@@ -183,7 +185,9 @@ private struct SonyInbound {
         try Task.checkCancellation()
         guard generation == token else { throw ProtocolError.disconnected }
         guard canWrite(Command.setNoise),let profile else { throw ProtocolError.unsupported }
-        let payload=try SonyProtocol.noiseWrite(mode:mode,level:level,voice:voice,profile:profile)
+        let before=try await readNoise()
+        guard let current=SonyProtocol.noise(before.payload,profile:profile),current.settled else { throw ProtocolError.invalidPayload }
+        let payload=try SonyProtocol.noiseWrite(mode:mode,level:level,voice:voice,profile:profile,current:current)
         _ = try await request(payload,reply:nil)
         guard ready,generation == token else { throw ProtocolError.disconnected }
         for attempt in 0..<6 {
@@ -191,7 +195,7 @@ private struct SonyInbound {
             try Task.checkCancellation()
             guard ready,generation == token else { throw ProtocolError.disconnected }
             guard let fresh=SonyProtocol.noise(reply.payload,profile:profile) else { throw ProtocolError.invalidPayload }
-            if SonyProtocol.noiseReadbackMatches(fresh,mode:mode,level:level,voice:voice,profile:profile) { return .confirmed }
+            if SonyProtocol.noiseReadbackMatches(fresh,mode:mode,level:level,voice:voice,profile:profile),fresh.adaptation == current.adaptation { return .confirmed }
             // Only a complete fresh GET confirms a write, never notifications/cache/ACK.
             if attempt < 5 { try await Task.sleep(for:.milliseconds(200)) }
             guard ready,generation == token else { throw ProtocolError.disconnected }
@@ -232,11 +236,11 @@ private struct SonyInbound {
         guard let profile,verifiedGeneration == profile.generation,model != nil else { return }
         if payload.count >= 2,batterySubtypes.contains(payload[1]),
            SonyProtocol.applyBattery(payload,generation:profile.generation,to:&state) { onChange?() }
-        if functions.contains(profile.noiseFunction),let noise=SonyProtocol.noise(payload,profile:profile) {
+        if noiseFunctionAvailable,let noise=SonyProtocol.noise(payload,profile:profile) {
             state.sonyNoise=noise;state.noise=noise.mode;state.observedQueries.insert(Command.noise)
             lastNoise=Date();onChange?()
         }
-        if payload.count == 3,payload[0] == 0x65,payload[1] == profile.noiseSubtype,payload[2] <= 1 {
+        if payload.count == 3,payload[0] == 0x65,payload[1] == noiseSubtype,payload[2] <= 1 {
             noiseAvailable=payload[2] == 0;onChange?()
         }
     }

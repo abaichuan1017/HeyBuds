@@ -2,6 +2,8 @@
 
 HeyBuds preserves upstream license notices and uses public file fingerprints in [upstream-sources.json](upstream-sources.json). The SHA-256 values identify the local reference snapshot used for the port; no unverified Git commit or release tag is invented.
 
+The 16 explicit Xiaomi / Redmi profiles use the fixed references and license boundaries recorded in [Xiaomi provenance](licenses/Xiaomi.md). BudsLink's GPL v3 authentication algorithm/tables are ported with attribution and a bundled license. The separate frame/session implementation uses model-specific protocol facts; AGPL sources are not copied. Model-level support and hardware limits are listed in [Xiaomi support](XIAOMI_SUPPORT.md).
+
 | Reference | License | Use |
 | --- | --- | --- |
 | [OppoPodsManager](https://github.com/Zhaoyi-ya/OppoPodsManager) | GPL-3.0-or-later | Brand protocols, capability/model tables, state and command semantics |
@@ -39,3 +41,9 @@ The following references inform the Samsung, Google, Bose, Nothing/CMF and addit
 The Sony implementation uses the MIT-licensed SonyHeadphonesClient reference and independently expressed protocol facts; it does not incorporate AGPL code from sonyctl. openNothing is likewise used only to cross-check protocol facts because the reference snapshot does not contain the standalone license linked by that project. Other references retain their applicable notices; a repository-wide license label does not replace notices on individual or derived files.
 
 These references establish protocol and model evidence. Their hardware observations do not establish HeyBuds/macOS compatibility: all 16 models added in 0.5.0 have initial support and still require verification on the corresponding devices.
+
+## Desktop-controller model expansion
+
+The following 39-model expansion uses fixed Windows/Linux reference revisions: OpenSCQ30 for Soundcore, momentum4-control for Sennheiser, Omaphones/JBL Control/770NC Windows Controller for JBL, OpenFreebuds for HONOR, SonyHeadphonesClient/Sound Connect for Sony and QC35, GalaxyBudsClient for Samsung, and ear-web/Omaphones for Nothing/CMF. The [model-level scope and source table](DESKTOP_EXPANSION.md) links the pinned versions; additional read-file fingerprints are in `upstream-sources.json`.
+
+OpenSCQ30 preset curves and encoding are adapted under GPL-3.0-or-later. MIT notices and other GPL texts are retained in `Licenses/`. ear-web's conflicting AGPL/GPL declarations remain unresolved: only interoperability facts were used, with no implementation or assets copied. Source inspection is explicitly acknowledged in [Nothing provenance](licenses/Nothing.md). No upstream hardware observation is promoted to a HeyBuds/macOS result.

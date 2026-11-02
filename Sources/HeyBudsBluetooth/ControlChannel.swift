@@ -129,4 +129,21 @@ import HeyBudsProtocol
     func canWrite(_ command:UInt16,reading:UInt16?) -> Bool
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome
     func setEQ(_ id:UInt8) async throws -> WriteOutcome
+    var availableFeatures:[FeatureDefinition] { get }
+    func setFeature(_ feature:FeatureDefinition,enabled:Bool) async throws -> WriteOutcome
+    func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome
+    func gestureActions(_ entry:GestureEntry) -> [UInt8]
+    func setGesture(_ entry:GestureEntry,action:UInt8) async throws -> WriteOutcome
+    func canOperateHost(_ operation:FeatureCodec.HostOperation,host:RemoteHost?) -> Bool
+    func hostAction(_ operation:FeatureCodec.HostOperation,host:RemoteHost?) async throws -> WriteOutcome
+}
+
+extension AdditionalSession {
+    var availableFeatures:[FeatureDefinition] { [] }
+    func setFeature(_ feature:FeatureDefinition,enabled:Bool) async throws -> WriteOutcome { throw ProtocolError.unsupported }
+    func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome { throw ProtocolError.unsupported }
+    func gestureActions(_ entry:GestureEntry) -> [UInt8] { [] }
+    func setGesture(_ entry:GestureEntry,action:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
+    func canOperateHost(_ operation:FeatureCodec.HostOperation,host:RemoteHost?) -> Bool { false }
+    func hostAction(_ operation:FeatureCodec.HostOperation,host:RemoteHost?) async throws -> WriteOutcome { throw ProtocolError.unsupported }
 }

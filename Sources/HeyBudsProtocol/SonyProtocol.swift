@@ -31,15 +31,23 @@ public enum SonyProfile:String,CaseIterable,Sendable {
     case wf1000xm5="sony:wf-1000xm5",wh1000xm5="sony:wh-1000xm5",whCH720n="sony:wh-ch720n"
     case wh1000xm3="sony:wh-1000xm3",wh1000xm4="sony:wh-1000xm4"
     case whXB910n="sony:wh-xb910n",ultWear="sony:ult-wear"
+    case wh1000xm6="sony:wh-1000xm6",wf1000xm6="sony:wf-1000xm6",wfC700n="sony:wf-c700n"
+    case wf1000xm4="sony:wf-1000xm4",linkBudsS="sony:linkbuds-s"
     public var modelID:String { rawValue }
     public var generation:SonyGeneration { self == .wh1000xm3 || self == .wh1000xm4 ? .v1 : .v2 }
     public var serviceUUID:String { generation == .v1 ? SonyProtocol.serviceV1 : SonyProtocol.serviceV2 }
     public var supportsAmbientLevel:Bool { self != .ultWear }
     public var supportsFocusOnVoice:Bool { true }
     public var ambientLevelRange:ClosedRange<Int>? { supportsAmbientLevel ? 1...20 : nil }
-    public var singleBattery:Bool { self != .wf1000xm5 }
+    public var singleBattery:Bool { ![.wf1000xm4,.wf1000xm5,.wf1000xm6,.wfC700n,.linkBudsS].contains(self) }
     public var noiseSubtype:UInt8 { generation == .v1 ? 2 : self == .whXB910n ? 0x16 : 0x17 }
     public var noiseFunction:UInt8 { generation == .v1 ? 0x62 : self == .whXB910n ? 0x6A : 0x6B }
+    public var supportsNoiseAdaptation:Bool { self == .wh1000xm6 || self == .wf1000xm6 }
+    public func allowsNoiseWrite(firmware:String?) -> Bool {
+        // 2.0.5 echoes the requested state without applying it. Only the fixed
+        // firmware is verified; unknown firmware remains read-only.
+        self != .wfC700n || firmware == "2.0.7"
+    }
     /// XB910N documents model identity on Table 2; feature commands stay on Table 1.
     public var identityFrameType:UInt8 { self == .whXB910n ? 0x0E : 0x0C }
 }
@@ -50,6 +58,7 @@ public struct SonyNoiseState:Equatable,Sendable {
     public let ambientLevel:Int?
     public let focusOnVoice:Bool
     public let settled:Bool
+    public var adaptation:[UInt8] = []
 }
 
 public enum SonyProtocol {
@@ -62,6 +71,11 @@ public enum SonyProtocol {
         var name=name.trimmingCharacters(in:.whitespacesAndNewlines).uppercased()
         if name.hasPrefix("SONY ") { name=String(name.dropFirst(5)) }
         switch name {
+        case "WH-1000XM6":return .wh1000xm6
+        case "WF-1000XM6":return .wf1000xm6
+        case "WF-C700N":return .wfC700n
+        case "WF-1000XM4":return .wf1000xm4
+        case "LINKBUDS S","WF-LS900N":return .linkBudsS
         case "WF-1000XM5":return .wf1000xm5
         case "WH-1000XM5":return .wh1000xm5
         case "WH-CH720N":return .whCH720n
@@ -133,7 +147,12 @@ public enum SonyProtocol {
         state.observedQueries.insert(Command.battery);return true
     }
     public static func noise(_ p:[UInt8],profile:SonyProfile = .wh1000xm5) -> SonyNoiseState? {
-        guard p.count >= 2,[UInt8(0x67),0x69].contains(p[0]),p[1] == profile.noiseSubtype else { return nil }
+        guard p.count >= 2,[UInt8(0x67),0x69].contains(p[0]),(p[1] == profile.noiseSubtype || (profile.supportsNoiseAdaptation && p[1] == 0x19)) else { return nil }
+        if p[1] == 0x19 {
+            guard p.count == 9,p[2] <= 1,p[3] <= 1,p[4] <= 1,p[5] <= 1,(1...20).contains(p[6]),p[7] <= 1,p[8] <= 2 else { return nil }
+            return SonyNoiseState(mode:p[3] == 0 ? .off : p[4] == 0 ? .anc : .transparency,
+                ambientLevel:Int(p[6]),focusOnVoice:p[5] == 1,settled:p[2] == 1,adaptation:Array(p[7...8]))
+        }
         if profile.generation == .v1 {
             // V1: effect, NC setting type/value, ASM setting type/id/value.
             guard p.count == 8,[UInt8(0),1,0x10,0x11].contains(p[2]),[UInt8(1),2].contains(p[3]),
@@ -152,13 +171,17 @@ public enum SonyProtocol {
         return SonyNoiseState(mode:p[3] == 0 ? .off : p[4] == 0 ? .anc : .transparency,
                               ambientLevel:Int(p[6]),focusOnVoice:p[5] == 1,settled:p[2] == 1)
     }
-    public static func noiseWrite(mode:NoiseMode,level:Int?,voice:Bool,profile:SonyProfile = .wh1000xm5) throws -> [UInt8] {
+    public static func noiseWrite(mode:NoiseMode,level:Int?,voice:Bool,profile:SonyProfile = .wh1000xm5,current:SonyNoiseState?=nil) throws -> [UInt8] {
         guard [.off,.anc,.transparency].contains(mode) else { throw ProtocolError.unsupported }
         if profile == .ultWear {
             guard level == nil else { throw ProtocolError.unsupported }
             return [0x68,0x17,1,mode == .off ? 0 : 1,mode == .transparency ? 1 : 0,2,mode == .transparency && voice ? 1 : 0,0]
         }
         guard let level,(1...20).contains(level) else { throw ProtocolError.unsupported }
+        if profile.supportsNoiseAdaptation,let current,!current.adaptation.isEmpty {
+            guard current.adaptation.count == 2,current.adaptation[0] <= 1,current.adaptation[1] <= 2 else { throw ProtocolError.invalidPayload }
+            return [0x68,0x19,1,mode == .off ? 0 : 1,mode == .transparency ? 1 : 0,voice ? 1 : 0,UInt8(level)] + current.adaptation
+        }
         if profile.generation == .v1 {
             return [0x68,2,mode == .off ? 0 : 1,1,mode == .anc ? 2 : 0,1,voice ? 1 : 0,mode == .transparency ? UInt8(level) : 0]
         }

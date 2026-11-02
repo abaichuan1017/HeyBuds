@@ -24,14 +24,9 @@ import HeyBudsBluetooth
             } else if args.first == "read" {
                 let devices=await Discovery.paired(catalog:catalog)
                 guard let device=devices.first(where:{$0.audioConnected}) else { throw TransportFailure.unavailable("No paired connected earbuds. Use HeyBuds.app to grant Bluetooth permission.") }
-                let transport:EarbudTransport
                 guard let family=device.family ?? catalog.family(name:device.name) else { throw ProtocolError.unsupported }
-                if args.contains("--ble") || family.transportKinds(for:device.name) == ["BLE"] {
-                    guard family.transportKinds(for:device.name).contains("BLE") else { throw ProtocolError.unsupported }
-                    transport=BLETransport(name:device.name,profile:family == .bose ? .bose : .oppo)
-                } else if let address=device.classicAddress,let service=device.controlServiceUUID ?? family.serviceUUID(for:device.name) {
-                    transport=try RFCOMMTransport(address:address,serviceUUID:service)
-                } else { throw ProtocolError.unsupported }
+                let kind=family == .xiaomi && XiaomiProfile.named(device.name)?.systemBatteryOnly == true ? "System" : args.contains("--ble") || family.transportKinds(for:device.name) == ["BLE"] ? "BLE" : "RFCOMM"
+                let transport=try ControlTransportFactory.make(device:device,family:family,kind:kind)
                 let session=DeviceSession(transport:transport,name:device.name,catalog:catalog,family:family)
                 defer { session.close() }
                 try await session.open(); await session.initialize()

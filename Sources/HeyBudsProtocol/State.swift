@@ -29,7 +29,8 @@ public struct RemoteHost: Equatable, Identifiable, Sendable {
     public var type: UInt8
     public var connection: UInt8
     public var flags: UInt8
-    public var id: String { Data(address).base64EncodedString() }
+    public var protocolIndex:UInt8? = nil
+    public var id: String { protocolIndex.map { "peer-index:\($0)" } ?? Data(address).base64EncodedString() }
     public var connected: Bool { connection == 2 }
     public var current: Bool { flags & 1 != 0 }
     public var audioActive: Bool { flags & 4 != 0 }

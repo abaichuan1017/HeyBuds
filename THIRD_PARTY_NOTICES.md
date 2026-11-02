@@ -2,6 +2,12 @@
 
 HeyBuds is distributed under **GPL-3.0-or-later**. See LICENSE.
 
+## Explicit Xiaomi / Redmi profiles
+
+- [BudsLink](https://github.com/maniacx/BudsLink) by maniacx and contributors supplies the GPL v3 authentication algorithm/tables ported in `XiaomiMMAAuth.swift`; full license in `Licenses/BudsLink-GPL-3.0.txt`. That file is GPL-3.0-only; HeyBuds-authored code remains GPL-3.0-or-later and the combined distribution is under GPL version 3.
+- [MiBudsClient](https://github.com/CesurPolat/MiBudsClient) and [redmi-buds-bar](https://github.com/robin-liquidium/redmi-buds-bar) supply GPL v3 catalog and documented protocol facts and public test vectors. [buds-ctl](https://github.com/LeoLee0812/buds-ctl) and [MiPods](https://github.com/JackWPP/MiPods) are AGPL v3 references for interoperability facts only; no AGPL implementation or assets are included.
+- Fixed versions, usage boundaries and further model evidence are listed in [Xiaomi provenance](docs/licenses/Xiaomi.md) and `docs/upstream-sources.json`. Upstream hardware reports do not establish HeyBuds/macOS hardware acceptance.
+
 ## OppoPodsManager
 
 - Source: https://github.com/Zhaoyi-ya/OppoPodsManager
@@ -81,5 +87,25 @@ New brand names identify interoperability only. No affiliation with Samsung, Goo
 - [swift-nothing-ear](https://github.com/bestK1ngArthur/swift-nothing-ear) and [nothing-x-macos](https://github.com/nikiomori/nothing-x-macos) (GPL-3.0) provide model-specific protocol and capability references. Thanks to bestK1ngArthur, nikiomori, Daniel and their contributors. The full GPL license is included as `LICENSE`.
 - [EarA-linux](https://github.com/oneydef/EarA-linux) (GPL-3.0-or-later) and [omarchy-headphones](https://github.com/ncr/omarchy-headphones) (MIT, Jacek Becela) supply additional protocol facts. [openNothing](https://github.com/Evergaster/openNothing) is used only for protocol facts because the reference snapshot lacks its declared standalone license. No AGPL or ambiguously licensed implementation is copied.
 - Source files, checksum policies, identity gates and remaining field ambiguities are documented in [Nothing provenance](docs/licenses/Nothing.md). No manufacturer artwork, serial numbers or personal captures are included.
+- [ear-web](https://github.com/radiance-project/ear-web) supplies product-ID and command facts for seven additional profiles. The pinned LICENSE says AGPL while its README says GPL; that conflict remains unresolved. No implementation, application structure, CRC table or assets were copied from it. This is source-informed interoperability work, not a claimed clean-room process or license clearance.
 
 [MagicBuds](https://github.com/artistro08/MagicBuds) (MIT, Copyright 2026 Devin Green) supplied Pixel Buds Pro 2 protocol cross-checks. Its full notice is retained in `Licenses/Google-MIT.txt`.
+
+## Soundcore
+
+- [OpenSCQ30](https://github.com/Oppzippy/OpenSCQ30), GPL-3.0-or-later. Copyright belongs to Kyle Scheuing and the OpenSCQ30 contributors. Full license: `Licenses/OpenSCQ30.txt`.
+- Model-specific state layouts, preset curves and EQ/DRC encoding are adapted into Swift for seven profiles. The independent session uses bounded parsing and fresh readback. No manufacturer assets, serial numbers or device captures are bundled.
+
+## Sennheiser MOMENTUM
+
+- [momentum4-control](https://github.com/Ariazonaa/momentum4-control), MIT, Copyright (c) 2026 Ariazonaa. Full notice: `Licenses/Momentum-MIT.txt`.
+- GAIA command facts, identity/firmware gates, EQ configuration and peer-list semantics inform the newly written Swift backend. M5 firmware restrictions are preserved; disconnect/unpair commands are excluded.
+
+## JBL, QC35 and HONOR references
+
+- [omarchy-headphones](https://github.com/ncr/omarchy-headphones), [jbl-control](https://github.com/AhmadRun/jbl-control) and [JBL-Tune-770NC-Windows-Controller](https://github.com/Xeo23/JBL-Tune-770NC-Windows-Controller) provide model-specific JBL, QC35 and CMF protocol references. Their complete MIT notices are retained in `Licenses/JBL-MIT.txt`.
+- [Sound Connect](https://github.com/aecca/sound-connect), MIT, Copyright (c) 2026 aecca and contributors, provides Sony and QC35 II cross-checks. Full notice: `Licenses/Sound-Connect-MIT.txt`.
+- [OpenFreebuds](https://github.com/melianmiko/OpenFreebuds), GPL-3.0, identifies HONOR Earbuds 2 / 2 SE / 2 Lite as sharing the FreeBuds 4i protocol. The runtime reuses HeyBuds' existing Huawei implementation; the upstream GPL text is in `Licenses/OpenFreebuds-GPL-3.0.txt`.
+- GalaxyBudsClient additionally informs the original Galaxy Buds framing and expanded model profiles. SonyHeadphonesClient additionally informs XM6, WF-C700N, WF-1000XM4 and LinkBuds S. Their existing attribution remains applicable.
+
+Pinned revisions, feature limits and provenance are in [Desktop expansion](docs/DESKTOP_EXPANSION.md). Brand names identify interoperability; no affiliation with Soundcore, Sennheiser, JBL or HONOR is implied.

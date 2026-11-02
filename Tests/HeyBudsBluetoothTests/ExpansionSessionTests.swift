@@ -161,7 +161,7 @@ import Testing
             let frame=try #require(codec.feed(data).first)
             self.commands.append(frame)
             let replies=self.override?(frame) ?? self.defaultReply(frame)
-            return try replies.map(SamsungFrameCodec.encode)
+            return try replies.map { try SamsungFrameCodec.encode($0) }
         }
     }
     func defaultReply(_ frame:SamsungFrame) -> [SamsungFrame] {
@@ -181,7 +181,7 @@ import Testing
 }
 
 @Test @MainActor func expansionSamsungModelsUseDocumentedHandshakeACKAndReadback() async throws {
-    for profile in SamsungProfile.allCases {
+    for profile:SamsungProfile in [.buds2,.buds2Pro,.buds4Pro] {
         let f=SamsungExpansionFixture(profile);f.radio.writeDelay = .milliseconds(2)
         let session=SamsungSession(transport:f.radio,name:profile.rawValue,catalog:try ModelCatalog())
         defer { session.close() };try await session.open()

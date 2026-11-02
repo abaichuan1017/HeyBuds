@@ -4,7 +4,7 @@
 
 This list follows the current app catalog. Duplicate display names are merged and special editions are retained. Features vary by model and firmware; inclusion does not mean hardware verification.
 
-[返回首页 / Back to README](../README.md) · [兼容性说明 / Compatibility](COMPATIBILITY.md)
+[返回首页 / Back to README](../README.md) · [兼容性说明 / Compatibility](COMPATIBILITY.md) · [新增 39 款的功能与限制 / Expansion scope](DESKTOP_EXPANSION.md)
 
 ## OPPO
 
@@ -234,7 +234,24 @@ This list follows the current app catalog. Duplicate display names are merged an
 
 ## Xiaomi / Redmi
 
-采用系列识别，当前目录未提供逐型号清单。 / Family detection; no per-model catalog is available.
+- Xiaomi Buds 5 Pro（蓝牙版 / Bluetooth edition）
+- Redmi Buds 8 Pro
+- Redmi Buds 8 Lite
+- Redmi Buds 8
+- Redmi Buds 8 Active
+- Redmi Buds 6 Pro
+- Redmi Buds 6 Lite
+- Redmi Buds 6 Play
+- Redmi Buds 5 Pro
+- Redmi Buds 5
+- Xiaomi 耳夹式耳机 / Xiaomi Clip-on Earbuds（M2529E1，只读 / read-only）
+- Redmi Buds 6（系统电量 / system battery）
+- Redmi Buds 6 Active（系统电量 / system battery）
+- Redmi Buds 4 Pro（系统电量 / system battery）
+- Redmi Buds 3（系统电量 / system battery）
+- Mi True Wireless Earbuds Basic S（TWSEJ05LS，系统电量 / system battery）
+
+逐型号功能见[Xiaomi / Redmi 支持](XIAOMI_SUPPORT.md)。旧系列识别保留；未列型号不继承以上控制能力。 / See the model-specific scope. Legacy family detection remains separate.
 
 ## 其他音频设备 / Other audio devices
 
@@ -243,6 +260,12 @@ This list follows the current app catalog. Duplicate display names are merged an
 - realme Brick Speaker
 
 ## Sony
+
+- WH-1000XM6
+- WF-1000XM6
+- WF-C700N
+- WF-1000XM4
+- LinkBuds S (WF-LS900N)
 
 - WF-1000XM5
 - WH-1000XM5
@@ -256,6 +279,17 @@ This list follows the current app catalog. Duplicate display names are merged an
 
 ## Samsung
 
+- Galaxy Buds
+- Galaxy Buds+
+- Galaxy Buds Live
+- Galaxy Buds Pro
+- Galaxy Buds FE
+- Galaxy Buds3
+- Galaxy Buds3 Pro
+- Galaxy Buds3 FE
+- Galaxy Buds Core
+- Galaxy Buds4
+
 - Galaxy Buds2
 - Galaxy Buds2 Pro
 - Galaxy Buds4 Pro
@@ -267,11 +301,22 @@ This list follows the current app catalog. Duplicate display names are merged an
 
 ## Bose
 
+- Bose QuietComfort 35
+- Bose QuietComfort 35 II
+
 - Bose QuietComfort 45
 - Bose QuietComfort Ultra Headphones (2nd Gen)
 - Bose QuietComfort Ultra Earbuds (2nd Gen)
 
 ## Nothing / CMF
+
+- Nothing Ear (1)
+- Nothing Ear (2)
+- Nothing Ear (2024)
+- Nothing Ear (stick)
+- CMF Buds
+- CMF Buds Pro
+- CMF Headphone Pro
 
 - Nothing Ear (a)
 - Nothing Headphone (1)
@@ -279,3 +324,30 @@ This list follows the current app catalog. Duplicate display names are merged an
 - CMF Buds Pro 2
 
 新增型号的功能范围和未确认项见[兼容性说明](COMPATIBILITY.md)。All new models require separate hardware acceptance.
+
+## Soundcore
+
+- Soundcore Life Q30
+- Soundcore Life Q35
+- Soundcore Space Q45
+- Soundcore Space One Pro
+- Soundcore Liberty 4 NC
+- Soundcore Liberty 4 Pro
+- Soundcore Liberty 5
+
+## Sennheiser
+
+- MOMENTUM 4
+- MOMENTUM 5
+
+## JBL
+
+- JBL TUNE230NC TWS
+- JBL Wave Buds 2
+- JBL Tune 770NC
+
+## HONOR
+
+- HONOR Earbuds 2
+- HONOR Earbuds 2 SE
+- HONOR Earbuds 2 Lite

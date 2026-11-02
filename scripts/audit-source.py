@@ -57,14 +57,16 @@ def audit():
     overlay = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/EncoDeckModels.json').read_text())
     sony = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/SonyModels.json').read_text())['models']
     expansion = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/ExpansionModels.json').read_text())['models']
+    desktop = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/DesktopModels.json').read_text())['models']
+    xiaomi = json.loads((ROOT / 'Sources/HeyBudsProtocol/Resources/XiaomiModels.json').read_text())['models']
     spec = importlib.util.spec_from_file_location('encodeck_import', ROOT / 'scripts/import-encodeck-x4.py')
     importer = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(importer)
     if overlay != importer.catalog():
         errors.append('EncoDeck X4 catalog differs from its frozen source')
-    if len(original) + len(models) + len(overlay['whiteList']) != 209 or len(sony) != 3 or len(expansion) != 16:
+    if len(original) + len(models) + len(overlay['whiteList']) != 209 or len(sony) != 3 or len(expansion) != 16 or len(desktop) != 39 or len(xiaomi) != 16:
         errors.append('Catalog record count changed without updating release scope')
-    if len({m['id'] for m in original + models + overlay['whiteList'] + sony + expansion}) != 228:
+    if len({m['id'] for m in original + models + overlay['whiteList'] + sony + expansion + desktop + xiaomi}) != 283:
         errors.append('Duplicate catalog identifiers')
     upstream = json.loads((ROOT / 'docs/upstream-sources.json').read_text())
     resources = upstream['runtimeResourceSHA256'] | upstream['referenceResourceSHA256']
@@ -78,4 +80,4 @@ def audit():
 
 if __name__ == '__main__':
     files, version = audit()
-    print(f'Public source audit passed: HeyBuds {version}, {len(files)} files, 228 catalog records.')
+    print(f'Public source audit passed: HeyBuds {version}, {len(files)} files, 283 catalog records.')

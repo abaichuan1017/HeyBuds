@@ -8,7 +8,10 @@ import HeyBudsProtocol
     public var onEvent: ((TransportEvent) -> Void)?
     public let label="RFCOMM"
     private let device: IOBluetoothDevice
-    public let serviceUUID:String
+    public let serviceUUID:String?
+    private var soundcoreService=false
+    private var alternativeServices:[String]=[]
+    private var modelChannel:BluetoothRFCOMMChannelID?
     private var channel: IOBluetoothRFCOMMChannel?
     private var opening: CheckedContinuation<Void,Error>?
     private var writing: TransportWrite?
@@ -20,11 +23,47 @@ import HeyBudsProtocol
     private var channelOpening=false
     private var isClosing=false
 
-    public init(address: String,serviceUUID:String="0000079A-D102-11E1-9B23-00025B00A5A5") throws {
+    public init(address: String,serviceUUID:String?="0000079A-D102-11E1-9B23-00025B00A5A5") throws {
         guard let device=IOBluetoothDevice(addressString:address) else { throw ProtocolError.disconnected }
         self.device=device
         self.serviceUUID=serviceUUID
         super.init()
+    }
+    public convenience init(address:String,soundcore:SoundcoreProfile) throws {
+        try self.init(address:address,serviceUUID:SoundcoreProfile.service)
+        soundcoreService=true
+    }
+    public convenience init(address:String,xiaomi:XiaomiProfile) throws {
+        guard !xiaomi.systemBatteryOnly,let service=xiaomi.services.first else { throw ProtocolError.unsupported }
+        try self.init(address:address,serviceUUID:service)
+        alternativeServices=Array(xiaomi.services.dropFirst())
+    }
+    public convenience init(address:String,bose:BoseProfile) throws {
+        try self.init(address:address,serviceUUID:BoseProfile.bmapServiceUUID)
+        alternativeServices=bose.rfcommServiceUUIDs.filter { $0 != BoseProfile.bmapServiceUUID }
+    }
+    public convenience init(address:String,jbl:JBLProfile) throws {
+        guard jbl == .tune770 else { throw ProtocolError.unsupported }
+        try self.init(address:address,serviceUUID:nil)
+        // Exact Tune 770NC channel documented by Xeo23/anc.py; not discovery,
+        // a channel scan or fallback. JBLSession requires a valid RACE GET first.
+        modelChannel=21
+    }
+    private func controlRecord() -> IOBluetoothSDPServiceRecord? {
+        if soundcoreService {
+            let candidates=(device.services as? [IOBluetoothSDPServiceRecord] ?? []).filter { record in
+                (record.getAttributeDataElement(1)?.getArrayValue() as? [IOBluetoothSDPDataElement] ?? []).contains { element in
+                    guard let data=element.getUUIDValue()?.getWithLength(16) else { return false }
+                    return SoundcoreProfile.isVendorService(Data(referencing:data))
+                }
+            }
+            if candidates.count == 1 { return candidates[0] }
+            if candidates.count > 1 { return nil }
+        }
+        for service in (serviceUUID.map { [$0] } ?? [])+alternativeServices {
+            if let record=device.getServiceRecord(for:Discovery.uuid(service)) { return record }
+        }
+        return nil
     }
     public func open() async throws {
         guard opening == nil, channel == nil else { throw TransportFailure.unavailable("Control channel already opening") }
@@ -37,6 +76,7 @@ import HeyBudsProtocol
                     guard !Task.isCancelled else { return }
                     self?.failOpen(TransportFailure.unavailable("Control service connection timed out"))
                 }
+                if let modelChannel { openChannel(modelChannel); return }
                 // Cached records alone are insufficient on some firmware. Refresh using the SDK callback.
                 let result=device.performSDPQuery(self)
                 if result != kIOReturnSuccess { failOpen(TransportFailure.unavailable("SDP query failed (\(result))")) }
@@ -47,7 +87,7 @@ import HeyBudsProtocol
                         for _ in 0..<40 {
                             try? await Task.sleep(for:.milliseconds(50))
                             guard !Task.isCancelled, let self, self.opening != nil, !self.isClosing else { return }
-                            if let record=self.device.getServiceRecord(for:Discovery.uuid(self.serviceUUID)) { self.openRecord(record); return }
+                            if let record=self.controlRecord() { self.openRecord(record); return }
                         }
                     }
                 }
@@ -57,7 +97,7 @@ import HeyBudsProtocol
     @objc public func sdpQueryComplete(_ device: IOBluetoothDevice!, status: IOReturn) {
         guard opening != nil, !isClosing, !channelOpening else { return }
         guard status == kIOReturnSuccess,
-              let record=self.device.getServiceRecord(for:Discovery.uuid(serviceUUID)) else {
+              let record=self.controlRecord() else {
             failOpen(TransportFailure.unavailable("Earbud control service not found")); return
         }
         openRecord(record)
@@ -66,12 +106,16 @@ import HeyBudsProtocol
     @objc public func connectionComplete(_ device:IOBluetoothDevice!,status:IOReturn) { }
     private func openRecord(_ record:IOBluetoothSDPServiceRecord) {
         guard !channelOpening, opening != nil, !isClosing else { return }
-        channelOpening=true
         var id: BluetoothRFCOMMChannelID=0
         guard record.getRFCOMMChannelID(&id) == kIOReturnSuccess, id > 0 else {
             failOpen(TransportFailure.unavailable("Control service has no RFCOMM channel")); return
         }
-        // Channel is accepted only from this specific service record, never guessed.
+        // Channel is accepted only from the selected service record.
+        openChannel(id)
+    }
+    private func openChannel(_ id:BluetoothRFCOMMChannelID) {
+        guard !channelOpening,opening != nil,!isClosing else { return }
+        channelOpening=true
         var opened: IOBluetoothRFCOMMChannel?
         let result=self.device.openRFCOMMChannelAsync(&opened,withChannelID:id,delegate:self)
         if result == kIOReturnSuccess { channel=opened }

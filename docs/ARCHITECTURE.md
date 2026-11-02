@@ -4,7 +4,7 @@
 
 `IOBluetooth / CoreBluetooth → EarbudTransport → DeviceSession 品牌路由 → 各品牌编解码与状态归一化 → AppModel → SwiftUI`
 
-OPPO 同时保留 RFCOMM 与 BLE GATT；vivo/华为/小米/漫步者由 `BrandSession` 处理自己的线制，不调用 OPO 握手或封包。RFCOMM 只通过各品牌服务 UUID 的 SDP 记录获取通道；华为标准 SPP 只用于已识别型号，不凭通用串口服务判定品牌。OPPO BLE 只发现已知控制服务和写入／通知特征，先检索系统已连接外设，再定向扫描。传输间按序切换，同一会话不会同时打开两条链路。
+OPPO 同时保留 RFCOMM 与 BLE GATT；vivo/华为/小米旧系列/漫步者由 `BrandSession` 处理自己的线制，明确列出的小米型号使用独立 `XiaomiSession` 或只读 `XiaomiBatterySession`，均不调用 OPO 握手或封包。RFCOMM 按各品牌服务 UUID 的 SDP 记录获取通道；Tune 770NC 单独使用该型号上游明确给出的通道 21，不扫描候选通道。标准 SPP 只用于已识别的指定型号，不凭通用串口服务判定品牌。OPPO BLE 只发现已知控制服务和写入／通知特征，先检索系统已连接外设，再定向扫描。传输间按序切换，同一会话不会同时打开两条链路。
 
 ## 生命周期与写入
 
@@ -38,10 +38,26 @@ OPPO 同时保留 RFCOMM 与 BLE GATT；vivo/华为/小米/漫步者由 `BrandSe
 
 发行包仅包含应用、型号/EQ 紧凑 JSON、无损压缩图标和许可。原始 vivo 表保留在 `docs/reference/`；诊断预览与硬件演练入口仅编入 debug 构建。蓝牙协议握手等待、请求超时和设备响应确认保持协议要求。
 
-Sony uses an independent MDR V2 session over its dedicated RFCOMM service. The session verifies Table 1, device-reported identity and advertised functions before querying or controlling the three supported profiles. Requests wait for both transport completion and a matching ACK/response; reply and notification ACKs share a serialized writer. Timeouts and cancellations retire the connection to prevent late one-bit sequence traffic from satisfying later requests. Noise writes require fresh, settled readback. Sony battery subtypes distinguish single, left/right and case readings, including threshold-bearing variants. Other brands retain their existing transports and session paths.
+Sony uses an independent MDR V1/V2 session over model-specific RFCOMM services. The session verifies the protocol table, device-reported identity and advertised functions before querying or controlling a profile. Requests wait for both transport completion and a matching ACK/response; reply and notification ACKs share a serialized writer. Timeouts and cancellations retire the connection to prevent late one-bit sequence traffic from satisfying later requests. Noise writes preserve freshly read parameters and require settled readback. Sony battery subtypes distinguish single, left/right and case readings, including threshold-bearing variants.
 
 ## 0.5 新品牌后端
 
 `SamsungSession`、`GoogleSession`、`BoseSession`、`NothingSession` 各自选择消息、解析字段和验证回读，共享 `ControlChannel` 的请求/发送生命周期。没有请求编号的协议超时后关闭会话；Google 的只读路由探测允许按唯一调用编号丢弃迟到回复。BLE BMAP 分包保留 ATT 通知边界，OPPO BLE 的原封包保持不变。
 
-`ExpansionModels.json` 独立保存本轮 16 款，既有 212 条目录保持原字节。Sony 由明确 V1/V2 型号配置选择服务、握手、功能键与消息布局；两代同编号命令不能互用。新品牌不接受手动型号覆盖，不将 OPPO 能力键直接用作线命令。
+`ExpansionModels.json` 独立保存 0.5.0 新增的 16 款，既有 212 条目录保持原字节。Sony 由明确 V1/V2 型号配置选择服务、握手、功能键与消息布局；两代同编号命令不能互用。新品牌不接受手动型号覆盖，不将 OPPO 能力键直接用作线命令。
+
+## Windows / Linux 项目型号扩展
+
+`DesktopModels.json` 另存 39 款，原有资源不改写。`ControlTransportFactory` 供应用和诊断入口共同选择型号的传输；Soundcore 优先匹配厂商 SDP UUID 掩码，QC35 兼容 BMAP/SPP，JBL 两款耳塞使用确定的 BLE 特征，770NC 使用独立 RACE 通道。
+
+`SoundcoreSession`、`SennheiserSession`、`JBLSession` 各自编解码和回读。Soundcore 按产品布局保留 HearID/空间状态及 EQ 所需附加字段；Sennheiser 以设备回复的 EQ 频点和范围编辑，设备列表用协议索引而非伪造地址。两者自定义 EQ 在界面使用独立槽位 254，避免与预设 0 混淆。可用开关、EQ 和多设备操作经 `DeviceSession` 转发到品牌后端。
+
+Nothing 新增七款由 `NothingVerifiedTransport` 先读取标准 Fast Pair 产品 ID，不发送 Fast Pair 控制命令；核对后关闭该链路再打开 Nothing 专用控制服务。序列号配置回复只作可选唤醒，不作为未经确认的 SKU 映射。原有四款身份与 CRC 规则保持独立。
+
+Samsung 初代使用 FE/EE 帧和独立服务；新旧状态按型号解析。Bose QC35 独立使用旧版降噪寄存器。固件和功能边界见[型号扩展说明](DESKTOP_EXPANSION.md)。
+
+## Xiaomi / Redmi 精确型号
+
+`XiaomiModels.json` 独立增加 16 条，其他运行时目录保持原字节。`XiaomiFrameCodec` 按请求/响应分别处理序列与状态字节，严格检查长度、帧尾和完整 TLV；`XiaomiCommandAuth` 必须完成双方 50/51 交换。型号规定 C0/C4、认证、BLE 或 SDP 服务和允许的配置 ID，失败不回退成未认证控制。
+
+`XiaomiSession` 在设备身份核对后只读取本型号允许的字段，写操作串行并以新回读确认，超时的探测序列不会复用。手势保留另一耳及未知记录，自定义 EQ 尊重设备范围和选中状态。`XiaomiBatterySession` 只读取有界的系统蓝牙报告，精确匹配当前已连接设备，不发送 MMA 命令。总电量动态使用现有单电池显示；无系统值保持未知。详细范围见[Xiaomi 支持](XIAOMI_SUPPORT.md)。

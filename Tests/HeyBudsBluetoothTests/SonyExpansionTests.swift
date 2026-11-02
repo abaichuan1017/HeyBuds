@@ -33,6 +33,11 @@ import HeyBudsProtocol
         case .wf1000xm5:name="WF-1000XM5"
         case .wh1000xm5:name="WH-1000XM5"
         case .whCH720n:name="WH-CH720N"
+        case .wh1000xm6:name="WH-1000XM6"
+        case .wf1000xm6:name="WF-1000XM6"
+        case .wfC700n:name="WF-C700N"
+        case .wf1000xm4:name="WF-1000XM4"
+        case .linkBudsS:name="LinkBuds S"
         }
         handshake=v1 ? [1,0,0,1] : [1,0,3,0,0x30,0x18,0,0]
         if v1 { functions=[0x11,0x62];noise=[0x67,2,1,1,2,1,0,0] }
@@ -91,7 +96,7 @@ import HeyBudsProtocol
 }
 
 @Test @MainActor func sonyExpansionAllProfilesHandshakeBatteryAndConfirmedControls() async throws {
-    for profile in SonyProfile.allCases {
+    for profile:SonyProfile in [.wh1000xm3,.wh1000xm4,.wf1000xm5,.wh1000xm5,.whCH720n,.whXB910n,.ultWear] {
         let radio=SonyExpansionRadio(profile)
         let s=SonySession(transport:radio,name:radio.name,catalog:try ModelCatalog(),serviceUUID:profile.serviceUUID)
         defer { s.close() }
@@ -213,13 +218,13 @@ import HeyBudsProtocol
             if frame.payload.first == 0x66 {
                 reads += 1
                 var bytes=radio.noise
-                if reads == 1 { bytes[2]=profile.generation == .v1 ? 0x10 : 0 }
+                if reads == 2 { bytes[2]=profile.generation == .v1 ? 0x10 : 0 }
                 return bytes
             }
             return radio.defaultReply(frame)
         }
         #expect(try await session.setNoise(.transparency) == .confirmed)
-        #expect(reads == 2 && radio.commands.filter { $0.payload.first == 0x68 }.count == 1)
+        #expect(reads == 3 && radio.commands.filter { $0.payload.first == 0x68 }.count == 1)
         radio.emit([0x65,profile.noiseSubtype,1]);#expect(!session.canWrite(Command.setNoise))
         radio.emit([0x65,profile.noiseSubtype,0]);#expect(session.canWrite(Command.setNoise))
     }
@@ -240,5 +245,36 @@ import HeyBudsProtocol
         receiver?(.closed("Previous generation"))
         receiver?(.data(try SonyFrameCodec.encode(SonyFrame(payload:profile.generation == .v1 ? [0x13,0,1,0] : [0x25,0,1,0]))))
         #expect(s.ready && radio.active && s.state.batteries[.left]?.percent == 81)
+    }
+}
+
+@Test @MainActor func desktopSonyNewProfilesAndC700NFirmwareGate() async throws {
+    for profile:SonyProfile in [.wh1000xm6,.wf1000xm6,.wfC700n,.wf1000xm4,.linkBudsS] {
+        let r=SonyExpansionRadio(profile)
+        let adaptation=profile == .wh1000xm6 || profile == .wf1000xm6
+        r.functions=(profile.singleBattery ? [0x28] : [0x29,0x2A])+[adaptation ? 0x6D : 0x6B]
+        if adaptation { r.noise=[0x67,0x19,1,1,0,0,20,1,2] }
+        let s=SonySession(transport:r,name:r.name,catalog:try ModelCatalog(),serviceUUID:profile.serviceUUID)
+        defer { s.close() };try await s.open();await s.refresh()
+        #expect(s.ready && !s.state.batteries.isEmpty)
+        if profile == .wfC700n {
+            let count=r.commands.count
+            await #expect(throws:ProtocolError.unsupported) { try await s.setNoise(.transparency) }
+            #expect(r.commands.count == count)
+        } else {
+            #expect(try await s.setNoise(.transparency) == .confirmed)
+            if adaptation { #expect(r.noise.suffix(2) == [1,2]) }
+        }
+    }
+    for fw in ["2.0.5","2.0.7"] {
+        let r=SonyExpansionRadio(.wfC700n);r.functions=[0x29,0x2A,0x6B]
+        r.responseOverride={ f in
+            if f.payload == [4,2] { let b=Array(fw.utf8);return [5,2,UInt8(b.count)]+b }
+            return r.defaultReply(f)
+        }
+        let s=SonySession(transport:r,name:r.name,catalog:try ModelCatalog())
+        defer { s.close() };try await s.open();await s.refresh()
+        #expect(s.canWrite(Command.setNoise) == (fw == "2.0.7"))
+        if fw == "2.0.7" { #expect(try await s.setNoise(.off) == .confirmed) }
     }
 }

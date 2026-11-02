@@ -33,16 +33,19 @@ Check battery levels, switch noise modes, adjust sound and manage connected devi
 | --- | --- |
 | OPPO / OnePlus / realme | Battery, noise control, EQ, spatial and gaming audio, connected devices |
 | vivo / iQOO | Battery, noise control, EQ, spatial and gaming audio, connected devices |
-| HUAWEI | Battery, noise control, EQ, custom EQ, connected devices |
-| Xiaomi / Redmi | Family detection and battery; low latency requires valid state readback |
+| HUAWEI / HONOR | Existing Huawei features; HONOR Earbuds 2 / 2 SE / 2 Lite use the FreeBuds 4i profile |
+| Xiaomi / Redmi | 16 explicit models: 10 with model-specific noise/EQ/gesture controls and 6 for read-only information/battery; see [scope](docs/XIAOMI_SUPPORT.md) |
 | EDIFIER | Battery and noise control for supported SPP families |
-| Samsung | Galaxy Buds2 / Buds2 Pro / Buds4 Pro: battery, noise control and preset EQ; touch lock on Buds2/2 Pro and ANC strength on Buds4 Pro |
+| Soundcore | Q30 / Q35 / Q45 / Space One Pro / Liberty 4 NC / 4 Pro / 5: battery, noise control, preset/custom EQ; dual-connect switch on selected models |
+| Sennheiser | MOMENTUM 4 / 5: battery, noise control, EQ, wear detection and peer list; M5 writes limited to firmware 6.21.5 |
+| JBL | TUNE230NC TWS / Wave Buds 2 / Tune 770NC: noise control; battery on Wave Buds 2 |
+| Samsung | 13 Galaxy Buds models: battery, model-specific noise modes and preset EQ; touch lock on Buds2/2 Pro and ANC strength on Buds4 Pro |
 | Google | Pixel Buds Pro / Pro 2: battery, noise control and five EQ presets |
-| Bose | QuietComfort 45 / Ultra Headphones (2nd Gen) / Ultra Earbuds (2nd Gen): battery, Quiet / Aware modes and readable cancellation levels |
-| Nothing / CMF | Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2: battery and noise control; preset EQ gated by model and valid readback |
-| Sony | Original three models plus WH-1000XM3 / XM4 / WH-XB910N / ULT WEAR: battery, noise control and focus on voice; no ambient-level control on ULT WEAR |
+| Bose | QC35 / QC35 II: battery and ANC on/off, no transparency; QC45 and second-generation Ultra profiles retain mode and cancellation-level controls |
+| Nothing / CMF | 11 models with battery and preset EQ; basic noise modes where supported, no noise control on Ear (stick) |
+| Sony | 12 models with battery and noise control; WF-C700N noise writes limited to firmware 2.0.7, no ambient-level control on ULT WEAR |
 
-New models have initial protocol support; HeyBuds/macOS hardware compatibility remains unverified.
+The [39-model expansion](docs/DESKTOP_EXPANSION.md) is joined by [16 explicit Xiaomi / Redmi profiles](docs/XIAOMI_SUPPORT.md), bringing the catalog to 283 entries. New models have initial protocol support; HeyBuds/macOS hardware compatibility remains unverified.
 
 Features depend on the model, firmware and device responses. See the [model list](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/SUPPORTED_DEVICES.md) and [compatibility notes](https://github.com/abaichuan1017/HeyBuds/blob/main/docs/COMPATIBILITY.md).
 

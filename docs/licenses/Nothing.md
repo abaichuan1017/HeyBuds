@@ -2,7 +2,7 @@
 
 `Sources/HeyBudsProtocol/NothingProtocol.swift` and its tests are newly written under HeyBuds' GPL-3.0-or-later license; the full license is in [LICENSE](../../LICENSE). This is an independent implementation after source inspection, **not a claimed clean-room process**. No upstream implementation text, assets, application structure, CRC tables, serial numbers, Bluetooth addresses, or private captures were copied. Public, non-identifying packet bytes are included as protocol test facts with attribution.
 
-The four supported candidates are Nothing Ear (a) (B162), Nothing Headphone (1) (B170), CMF Buds 2 (B179), and CMF Buds Pro 2 (B172). Names use an exact alias list; identity must independently resolve to the expected model code. This file records source evidence, not HeyBuds hardware compatibility.
+The original four profiles are Nothing Ear (a) (B162), Nothing Headphone (1) (B170), CMF Buds 2 (B179), and CMF Buds Pro 2 (B172). Seven additional profiles are described below. Names use an exact alias list; identity must independently resolve to the expected model code. This file records source evidence, not HeyBuds hardware compatibility.
 
 ## Transport and checksum boundaries
 
@@ -39,7 +39,15 @@ Thanks to bestK1ngArthur and SwiftNothingEar contributors; nikiomori, Daniel and
 
 The two requested Swift projects carry GPL v3 license files. EarA explicitly declares GPL-3.0-or-later. ncr/omarchy-headphones carries MIT (Copyright (c) 2026 Jacek Becela); only protocol packet facts were used from that project. No upstream source code is vendored here; existing HeyBuds GPL text remains available at the root.
 
-openNothing's README/pyproject declare MIT but the fixed snapshot lacks the linked independent LICENSE file. It was treated as **protocol facts only**, not as permission to copy implementation code. Its prose, test implementation and runtime code were not transplanted. The ear-web source is known to have an AGPL LICENSE / GPL README conflict in the research plan; **no ear-web code was read for this implementation or copied**. A permissive or GPL wrapper does not establish relicensing of AGPL or ambiguous upstream code. Numeric protocol facts and newly written control flow are not represented here as a license clearance for those projects.
+openNothing's README/pyproject declare MIT but the fixed snapshot lacks the linked independent LICENSE file. It was treated as **protocol facts only**, not as permission to copy implementation code. Its prose, test implementation and runtime code were not transplanted. The original four-profile implementation did not consult ear-web code; the subsequent seven-profile expansion did inspect selected ear-web files for protocol facts. Its pinned LICENSE says AGPL while its README says GPL, and that conflict remains unresolved. No ear-web implementation, CRC table, application structure or assets were copied. A permissive or GPL wrapper does not establish relicensing of AGPL or ambiguous upstream code. Numeric protocol facts and newly written control flow are not represented here as a license clearance for those projects.
+
+## Seven additional profiles
+
+Ear (1) B181, Ear (2) B155, Ear (2024) B171, Ear (stick) B157, CMF Buds B168, CMF Buds Pro B163 and CMF Headphone Pro B175 use an explicit product-ID check before the same dedicated RFCOMM control service. `NothingModelIDCodec` implements the [Google Fast Pair message stream](https://developers.google.com/nearby/fast-pair/specifications/extensions/messagestream): a four-byte header with big-endian payload length and three-byte product ID in group 3/event 1. `NothingVerifiedTransport` receives these events without sending any Fast Pair messages, verifies a known model ID, closes that connection and only then opens the Nothing control transport. Unknown product variants fail closed. The new routes do not rely on disputed serial/SKU prefixes.
+
+Product-ID mappings and command facts were inspected in [ear-web at d076e137](https://github.com/radiance-project/ear-web/tree/d076e1371572fbf0a14b441f9b3cafbf9a237e04); CMF Headphone Pro packet facts were cross-checked against Omaphones. Exact consulted-file hashes are in [upstream-sources.json](../upstream-sources.json). No raw capture, identifying data or image is included.
+
+All seven new profiles conservatively require header-plus-payload CRC and control 0160. This is source-level coverage, not seven complete hardware capture validations; there is no alternate checksum fallback. Headphone Pro uses a single battery and accepts its structured ANC state. CMF Buds and Headphone Pro use the C050/F01D preset family; the other five use C01F/F010. Ear (stick) exposes no ANC query or write. Ear (2), Ear (2024) and Ear (stick) require fresh Advanced EQ-off readings before/after preset changes. C006 is an optional read-only wake request and its returned configuration is discarded. Optional firmware replies do not establish a universal firmware minimum. All seven require HeyBuds/macOS hardware acceptance.
 
 ## Fixed source fingerprints
 

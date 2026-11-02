@@ -105,19 +105,32 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var features:[FeatureDefinition] { _ = revision; return session?.availableFeatures ?? model?.features ?? [] }
     var supportsSpatialAudio:Bool { _ = revision; return session?.supportsSpatialAudio == true }
     var connectionFamily:EarbudFamily? { candidate.flatMap { $0.family ?? catalog.family(name:$0.name) } }
-    var overrideModels:[DeviceModel] { catalog.models.filter { $0.family == connectionFamily }.sorted { $0.name < $1.name } }
+    var modelOverrideAllowed:Bool? {
+        guard let family=connectionFamily else { return nil }
+        if family == .xiaomi,let name=candidate?.name,XiaomiProfile.named(name) != nil { return false }
+        return family.allowsModelOverride
+    }
+    var overrideModels:[DeviceModel] {
+        if connectionFamily == .xiaomi {
+            guard modelOverrideAllowed == true else { return [] }
+            return catalog.models.filter { catalog.validOverride($0.id,family:.xiaomi) != nil }.sorted { $0.name < $1.name }
+        }
+        return catalog.models.filter { $0.family == connectionFamily }.sorted { $0.name < $1.name }
+    }
     private var storedOverrideID:String? {
         _ = revision
         return selectedID.flatMap { defaults.string(forKey:"model.\($0)") }
     }
     var overrideWarning:String? {
+        if connectionFamily == .xiaomi,modelOverrideAllowed == false { return nil }
         guard let stored=storedOverrideID,catalog.validOverride(stored,family:connectionFamily) == nil else { return nil }
         return L("已忽略与当前协议不匹配的旧型号设置，请重新选择。","The saved model does not match this device’s protocol and was ignored. Choose a compatible model.")
     }
     var overrideID:String? {
-        get { catalog.validOverride(storedOverrideID,family:connectionFamily) }
+        get { modelOverrideAllowed == false ? nil : catalog.validOverride(storedOverrideID,family:connectionFamily) }
         set {
             guard let selectedID else { return }
+            guard connectionFamily != .xiaomi || modelOverrideAllowed != false || newValue == nil else { return }
             guard newValue == nil || catalog.validOverride(newValue,family:connectionFamily) != nil else {
                 error=L("请选择同一协议家族的型号。","Choose a model from the same protocol family.");return
             }

@@ -34,14 +34,21 @@ public enum NothingCRCRegion: Sendable { case headerAndPayload, payload }
 /// Only these exact, independently selected RFCOMM profiles are supported.
 /// Name matching selects a candidate; identityRead must still agree before use.
 public struct NothingProfile: Equatable, Sendable, CaseIterable {
-    private enum Model: CaseIterable, Sendable { case earA, headphone1, cmfBuds2, cmfBudsPro2 }
+    private enum Model: CaseIterable, Sendable { case earA, headphone1, cmfBuds2, cmfBudsPro2, ear1, ear2, ear2024, earStick, cmfBuds, cmfBudsPro, cmfHeadphonePro }
     private let model: Model
     private init(_ model: Model) { self.model = model }
     public static let earA = Self(.earA)
     public static let headphone1 = Self(.headphone1)
     public static let cmfBuds2 = Self(.cmfBuds2)
     public static let cmfBudsPro2 = Self(.cmfBudsPro2)
-    public static let allCases: [Self] = [.earA, .headphone1, .cmfBuds2, .cmfBudsPro2]
+    public static let ear1 = Self(.ear1)
+public static let ear2 = Self(.ear2)
+public static let ear2024 = Self(.ear2024)
+public static let earStick = Self(.earStick)
+public static let cmfBuds = Self(.cmfBuds)
+public static let cmfBudsPro = Self(.cmfBudsPro)
+public static let cmfHeadphonePro = Self(.cmfHeadphonePro)
+    public static let allCases: [Self] = Model.allCases.map(Self.init)
 
     public static let service = "AEAC4A03-DFF5-498F-843A-34487CF133EB"
     public var service: String { Self.service }
@@ -50,9 +57,31 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
     // No BLE route or characteristic discovery fallback is implemented.
     public var writeUUID: String? { nil }
     public var notifyUUID: String? { nil }
-    public var singleBattery: Bool { model == .headphone1 }
+    public var singleBattery: Bool { model == .headphone1 || model == .cmfHeadphonePro }
+    public var supportsNoise: Bool { model != .earStick }
+    /// New profiles verify the read-only Fast Pair model ID before opening control.
+    public var fastPairIDs: [String] {
+        switch model {
+        case .ear1: return ["31D53D", "624011"]
+        case .ear2: return ["ACC520", "DEE8C0"]
+        case .ear2024: return ["FEB1C7", "A20444"]
+        case .earStick: return ["1016DD"]
+        case .cmfBuds: return ["D35E18", "ACCE54", "150A27"]
+        case .cmfBudsPro: return ["5F8F82", "2EB1CA", "ADD2C4"]
+        case .cmfHeadphonePro: return ["563DA5", "73C9EB", "1EFB39"]
+        default: return []
+        }
+    }
+    public static let identityService = "DF21FE2C-2515-4FDB-8886-F12C4D67927C"
     public var modelID: String {
         switch model {
+        case .ear1: return "nothing:ear-1"
+case .ear2: return "nothing:ear-2"
+case .ear2024: return "nothing:ear-2024"
+case .earStick: return "nothing:ear-stick"
+case .cmfBuds: return "nothing:cmf-buds"
+case .cmfBudsPro: return "nothing:cmf-buds-pro"
+case .cmfHeadphonePro: return "nothing:cmf-headphone-pro"
         case .earA: return "nothing:ear-a"
         case .headphone1: return "nothing:headphone-1"
         case .cmfBuds2: return "nothing:cmf-buds-2"
@@ -61,6 +90,13 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
     }
     public var modelCode: String {
         switch model {
+        case .ear1: return "B181"
+case .ear2: return "B155"
+case .ear2024: return "B171"
+case .earStick: return "B157"
+case .cmfBuds: return "B168"
+case .cmfBudsPro: return "B163"
+case .cmfHeadphonePro: return "B175"
         case .earA: return "B162"
         case .headphone1: return "B170"
         case .cmfBuds2: return "B179"
@@ -69,6 +105,13 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
     }
     public var aliases: [String] {
         switch model {
+        case .ear1: return ["Nothing Ear (1)", "Nothing Ear(1)", "Ear (1)"]
+case .ear2: return ["Nothing Ear (2)", "Nothing Ear(2)", "Ear (2)"]
+case .ear2024: return ["Nothing Ear", "Nothing Ear (2024)"]
+case .earStick: return ["Nothing Ear (stick)", "Nothing Ear(stick)", "Ear (stick)"]
+case .cmfBuds: return ["CMF Buds"]
+case .cmfBudsPro: return ["CMF Buds Pro"]
+case .cmfHeadphonePro: return ["CMF Headphone Pro"]
         case .earA: return ["Nothing Ear (a)", "Nothing Ear(a)", "Nothing Ear a", "Ear (a)"]
         case .headphone1: return ["Nothing Headphone (1)", "Nothing Headphone(1)", "Nothing Headphone 1", "Headphone (1)"]
         case .cmfBuds2: return ["CMF Buds 2", "CMF Buds2"]
@@ -101,9 +144,9 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
                      : NothingRequest(command: 0xC01F, responseCommand: 0x401F)
     }
     public var advancedEQRead: NothingRequest? {
-        model == .headphone1 ? NothingRequest(command: 0xC04C, responseCommand: 0x404C) : nil
+        [Model.headphone1, .ear2, .ear2024, .earStick].contains(model) ? NothingRequest(command: 0xC04C, responseCommand: 0x404C) : nil
     }
-    private var genrePresets: Bool { model == .cmfBuds2 || model == .cmfBudsPro2 }
+    private var genrePresets: Bool { [Model.cmfBuds2,.cmfBudsPro2,.cmfBuds,.cmfHeadphonePro].contains(model) }
     public var presetIDs: [UInt8] { genrePresets ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3] }
     public func presetLabel(_ id: UInt8) -> String? {
         let labels = genrePresets
@@ -112,6 +155,7 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
         return Int(id) < labels.count ? labels[Int(id)] : nil
     }
     public func noiseWrite(_ mode: NoiseMode) -> NothingRequest? {
+        guard supportsNoise else { return nil }
         let value: UInt8
         switch mode {
         case .anc: value = 1
@@ -166,6 +210,7 @@ public struct NothingProfile: Equatable, Sendable, CaseIterable {
     }
 
     public func parseNoise(_ payload: [UInt8]) -> NoiseMode? {
+        guard supportsNoise else { return nil }
         let value: UInt8
         if payload.count == 2, model != .cmfBudsPro2 {
             guard payload[0] == 0 else { return nil }

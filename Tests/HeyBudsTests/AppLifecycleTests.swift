@@ -159,3 +159,13 @@ import HeyBudsProtocol
     f.app.overrideID="huawei:FreeBudsPro3"
     #expect(f.app.overrideID == "06EC10" && f.app.error != nil)
 }
+
+@Test @MainActor func xiaomiExplicitModelsCannotBeSelectedAsOverridesForAnotherDevice() throws {
+    let f=try AppFixture();defer { f.cleanup() }
+    f.app.candidates=[DeviceCandidate(id:"fixture-a",name:"Redmi Buds 8 Pro",audioConnected:true,classicAddress:nil,family:.xiaomi)]
+    f.defaults.set("xiaomi:basicS",forKey:"model.fixture-a")
+    #expect(f.app.modelOverrideAllowed == false && f.app.overrideModels.isEmpty && f.app.overrideID == nil && f.app.overrideWarning == nil)
+    #expect(f.app.model?.id == "xiaomi:redmi8pro")
+    f.app.candidates=[DeviceCandidate(id:"fixture-a",name:"Redmi Buds legacy",audioConnected:true,classicAddress:nil,family:.xiaomi)]
+    #expect(f.app.modelOverrideAllowed == true && f.app.overrideModels.map(\.id) == ["xiaomi:family"])
+}

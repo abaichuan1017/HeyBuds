@@ -17,9 +17,10 @@ import HeyBudsProtocol
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=3) {
         profile=SamsungProfile.named(name)
         model=profile.flatMap { p in catalog.models.first { $0.id == p.modelID } }
-        var codec=SamsungFrameCodec()
+        let legacy=profile?.legacy == true
+        var codec=SamsungFrameCodec(legacy:legacy)
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{ codec.feed($0) },reset:{ codec.reset() },acknowledge:{ frame in
-            frame.command == 0x61 ? try? SamsungFrameCodec.encode(SamsungFrame(0x51,[0x61,0])) : nil
+            frame.command == 0x61 ? try? SamsungFrameCodec.encode(SamsungFrame(0x51,[0x61,0]),legacy:legacy) : nil
         })
         channel.onMessage={ [weak self] in self?.receive($0) }
         channel.onClose={ [weak self] reason in self?.close();self?.onClose?(reason) }
@@ -30,8 +31,8 @@ import HeyBudsProtocol
         do {
             try await channel.open()
             // Known host handshake only; no time/firmware/account/serial operations.
-            try await channel.send(SamsungFrameCodec.encode(SamsungFrame(0x51,[0])))
-            try await channel.send(SamsungFrameCodec.encode(SamsungFrame(0x88,[1,1,0,1])))
+            try await channel.send(SamsungFrameCodec.encode(SamsungFrame(0x51,[0]),legacy:profile?.legacy == true))
+            try await channel.send(SamsungFrameCodec.encode(SamsungFrame(0x88,[1,1,0,1]),legacy:profile?.legacy == true))
             _ = try await readStatus()
             try Task.checkCancellation();guard generation == token else { throw ProtocolError.disconnected }
             ready=true;onChange?()
@@ -50,7 +51,7 @@ import HeyBudsProtocol
     func refresh() async { guard ready,!Task.isCancelled else { return };_ = try? await readStatus() }
     private func readStatus() async throws -> DeviceState {
         let token=generation
-        let frame=try await channel.request(SamsungFrameCodec.encode(SamsungFrame(0x61)),matching:{$0.command == 0x61})
+        let frame=try await channel.request(SamsungFrameCodec.encode(SamsungFrame(0x61),legacy:profile?.legacy == true),matching:{$0.command == 0x61})
         guard generation == token else { throw ProtocolError.disconnected }
         guard let sample=profile?.status(frame.payload) else {
             state=DeviceState();onChange?();throw ProtocolError.invalidPayload
@@ -60,7 +61,7 @@ import HeyBudsProtocol
     private func receive(_ frame:SamsungFrame) {
         if frame.command == 0x61,let sample=profile?.status(frame.payload) {
             state=sample;onChange?()
-        } else if frame.command == 0x60,frame.payload.count >= 7 {
+        } else if profile?.legacy == false,frame.command == 0x60,frame.payload.count >= 7 {
             let p=frame.payload
             for (offset,slot):(Int,BatterySlot) in [(1,.left),(2,.right),(6,.enclosure)] {
                 SamsungProfile.battery(p[offset],slot:slot,charging:false,to:&state)
@@ -79,15 +80,15 @@ import HeyBudsProtocol
         return (reading == nil || reading == read) && state.observedQueries.contains(read)
     }
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
-        guard canWrite(Command.setNoise),let value=profile?.noiseByte(mode) else { throw ProtocolError.unsupported }
-        return try await write(0x78,payload:[value]) { $0.noise == mode }
+        guard canWrite(Command.setNoise),let frame=profile?.noiseFrame(mode) else { throw ProtocolError.unsupported }
+        return try await write(frame.command,payload:frame.payload) { $0.noise == mode }
     }
     func setEQ(_ id:UInt8) async throws -> WriteOutcome {
-        guard canWrite(Command.setEQ),id <= 5 else { throw ProtocolError.unsupported }
-        return try await write(0x86,payload:[id]) { $0.eq == id }
+        guard canWrite(Command.setEQ),let payload=profile?.eqPayload(id) else { throw ProtocolError.unsupported }
+        return try await write(0x86,payload:payload) { $0.eq == id }
     }
     func setTouchLocked(_ locked:Bool) async throws -> WriteOutcome {
-        guard ready,let profile,profile != .buds4Pro else { throw ProtocolError.unsupported }
+        guard ready,let profile,profile.hasTouchControl else { throw ProtocolError.unsupported }
         let fresh=try await readStatus()
         guard let current=fresh.samsungControls else { throw ProtocolError.invalidPayload }
         return try await write(0x90,payload:profile.touchLockPayload(locked,current:current)) { $0.samsungControls?.touchLocked == locked }
@@ -100,7 +101,7 @@ import HeyBudsProtocol
         let token=generation
         try await controls.acquire();defer { controls.release() }
         guard ready,generation == token else { throw ProtocolError.disconnected }
-        try await channel.send(SamsungFrameCodec.encode(SamsungFrame(command,payload)))
+        try await channel.send(SamsungFrameCodec.encode(SamsungFrame(command,payload),legacy:profile?.legacy == true))
         for attempt in 0..<6 {
             try Task.checkCancellation();guard ready,generation == token else { throw ProtocolError.disconnected }
             let fresh=try await readStatus()

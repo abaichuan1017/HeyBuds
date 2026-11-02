@@ -4,36 +4,38 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.5.0</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.5.0</link>
-      <sparkle:version>16</sparkle:version>
-      <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
+      <title>HeyBuds 0.6.0</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.0</link>
+      <sparkle:version>17</sparkle:version>
+      <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text"># HeyBuds 0.5.0
+      <description format="plain-text"># HeyBuds 0.6.0
 
-新增 16 款耳机的初步支持，保留原有型号与功能。所有新增型号的 HeyBuds/macOS 实机兼容性仍待验证；具体功能取决于型号、固件和设备响应。
+新增 55 款耳机的初步支持，保留现有界面与功能。
 
-Initial support for 16 additional models, retaining existing models and features. HeyBuds/macOS hardware compatibility for all new models remains unverified; available controls depend on the model, firmware and device responses.
+- **Xiaomi / Redmi：16 款明确型号。** 10 款按型号接入降噪、EQ、手势等控制，6 款仅基础信息／电量；系统未上报的电量保持未知。[逐型号功能](https://github.com/abaichuan1017/HeyBuds/blob/v0.6.0/docs/XIAOMI_SUPPORT.md)
+- **其他扩展：39 款。** 包含 Soundcore、MOMENTUM、JBL、HONOR，以及更多 Sony、Galaxy Buds、Bose QC35 和 Nothing/CMF 型号。[功能与限制](https://github.com/abaichuan1017/HeyBuds/blob/v0.6.0/docs/DESKTOP_EXPANSION.md)
 
-- **Samsung Galaxy Buds2 / Buds2 Pro / Buds4 Pro**：电量、降噪和预设 EQ；Buds2/2 Pro 触控锁，Buds4 Pro 降噪强度。 Battery, noise control and preset EQ; touch lock on Buds2/2 Pro and ANC strength on Buds4 Pro.
-- **Google Pixel Buds Pro / Pro 2**：电量、降噪和五组 EQ 预设。 Battery, noise control and five EQ presets.
-- **Bose QuietComfort 45 / QuietComfort Ultra Headphones (2nd Gen) / QuietComfort Ultra Earbuds (2nd Gen)**：电量、Quiet / Aware 模式及设备可确认的降噪级别。 Battery, Quiet / Aware modes and device-confirmed cancellation levels.
-- **Nothing Ear (a) / Headphone (1) / CMF Buds 2 / Buds Pro 2**：电量、降噪与通透；预设 EQ 按型号及设备响应开放。 Battery and noise control; preset EQ where supported by the model and device responses.
-- **Sony WH-1000XM3 / WH-1000XM4 / WH-XB910N / ULT WEAR**：电量、降噪、通透和语音聚焦；ULT WEAR 暂无通透强度调节。 Battery, noise control and Focus on Voice; ambient-level adjustment is unavailable on ULT WEAR.
+实际功能取决于型号、固件和设备响应；新增型号的 HeyBuds/macOS 实机兼容性仍待验证。
+
+Initial support for 55 additional models: 16 explicit Xiaomi / Redmi profiles and 39 models across Soundcore, Sennheiser, JBL, HONOR, Sony, Samsung, Bose and Nothing/CMF. Existing interface and features are retained. Features vary by model, firmware and valid device responses; hardware compatibility for the newly added models remains unverified.
+
+Apple Silicon · macOS 26+
 
 ### 致谢 / Thanks
 
-感谢以下项目分享对应型号的协议资料与实现参考。 Thanks to these projects for model-specific protocol documentation and implementation references:
-
-- **Samsung**：[Budsy](https://github.com/vedatkilic/budsy)、[GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient)。
-- **Google**：[PixelBudsMacOS](https://github.com/KashaMalaga/PixelBudsMacOS)、[pbpctrl](https://github.com/qzed/pbpctrl)。
-- **Bose**：[bosectl](https://github.com/aaronsb/bosectl)、[bozo](https://github.com/NerdySouth/bozo)、[bosectl-android](https://github.com/depau/bosectl-android)。
-- **Nothing / CMF**：[swift-nothing-ear](https://github.com/bestK1ngArthur/swift-nothing-ear)、[nothing-x-macos](https://github.com/nikiomori/nothing-x-macos)、[openNothing](https://github.com/Evergaster/openNothing)（协议事实参考 / protocol facts）。
-- **Sony**：[SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[sonyctl](https://github.com/DaanHessen/sonyctl)（协议事实参考 / protocol facts）、[sony-ult-ctl](https://github.com/Leonard013/sony-ult-ctl)。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.5.0/HeyBuds-arm64.dmg" length="2669632" type="application/octet-stream" sparkle:edSignature="CaNDzDtFl1+Xka7hHyPM5O9ftQzQV12DRoC7f+ge9JOXzYoT5wQi25E2F9Hf1UDTIexlz9QJ83SC8sQDAGZLBg=="></enclosure>
+- **Xiaomi / Redmi**：[BudsLink](https://github.com/maniacx/BudsLink)、[MiBudsClient](https://github.com/CesurPolat/MiBudsClient)、[buds-ctl](https://github.com/LeoLee0812/buds-ctl)、[redmi-buds-bar](https://github.com/robin-liquidium/redmi-buds-bar)、[MiPods](https://github.com/JackWPP/MiPods)。
+- **Soundcore**：[OpenSCQ30](https://github.com/Oppzippy/OpenSCQ30)。
+- **Sennheiser**：[momentum4-control](https://github.com/Ariazonaa/momentum4-control)。
+- **JBL**：[Omaphones](https://github.com/ncr/omarchy-headphones)、[JBL Control](https://github.com/AhmadRun/jbl-control)、[770NC Windows Controller](https://github.com/Xeo23/JBL-Tune-770NC-Windows-Controller)。
+- **HONOR**：[OpenFreebuds](https://github.com/melianmiko/OpenFreebuds)。
+- **Sony / Bose**：[SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[Sound Connect](https://github.com/aecca/sound-connect)、Omaphones。
+- **Samsung**：[GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient)。
+- **Nothing / CMF**：[ear-web](https://github.com/radiance-project/ear-web) 与 Omaphones（协议事实参考；未采用许可声明冲突的实现代码）。</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.0/HeyBuds-arm64.dmg" length="2903648" type="application/octet-stream" sparkle:edSignature="e8Ryyq5B+f3b1tYxndxh2dA8kd0hUHXTaoVqh1ANhZPj+9u81elLfNgEhcuqNynioZSOP9Lfc3CGC9IWl2eGBg=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 3C8aDIjaiGU07Sz+qQwWdMM9lkIDWS9iKhhYgjHaOPBPLOAW5ywaYjU7ERldDoCDNkTrNLafATcPYr3gNqi8DA==
-length: 3709
+edSignature: dzBfce4OImLjbWWEGjV4fTqiZ/U9K9JlJev/zcc86fPg0RyX101bmhX354KaaxrSPIMFI5gS4mgp/JHZLgEPDw==
+length: 3372
 -->

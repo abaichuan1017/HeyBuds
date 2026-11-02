@@ -3,7 +3,7 @@ import Testing
 @testable import HeyBudsProtocol
 
 @Test func sonyExpansionProfilesAreExactAndGenerationServicesStaySeparate() {
-    #expect(SonyProtocol.allProfiles.count == 7)
+    #expect(SonyProtocol.allProfiles.count == 12)
     for name in ["WH-1000XM3","Sony WH-1000XM4"] {
         let p=SonyProtocol.profile(name:name)
         #expect(p?.generation == .v1 && p?.serviceUUID == SonyProtocol.serviceV1)
@@ -14,7 +14,7 @@ import Testing
     #expect(SonyProtocol.serviceUUID(for:"ULT WEAR") == SonyProtocol.serviceV2)
     #expect(SonyProfile.ultWear.ambientLevelRange == nil)
     #expect(SonyProfile.ultWear.supportsFocusOnVoice)
-    for name in ["XM4","WF-1000XM4","WH-XB900N","WH-1000XM6","WH-1000XM3 clone","ULT"] {
+    for name in ["XM4","WH-XB900N","WH-1000XM3 clone","ULT"] {
         #expect(SonyProtocol.profile(name:name) == nil)
     }
 }

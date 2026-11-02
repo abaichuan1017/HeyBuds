@@ -130,7 +130,7 @@ import HeyBudsProtocol
     #expect(t.packets.count == before)
 }
 @Test @MainActor func xiaomiAuthenticationAndBatteryUseSeparateRcspFields() async throws {
-    let t=BrandRadio(.xiaomi),s=DeviceSession(transport:t,name:"Redmi Buds 6",catalog:try ModelCatalog())
+    let t=BrandRadio(.xiaomi),s=DeviceSession(transport:t,name:"Redmi Buds legacy",catalog:try ModelCatalog())
     defer { s.close() };try await s.open()
     #expect(s.ready && s.state.batteries[.left]?.percent == 50)
     let auth=try #require(t.commands.first(where:{$0.command == 0x51}))

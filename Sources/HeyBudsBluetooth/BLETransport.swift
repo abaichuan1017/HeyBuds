@@ -10,6 +10,8 @@ public struct BLEControlProfile:Sendable {
     public let notify:String
     public let bmapSegmentation:Bool
     public static let oppo=BLEControlProfile(service:"0000079A-D102-11E1-9B23-00025B00A5A5",write:"0100079A-D102-11E1-9B23-00025B00A5A5",notify:"0200079A-D102-11E1-9B23-00025B00A5A5",bmapSegmentation:false)
+    public static let jbl=BLEControlProfile(service:JBLProfile.service,write:JBLProfile.write,notify:JBLProfile.notify,bmapSegmentation:false)
+    public static let xiaomi=BLEControlProfile(service:XiaomiProfile.bleService,write:XiaomiProfile.bleWrite,notify:XiaomiProfile.bleNotify,bmapSegmentation:false)
     public static let bose=BLEControlProfile(service:"0000FEBE-0000-1000-8000-00805F9B34FB",write:"C65B8F2F-AEE2-4C89-B758-BC4892D6F2D8",notify:"C65B8F2F-AEE2-4C89-B758-BC4892D6F2D8",bmapSegmentation:true)
 }
 
@@ -45,7 +47,7 @@ public struct BLEControlProfile:Sendable {
         switch central.state {
         case .poweredOn:
             let connected=central.retrieveConnectedPeripherals(withServices:[CBUUID(string:profile.service)])
-                .filter { $0.name?.caseInsensitiveCompare(targetName) == .orderedSame }
+                .filter { matches($0.name) }
             if connected.count == 1 { attach(connected[0]) }
             else if connected.count > 1 { fail(TransportFailure.unavailable("Several BLE devices have the same name")) }
             else { central.scanForPeripherals(withServices:[CBUUID(string:profile.service)],options:[CBCentralManagerScanOptionAllowDuplicatesKey:false]) }
@@ -60,8 +62,14 @@ public struct BLEControlProfile:Sendable {
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String:Any], rssi RSSI: NSNumber) {
         guard !closing,central === self.central else { return }
         let name=peripheral.name ?? advertisementData[CBAdvertisementDataLocalNameKey] as? String
-        guard name?.caseInsensitiveCompare(targetName) == .orderedSame, self.peripheral == nil else { return }
+        guard matches(name), self.peripheral == nil else { return }
         attach(peripheral)
+    }
+    private func matches(_ name:String?) -> Bool {
+        guard let name else { return false }
+        if name.caseInsensitiveCompare(targetName) == .orderedSame { return true }
+        guard profile.service == JBLProfile.service,let target=JBLProfile.named(targetName),target.usesBLE else { return false }
+        return JBLProfile.named(name) == target
     }
     private func attach(_ device: CBPeripheral) {
         guard !closing, peripheral == nil else { return }

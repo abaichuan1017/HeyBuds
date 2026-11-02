@@ -57,13 +57,23 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         self.overrideID=catalog.validOverride(overrideID,family:selectedFamily)
         model=catalog.model(productID:nil,name:name,override:self.overrideID)
         if model?.family != selectedFamily { model=nil }
-        if let selectedFamily,[EarbudFamily.samsung,.google,.bose,.nothing].contains(selectedFamily) {
+        if selectedFamily == .xiaomi,let profile=XiaomiProfile.named(name) {
+            let backend:any AdditionalSession=profile.systemBatteryOnly
+                ? XiaomiBatterySession(transport:transport,name:name,catalog:catalog)
+                : XiaomiSession(transport:transport,name:name,catalog:catalog)
+            additionalSession=backend
+            backend.onChange={ [weak self] in self?.onChange?() }
+            backend.onClose={ [weak self] reason in self?.onClose?(reason) }
+        } else if let selectedFamily,[EarbudFamily.samsung,.google,.bose,.nothing,.soundcore,.sennheiser,.jbl].contains(selectedFamily) {
             let backend:any AdditionalSession
             switch selectedFamily {
             case .samsung:backend=SamsungSession(transport:transport,name:name,catalog:catalog)
             case .google:backend=GoogleSession(transport:transport,name:name,catalog:catalog)
             case .bose:backend=BoseSession(transport:transport,name:name,catalog:catalog)
             case .nothing:backend=NothingSession(transport:transport,name:name,catalog:catalog)
+            case .soundcore:backend=SoundcoreSession(transport:transport,name:name,catalog:catalog)
+            case .sennheiser:backend=SennheiserSession(transport:transport,name:name,catalog:catalog)
+            case .jbl:backend=JBLSession(transport:transport,name:name,catalog:catalog)
             default:preconditionFailure("Unreachable additional brand")
             }
             additionalSession=backend
@@ -135,6 +145,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         overrideID=id; model=selected; onChange?()
     }
     public var supportsSpatialAudio: Bool {
+        if let xiaomi=additionalSession as? XiaomiSession { return xiaomi.canWrite(Command.setSpatial) }
         if sonySession != nil || additionalSession != nil { return false }
         if let brandSession { return brandSession.supportsSpatialAudio }
         guard model?.spatialModes.isEmpty == false else { return false }
@@ -142,7 +153,8 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return state.spatial != nil
     }
     public var availableFeatures:[FeatureDefinition] {
-        if sonySession != nil || additionalSession != nil { return [] }
+        if let additionalSession { return additionalSession.availableFeatures }
+        if sonySession != nil { return [] }
         if let brandSession { return brandSession.availableFeatures }
         guard let model else { return [] }
         var features=model.features
@@ -378,6 +390,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return try await samsung.setANCLevel(level)
     }
     public func setSpatial(_ mode:UInt8) async throws -> WriteOutcome {
+        if let xiaomi=additionalSession as? XiaomiSession { return try await xiaomi.setSpatial(mode) }
         if let brandSession { return try await brandSession.setSpatial(mode) }
         guard model?.spatialModes.contains(mode) == true else { throw ProtocolError.unsupported }
         if mode > 0, model?.function["spatialHiResMutex"].enabled == true {
@@ -387,6 +400,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return try await write(Command.setSpatial,payload:[mode],read:Command.spatial) { $0.spatial == mode }
     }
     public func setFeature(_ feature:FeatureDefinition, enabled:Bool) async throws -> WriteOutcome {
+        if let additionalSession { return try await additionalSession.setFeature(feature,enabled:enabled) }
         if let brandSession { return try await brandSession.setFeature(feature,enabled:enabled) }
         guard canSetFeature(feature) else { throw ProtocolError.unsupported }
         if feature.key == "spatialSound", enabled, model?.gameBlocksSpatial == true, (state.gameSound ?? 0) > 0 { _ = try await setGameSound(0) }
@@ -425,6 +439,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         return try await write(Command.setBass,payload:[range.minimum,range.maximum,value],read:Command.bass) { $0.bass?.current == value }
     }
     public func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome {
+        if let additionalSession { return try await additionalSession.saveEQ(entry) }
         if let brandSession { return try await brandSession.saveEQ(entry) }
         guard let model, entry.frequencies == model.customEQFrequencies,
               entry.id != 0 || state.customEQ.count < model.customEQMax else { throw ProtocolError.unsupported }
@@ -440,6 +455,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func canOperateHost(_ operation:FeatureCodec.HostOperation, host:RemoteHost?=nil) -> Bool {
+        if let additionalSession { return additionalSession.canOperateHost(operation,host:host) }
         if let brandSession { return brandSession.canOperateHost(operation,host:host) }
         let featureType = operation == .priority || operation == .automatic ? "setPriorityDevice" : "connectDisconnectDevice"
         let read:UInt16 = (operation == .priority || operation == .automatic) ? Command.priority : Command.hosts
@@ -455,6 +471,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func operateHost(_ operation:FeatureCodec.HostOperation, host:RemoteHost?=nil) async throws -> WriteOutcome {
+        if let additionalSession { return try await additionalSession.hostAction(operation,host:host) }
         if let brandSession { return try await brandSession.operateHost(operation,host:host) }
         guard canOperateHost(operation,host:host) else { throw ProtocolError.unsupported }
         let p=try FeatureCodec.hostPayload(operation,address:host?.address ?? [])
@@ -488,11 +505,13 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         throw ProtocolError.readbackMismatch
     }
     public func find(_ enabled:Bool) async throws -> WriteOutcome {
+        if let xiaomi=additionalSession as? XiaomiSession { return try await xiaomi.find(enabled) }
         if let brandSession { return try await brandSession.find(enabled) }
         guard model?.function["findDevice"].enabled == true else { throw ProtocolError.unsupported }
         return try await write(Command.find,payload:[enabled ? 1 : 0],read:nil) { _ in false }
     }
     public func setGesture(_ entry:GestureEntry, action:UInt8) async throws -> WriteOutcome {
+        if let additionalSession { return try await additionalSession.setGesture(entry,action:action) }
         guard brandSession == nil else { throw ProtocolError.unsupported }
         let allowed=gestureActions(entry)
         guard entry.mode == 1, allowed.contains(action) else { throw ProtocolError.unsupported }
@@ -501,6 +520,7 @@ public enum WriteOutcome: String, Sendable { case confirmed, sent }
         }
     }
     public func gestureActions(_ entry:GestureEntry) -> [UInt8] {
+        if let additionalSession { return additionalSession.gestureActions(entry) }
         guard brandSession == nil else { return [] }
         guard let control=model?.function["control"].elements.first(where:{$0["action"].int == Int(entry.gesture)}),
               let mask=control["support"].int, mask > 0 else { return [] }

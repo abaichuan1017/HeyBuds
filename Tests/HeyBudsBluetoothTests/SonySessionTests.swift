@@ -212,11 +212,11 @@ import HeyBudsProtocol
     radio.handler={ frame in
         if frame.payload.first == 0x66 {
             reads += 1
-            if reads == 1 { return [0x67,0x17,0,1,0,0,20] }
+            if reads == 2 { return [0x67,0x17,0,1,0,0,20] }
         }
         return radio.defaultReply(frame.payload)
     }
     #expect(try await s.setNoise(.transparency) == .confirmed)
-    #expect(reads == 2 && radio.commandFrames.filter { $0.payload.first == 0x68 }.count == 1)
+    #expect(reads == 3 && radio.commandFrames.filter { $0.payload.first == 0x68 }.count == 1)
     #expect(s.state.sonyNoise?.settled == true && s.state.noise == .transparency)
 }

@@ -17,6 +17,7 @@ import HeyBudsProtocol
     private(set) var batteryComponents: [UInt8:BoseBatteryComponent]=[:]
     private(set) var cnc: BoseCNCState?
     private(set) var audioSettings: BoseAudioSettings?
+    private var legacyMask:UInt8?
     private var modeCount: Int?
     private let channel: ControlChannel<BoseFrame>
     private let operations=RequestGate()
@@ -41,7 +42,7 @@ import HeyBudsProtocol
         let token=generation; active=true
         do {
             try await channel.open()
-            if profile == .qc45 {
+            if profile == .qc45 || profile.legacyNoise {
                 // BMAP-version GET is required to wake QC45's control session.
                 // The response is not a product identity or a setting success.
                 try await channel.send(BoseFrameCodec.encode(BoseFrame(0,1)))
@@ -54,6 +55,12 @@ import HeyBudsProtocol
                 // This register is firmware in pybmap's tested profiles. bozo's
                 // unused enum calls it ProductIdVariant: do not infer an ID.
                 state.firmware=version; state.observedQueries.insert(Command.firmware)
+            }
+            if profile.legacyNoise {
+                let product=try await get(0,3)
+                guard product.count == 3,UInt16(product[0]) << 8 | UInt16(product[1]) == profile.productID else { throw ProtocolError.unsupported }
+                try await readBattery();try await readLegacyNoise();try check(token)
+                ready=true;onChange?();return
             }
             try await readBattery()
             if let favorites=try await optionalGet(31,8) {
@@ -87,6 +94,9 @@ import HeyBudsProtocol
         do {
             try await operations.acquire(); defer { operations.release() }
             try check(token); try await readBattery()
+            if profile?.legacyNoise == true {
+                try await readLegacyNoise();try check(token);onChange?();return
+            }
             if state.observedQueries.contains(Command.noise) {
                 let index=try await readCurrentMode()
                 if let count=modeCount, Int(index) < count { _ = try await readMode(index,optional:true) }
@@ -130,6 +140,11 @@ import HeyBudsProtocol
     }
     private func readBattery() async throws {
         let bytes=try await get(2,2)
+        if profile?.legacyNoise == true {
+            guard (1...4).contains(bytes.count) else { throw ProtocolError.invalidPayload }
+            state.batteries = bytes[0] <= 100 ? [.left:BatteryReading(percent:Int(bytes[0]))] : [:]
+            state.observedQueries.insert(Command.battery);return
+        }
         guard let readings=BosePayload.battery(bytes) else {
             batteryComponents=[:]; state.batteries=[:]; state.unassignedBatteries=[:]
             throw ProtocolError.invalidPayload
@@ -194,7 +209,8 @@ import HeyBudsProtocol
         profile != nil && [Command.battery,Command.noise,Command.firmware].contains(command)
     }
     func canWrite(_ command: UInt16, reading: UInt16?=nil) -> Bool {
-        ready && command == Command.setNoise && (reading == nil || reading == Command.noise)
+        if profile?.legacyNoise == true { return ready && command == Command.setNoise && (reading == nil || reading == Command.noise) && legacyMask != nil && state.noise != nil }
+        return ready && command == Command.setNoise && (reading == nil || reading == Command.noise)
             && state.observedQueries.contains(Command.noise)
             && BosePayload.noise(index:0,modes:modes) == .anc
             && BosePayload.noise(index:1,modes:modes) == .transparency
@@ -205,7 +221,24 @@ import HeyBudsProtocol
         if profile.hasLiveCNC { return audioSettings.flatMap { try? $0.settingCNC(cnc.level) } != nil }
         return (try? BosePayload.qc45CNCWrite(mode,level:cnc.level)) != nil
     }
+    private func readLegacyNoise() async throws {
+        let p=try await get(1,6)
+        guard p.count == 2,p[0] <= 3,p[1] & (1 << p[0]) != 0,[UInt8(0),1,3].contains(p[0]) else {
+            legacyMask=nil;state.noise=nil;throw ProtocolError.invalidPayload
+        }
+        legacyMask=p[1];state.noise=p[0] == 0 ? .off : .anc;state.observedQueries.insert(Command.noise)
+    }
     func setNoise(_ mode: NoiseMode) async throws -> WriteOutcome {
+        if let profile,profile.legacyNoise {
+            guard canWrite(Command.setNoise),[NoiseMode.off,.anc].contains(mode) else { throw ProtocolError.unsupported }
+            let token=generation
+            try await operations.acquire();defer { operations.release() };try check(token)
+            try await readLegacyNoise()
+            let value:UInt8=mode == .off ? 0 : profile == .qc35 ? 3 : 1
+            guard let mask=legacyMask,mask & (1 << value) != 0 else { throw ProtocolError.unsupported }
+            _ = try await request(1,6,.setGet,[value]);try await readLegacyNoise();try check(token)
+            guard state.noise == mode else { throw ProtocolError.readbackMismatch };onChange?();return .confirmed
+        }
         guard canWrite(Command.setNoise), mode == .anc || mode == .transparency else { throw ProtocolError.unsupported }
         let token=generation, index: UInt8=mode == .anc ? 0 : 1
         try await operations.acquire(); defer { operations.release() }
@@ -254,6 +287,6 @@ import HeyBudsProtocol
     func close() {
         active=false; ready=false; generation=UUID(); poll?.cancel(); poll=nil; channel.close()
         state=DeviceState(); currentModeIndex=nil; modes=[:]; unknownModePayloads=[:]
-        batteryComponents=[:]; cnc=nil; audioSettings=nil; modeCount=nil; onChange?()
+        batteryComponents=[:]; cnc=nil; audioSettings=nil; modeCount=nil; legacyMask=nil; onChange?()
     }
 }
