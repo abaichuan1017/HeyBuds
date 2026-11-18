@@ -4,38 +4,24 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.6.0</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.0</link>
-      <sparkle:version>17</sparkle:version>
-      <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-      <description format="plain-text"># HeyBuds 0.6.0
+      <title>HeyBuds 0.6.1</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.1</link>
+      <sparkle:version>20</sparkle:version>
+      <sparkle:shortVersionString>0.6.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description format="plain-text">- 正式版现支持 macOS 15 及以上的 Apple Silicon Mac。macOS 15 使用系统材质和按钮，macOS 26 及以上保留 Liquid Glass 界面。
+- Mac 唤醒后重新扫描耳机，避免睡前的扫描结果触发错误的连接提示或重连。
+- 华为耳机返回的多设备列表完整且一致时才更新显示，减少等待列表期间的后台唤醒。
+- 扫描已配对设备时复用小米、Redmi 和 Soundcore 的型号别名，减少重复匹配的开销。
 
-新增 55 款耳机的初步支持，保留现有界面与功能。
-
-- **Xiaomi / Redmi：16 款明确型号。** 10 款按型号接入降噪、EQ、手势等控制，6 款仅基础信息／电量；系统未上报的电量保持未知。[逐型号功能](https://github.com/abaichuan1017/HeyBuds/blob/v0.6.0/docs/XIAOMI_SUPPORT.md)
-- **其他扩展：39 款。** 包含 Soundcore、MOMENTUM、JBL、HONOR，以及更多 Sony、Galaxy Buds、Bose QC35 和 Nothing/CMF 型号。[功能与限制](https://github.com/abaichuan1017/HeyBuds/blob/v0.6.0/docs/DESKTOP_EXPANSION.md)
-
-实际功能取决于型号、固件和设备响应；新增型号的 HeyBuds/macOS 实机兼容性仍待验证。
-
-Initial support for 55 additional models: 16 explicit Xiaomi / Redmi profiles and 39 models across Soundcore, Sennheiser, JBL, HONOR, Sony, Samsung, Bose and Nothing/CMF. Existing interface and features are retained. Features vary by model, firmware and valid device responses; hardware compatibility for the newly added models remains unverified.
-
-Apple Silicon · macOS 26+
-
-### 致谢 / Thanks
-
-- **Xiaomi / Redmi**：[BudsLink](https://github.com/maniacx/BudsLink)、[MiBudsClient](https://github.com/CesurPolat/MiBudsClient)、[buds-ctl](https://github.com/LeoLee0812/buds-ctl)、[redmi-buds-bar](https://github.com/robin-liquidium/redmi-buds-bar)、[MiPods](https://github.com/JackWPP/MiPods)。
-- **Soundcore**：[OpenSCQ30](https://github.com/Oppzippy/OpenSCQ30)。
-- **Sennheiser**：[momentum4-control](https://github.com/Ariazonaa/momentum4-control)。
-- **JBL**：[Omaphones](https://github.com/ncr/omarchy-headphones)、[JBL Control](https://github.com/AhmadRun/jbl-control)、[770NC Windows Controller](https://github.com/Xeo23/JBL-Tune-770NC-Windows-Controller)。
-- **HONOR**：[OpenFreebuds](https://github.com/melianmiko/OpenFreebuds)。
-- **Sony / Bose**：[SonyHeadphonesClient](https://github.com/mos9527/SonyHeadphonesClient)、[Sound Connect](https://github.com/aecca/sound-connect)、Omaphones。
-- **Samsung**：[GalaxyBudsClient](https://github.com/timschneeb/GalaxyBudsClient)。
-- **Nothing / CMF**：[ear-web](https://github.com/radiance-project/ear-web) 与 Omaphones（协议事实参考；未采用许可声明冲突的实现代码）。</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.0/HeyBuds-arm64.dmg" length="2903648" type="application/octet-stream" sparkle:edSignature="e8Ryyq5B+f3b1tYxndxh2dA8kd0hUHXTaoVqh1ANhZPj+9u81elLfNgEhcuqNynioZSOP9Lfc3CGC9IWl2eGBg=="></enclosure>
+- The stable release now supports Apple Silicon Macs running macOS 15 or later. It uses system materials and buttons on macOS 15 and retains Liquid Glass on macOS 26 and later.
+- Scan for earbuds again after the Mac wakes to prevent stale results from triggering connection alerts or reconnect attempts.
+- Update the Huawei device list when all entries agree on the list size and have arrived. Waiting for the list now takes fewer background wakeups.
+- Reuse the Xiaomi, Redmi and Soundcore model alias indexes to reduce the cost of identifying paired devices.</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.1/HeyBuds-arm64.dmg" length="2908963" type="application/octet-stream" sparkle:edSignature="/tuYRb6fZGg9ZQWdHzH0zjWgksFPOt4aIRNKnIUFLBQyHwqbr3I4Uj341DM2x61aLS50WlR8A0Pq85+Uvx2JCA=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: dzBfce4OImLjbWWEGjV4fTqiZ/U9K9JlJev/zcc86fPg0RyX101bmhX354KaaxrSPIMFI5gS4mgp/JHZLgEPDw==
-length: 3372
+edSignature: 93OhzP+R5XwJ2iAnyhG8pbsokjM+kDoED0tWWvRqURVd9T9b81leJ5+9UE7RttgijwesZ+TMjUUAgfFWsi5vCQ==
+length: 2135
 -->

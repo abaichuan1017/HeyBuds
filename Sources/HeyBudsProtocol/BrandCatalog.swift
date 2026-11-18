@@ -12,6 +12,12 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         return ["RFCOMM"]
     }
     public static func normalize(_ name:String) -> String { name.lowercased().replacingOccurrences(of:"+",with:"plus").filter { $0.isLetter || $0.isNumber } }
+    static func nameIndex<Profile>(_ profiles: [Profile], names: (Profile) -> [String]) -> [String: Profile] {
+        let entries = profiles.flatMap { profile in
+            names(profile).map { (normalize($0), profile) }
+        }
+        return Dictionary(entries, uniquingKeysWith: { first, _ in first })
+    }
     public static func detect(_ name:String) -> EarbudFamily? {
         if XiaomiProfile.named(name) != nil { return .xiaomi }
         let n=normalize(name)

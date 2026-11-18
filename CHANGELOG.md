@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.1 — 2026-11-18
+
+- 正式版现支持 macOS 15 及以上的 Apple Silicon Mac。macOS 15 使用系统材质和按钮，macOS 26 及以上保留 Liquid Glass 界面。
+- Mac 唤醒后重新扫描耳机，避免睡前的扫描结果触发错误的连接提示或重连。
+- 华为耳机返回的多设备列表完整且一致时才更新显示，减少等待列表期间的后台唤醒。
+- 扫描已配对设备时复用小米、Redmi 和 Soundcore 的型号别名，减少重复匹配的开销。
+
+- The stable release now supports Apple Silicon Macs running macOS 15 or later. It uses system materials and buttons on macOS 15 and retains Liquid Glass on macOS 26 and later.
+- Scan for earbuds again after the Mac wakes to prevent stale results from triggering connection alerts or reconnect attempts.
+- Update the Huawei device list when all entries agree on the list size and have arrived. Waiting for the list now takes fewer background wakeups.
+- Reuse the Xiaomi, Redmi and Soundcore model alias indexes to reduce the cost of identifying paired devices.
+
 ## 0.6.1-beta.2 — 2026-11-02
 
 - 新增 Apple Silicon Mac 上的 macOS 15 支持，降噪、导航和操作按钮使用兼容样式，保留原有布局与功能。

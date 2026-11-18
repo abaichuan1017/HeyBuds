@@ -25,9 +25,6 @@ import HeyBudsProtocol
         let exchange:AsyncExchange<BrandFrame>
     }
     private var pending:Pending?
-    private var huaweiRows:[Int:RemoteHost]=[:]
-    private var huaweiExpected:Int?
-    private var collectingHosts=false
     private var spatialScene:UInt8?
     private var sequence:UInt8=0x90
     private let localHostAddress:[UInt8]?
@@ -218,19 +215,16 @@ import HeyBudsProtocol
     private func receive(_ data:Data) {
         for frame in codec.feed(data) {
             onDiagnostic?(String(format:"%@ RX %04X, %d bytes",family.rawValue,frame.command,frame.payload.count))
-            if family == .huawei,frame.command == 0x2B31,collectingHosts,let row=BrandState.huaweiHost(frame.payload) {
-                huaweiExpected=row.count
-                if let host=row.host { huaweiRows[row.index]=host }
-            } else {
-                if family == .vivo,frame.command == 0x8239,frame.payload.count >= 3 { spatialScene=frame.payload[2] }
-                _ = BrandState.apply(frame,model:model,to:&state)
-                if family == .vivo,frame.command == 0x8249 {
-                    state.hosts=state.hosts.map { host in var value=host;if value.address == localHostAddress { value.flags |= 1 };return value }
-                }
-            }
             if let p=pending,p.accepts(frame) {
                 if family == .vivo,let status=frame.payload.first,status != 0 { p.exchange.receive(.failure(ProtocolError.rejected(status))) }
                 else { p.exchange.receive(.success(frame)) }
+            }
+            // Huawei lists are published once, after the entire response and write complete.
+            if family == .huawei,frame.command == 0x2B31 { continue }
+            if family == .vivo,frame.command == 0x8239,frame.payload.count >= 3 { spatialScene=frame.payload[2] }
+            _ = BrandState.apply(frame,model:model,to:&state)
+            if family == .vivo,frame.command == 0x8249 {
+                state.hosts=state.hosts.map { host in var value=host;if value.address == localHostAddress { value.flags |= 1 };return value }
             }
             if family == .vivo,frame.command == 0x8509 {
                 let c=Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second],from:Date())
@@ -243,25 +237,40 @@ import HeyBudsProtocol
     }
     private func collectHuaweiHosts() async throws {
         let token=generation
-        try await gate.acquire();defer { gate.release() }
+        var rows:[Int:RemoteHost]=[:]
+        var expected:Int?
+        var inconsistent=false
+        _ = try await request(0x2B31,payload:[1,0],accepts:{ frame in
+            guard frame.command == 0x2B31,!inconsistent,let row=BrandState.huaweiHost(frame.payload) else { return false }
+            guard expected == nil || expected == row.count else {
+                inconsistent=true
+                return true
+            }
+            expected=row.count
+            if let host=row.host {
+                if let previous=rows[row.index],previous.id != host.id {
+                    inconsistent=true
+                    return true
+                }
+                rows[row.index]=host
+            }
+            // More rows can arrive between the first complete list and write completion.
+            inconsistent=rows.count > row.count
+            return rows.count >= row.count
+        })
         try Task.checkCancellation()
         guard generation == token else { throw ProtocolError.disconnected }
-        huaweiRows=[:];huaweiExpected=nil;collectingHosts=true
-        defer { collectingHosts=false }
-        try await transport.send(try codec.encode(BrandFrame(0x2B31,[1,0])))
-        let until=Date().addingTimeInterval(2)
-        while Date() < until {
-            try Task.checkCancellation();guard generation == token else { throw ProtocolError.disconnected }
-            if let count=huaweiExpected,huaweiRows.count == count {
-                let hosts=huaweiRows.sorted { $0.key < $1.key }.map(\.value)
-                guard Set(hosts.map(\.id)).count == hosts.count else { throw ProtocolError.invalidPayload }
-                state.hosts=hosts.map { host in var value=host;if value.address == localHostAddress { value.flags |= 1 };return value };state.priorityAddress=hosts.first(where:{$0.preferred})?.address
-                // Huawei does not report an automatic-priority switch.
-                state.observedQueries.insert(Command.hosts);onChange?();return
-            }
-            try await Task.sleep(for:.milliseconds(30))
+        guard !inconsistent,rows.count == expected else { throw ProtocolError.invalidPayload }
+        let hosts=rows.sorted { $0.key < $1.key }.map(\.value)
+        guard Set(hosts.map(\.id)).count == hosts.count else { throw ProtocolError.invalidPayload }
+        state.hosts=hosts.map { host in
+            var value=host
+            if value.address == localHostAddress { value.flags |= 1 }
+            return value
         }
-        throw ProtocolError.timeout(0x2B31)
+        state.priorityAddress=hosts.first(where:{$0.preferred})?.address
+        state.observedQueries.insert(Command.hosts)
+        onChange?()
     }
     private func confirmedWrite(command:UInt16,payload:[UInt8],read:UInt16,matches:(DeviceState)->Bool) async throws -> WriteOutcome {
         let token=generation
@@ -376,6 +385,6 @@ import HeyBudsProtocol
     func close() {
         generation=UUID();ready=false;poll?.cancel();poll=nil
         pending?.exchange.cancel();pending=nil
-        collectingHosts=false;codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));transport.onEvent=nil;transport.close();state=DeviceState();onChange?()
+        codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));transport.onEvent=nil;transport.close();state=DeviceState();onChange?()
     }
 }

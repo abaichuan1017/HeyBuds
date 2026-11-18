@@ -11,12 +11,15 @@ private func desktopHex(_ text:String) -> [UInt8] { text.split(separator:" ").ma
         for name in [m.name]+m.aliases {
             #expect(c.model(productID:nil,name:name)?.id == m.id)
             #expect(c.family(name:name) == m.family)
+            if m.family == .soundcore { #expect(SoundcoreProfile.named(name)?.modelID == m.id) }
         }
     }
     #expect(c.model(productID:nil,name:"Galaxy Buds+")?.id == "samsung:buds-plus")
     #expect(c.model(productID:nil,name:"Galaxy Buds")?.id == "samsung:buds")
     #expect(c.model(productID:nil,name:"Galaxy Buds3 FE (AB12)")?.id == "samsung:buds3-fe")
     #expect(c.model(productID:nil,name:"JBL Wave Buds 2-LE")?.id == "jbl:wave-buds-2")
+    #expect(SoundcoreProfile.named("soundcore-Q30") == .q30)
+    #expect(SoundcoreProfile.named("Soundcore Liberty 5 Pro") == nil)
     for name in ["HONOR Earbuds 2 Pro","Soundcore Liberty 5 Pro","MOMENTUM 6","JBL Tune 770NC Max","Nothing Ear (4)"] {
         #expect(c.model(productID:nil,name:name) == nil)
     }

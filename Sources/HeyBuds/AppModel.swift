@@ -56,7 +56,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var connectTask:Task<Void,Never>?
     @ObservationIgnored private var operationTask:Task<Void,Never>?
     @ObservationIgnored private var monitorTask:Task<Void,Never>?
-    @ObservationIgnored private var scanTask:Task<Void,Never>?
+    @ObservationIgnored private var scanTask:Task<Bool,Never>?
     @ObservationIgnored private var connectionEventTask:Task<Void,Never>?
     @ObservationIgnored private var connectionPresence=ConnectionPresence()
     @ObservationIgnored private var recognizedProductIDs:[String:String]=[:]
@@ -67,6 +67,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var audioCloseTask:Task<Void,Never>?
     @ObservationIgnored private var manualDisconnect=false
     @ObservationIgnored private var sleeping=false
+    @ObservationIgnored private var stopped=false
     @ObservationIgnored private var retry=0
     @ObservationIgnored private var lowAlerts=LowBatteryAlerts()
     @ObservationIgnored private var history:[String]=[]
@@ -97,8 +98,8 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var knownConnectedDevices:[DeviceCandidate] {
         guard !sleeping else { return [] }
         return candidates.filter { device in
-            device.audioConnected && ((device.id == selectedID && session?.model != nil)
-                || catalog.family(name:device.name) != nil || device.family != nil)
+            device.audioConnected && (device.family != nil || (device.id == selectedID && session?.model != nil)
+                || catalog.family(name:device.name) != nil)
         }
     }
     var presets:[EQPreset] { model?.presets.filter { $0.available(firmware:state.firmwareRevision) } ?? [] }
@@ -150,39 +151,41 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         }
     }
     func start() {
+        stopped=false
         services.monitor?.onChange = { [weak self] in
-            guard let self, !self.sleeping else { return }
+            guard let self, !self.stopped, !self.sleeping else { return }
             self.connectionEventTask?.cancel()
             self.connectionEventTask=Task { [weak self] in
                 try? await Task.sleep(for:.milliseconds(300))
                 guard !Task.isCancelled, let self else { return }
-                await self.rescan()
-                guard !Task.isCancelled, !self.sleeping, !self.manualDisconnect else { return }
+                guard await self.rescan(), !Task.isCancelled, !self.sleeping, !self.manualDisconnect else { return }
                 if self.autoReconnect, !self.ready, !self.connecting, self.retryTask == nil,
                    self.candidate?.audioConnected == true { self.connect() }
             }
         }
         monitorTask=Task { [weak self] in
             guard let self else { return }
-            await self.rescan()
+            let scanned=await self.rescan()
             guard !Task.isCancelled else { return }
-            if !self.sleeping, !self.manualDisconnect, self.candidate?.audioConnected == true { self.connect() }
+            if scanned, !self.sleeping, !self.manualDisconnect, self.candidate?.audioConnected == true { self.connect() }
             while !Task.isCancelled {
                 try? await Task.sleep(for:.seconds(self.interactive ? 8 : 30))
                 guard !Task.isCancelled else { return }
-                await self.rescan()
+                let scanned=await self.rescan()
                 guard !Task.isCancelled else { return }
-                if !self.ready, !self.connecting, self.autoReconnect, !self.manualDisconnect, !self.sleeping,
+                if scanned, !self.ready, !self.connecting, self.autoReconnect, !self.manualDisconnect, !self.sleeping,
                    self.retryTask == nil, self.candidate?.audioConnected == true { self.scheduleReconnect() }
             }
         }
     }
-    func rescan() async {
-        if let scanTask { await scanTask.value; return }
+    @discardableResult func rescan() async -> Bool {
+        guard !sleeping, !stopped else { return false }
+        if let scanTask { return await scanTask.value }
         let task=Task { [weak self] in
-            guard let catalog=self?.catalog else { return }
-            let devices=await self?.services.discover(catalog) ?? []
-            guard let self, !Task.isCancelled else { return }
+            guard !Task.isCancelled, let catalog=self?.catalog, let services=self?.services else { return false }
+            let devices=await services.discover(catalog)
+            guard !Task.isCancelled, let self else { return false }
+            self.scanTask=nil
             self.candidates=devices
             self.services.monitor?.watch(devices)
             if !self.ready, !self.connecting {
@@ -194,9 +197,13 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                 }
             }
             self.updateConnectionPresence()
+            return true
         }
         scanTask=task
-        await task.value
+        return await task.value
+    }
+    private func cancelScan() {
+        scanTask?.cancel()
         scanTask=nil
     }
     private func updateConnectionPresence() {
@@ -281,10 +288,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             guard let self else { return }
             do { try await self.services.delay(.seconds(delay)) } catch { return }
             guard !Task.isCancelled,self.retryToken == token else { return }
-            await self.rescan()
+            let scanned=await self.rescan()
             guard !Task.isCancelled,self.retryToken == token else { return }
             self.retryTask=nil
-            guard self.autoReconnect,!self.sleeping,!self.manualDisconnect,!self.ready,!self.connecting,
+            guard scanned,self.autoReconnect,!self.sleeping,!self.manualDisconnect,!self.ready,!self.connecting,
                   self.connectionToken == connection else { return }
             // Discovery may select a different connected device. It gets a new attempt.
             if self.selectedID != device { self.retry=0 }
@@ -303,15 +310,32 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             audioCloseTask=Task { [services] in await services.closeAudio(address) }
         }
     }
-    func sleep() { sleeping=true; connectionEventTask?.cancel(); disconnect(audio:false); phase="sleeping"; updateConnectionPresence() }
+    @ObservationIgnored private var suspendedBeforeSleep=false
+    func willSleep() {
+        guard !sleeping, !stopped else { return }
+        suspendedBeforeSleep=manualDisconnect
+        sleeping=true
+        connectionEventTask?.cancel()
+        cancelScan()
+        candidates=[]
+        disconnect(audio:false)
+        phase="sleeping"
+        updateConnectionPresence()
+    }
     func wake() {
+        guard sleeping, !stopped else { return }
         sleeping=false; phase="idle"; Task { await rescan() }
         // Respect a manual disconnect that happened before sleep.
         if !suspendedBeforeSleep { manualDisconnect=false; scheduleReconnect() }
     }
-    @ObservationIgnored private var suspendedBeforeSleep=false
-    func willSleep() { suspendedBeforeSleep=manualDisconnect; sleep() }
-    func stop() { monitorTask?.cancel(); scanTask?.cancel(); connectionEventTask?.cancel(); services.monitor?.stop(); disconnect(audio:false) }
+    func stop() {
+        stopped=true
+        monitorTask?.cancel()
+        connectionEventTask?.cancel()
+        cancelScan()
+        services.monitor?.stop()
+        disconnect(audio:false)
+    }
     func perform(noiseControl:Bool=false,_ operation:@escaping (DeviceSession) async throws -> WriteOutcome) {
         guard !operationBusy, ready, let session else { return }
         let token=UUID();operationToken=token

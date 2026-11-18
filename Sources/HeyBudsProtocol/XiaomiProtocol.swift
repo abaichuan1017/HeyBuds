@@ -29,9 +29,9 @@ public enum XiaomiProfile:String,CaseIterable,Sendable {
         default:return []
         }
     }
+    private static let profilesByName = EarbudFamily.nameIndex(allCases) { [$0.name] + $0.aliases }
     public static func named(_ name:String) -> Self? {
-        let value=EarbudFamily.normalize(name)
-        return allCases.first { ([ $0.name ]+$0.aliases).contains { EarbudFamily.normalize($0) == value } }
+        profilesByName[EarbudFamily.normalize(name)]
     }
     public var systemBatteryOnly:Bool { [.redmi6,.redmi6active,.redmi4pro,.redmi3,.basicS].contains(self) }
     public var controls:Bool { !systemBatteryOnly && self != .clip }
