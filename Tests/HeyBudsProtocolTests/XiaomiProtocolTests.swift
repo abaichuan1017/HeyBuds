@@ -17,7 +17,10 @@ private func xbytes(_ hex:String) -> [UInt8] {
         #expect(model.id == profile.modelID && model.family == .xiaomi)
         #expect(catalog.validOverride(profile.modelID,family:.xiaomi) == nil)
         #expect(EarbudFamily.xiaomi.transportKinds(for:profile.name) == profile.transportKinds)
-        for alias in profile.aliases { #expect(catalog.model(productID:nil,name:alias)?.id == profile.modelID) }
+        for name in [profile.name] + profile.aliases {
+            #expect(XiaomiProfile.named(name) == profile)
+            #expect(catalog.model(productID:nil,name:name)?.id == profile.modelID)
+        }
     }
     for unknown in ["Xiaomi Buds 5 Pro Wi-Fi","Redmi Buds 6 Pro Gaming","Redmi Buds 8S","Redmi Buds 8 Pro Max","Redmi Buds 7S"] {
         #expect(XiaomiProfile.named(unknown) == nil)

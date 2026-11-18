@@ -49,12 +49,14 @@ public enum SoundcoreProfile:String,CaseIterable,Sendable {
     public var displayName:String {
         switch self { case .q30:return "Soundcore Life Q30";case .q35:return "Soundcore Life Q35";case .q45:return "Soundcore Space Q45";case .spaceOnePro:return "Soundcore Space One Pro";case .liberty4NC:return "Soundcore Liberty 4 NC";case .liberty4Pro:return "Soundcore Liberty 4 Pro";case .liberty5:return "Soundcore Liberty 5" }
     }
+    private static let profilesByName = EarbudFamily.nameIndex(allCases) { profile in
+        let name = profile.displayName
+        let bare = name.replacingOccurrences(of: "Soundcore ", with: "")
+        let shortName = bare.replacingOccurrences(of: "Life ", with: "")
+        return [name, "Anker " + name, bare, "Soundcore " + shortName, profile.rawValue]
+    }
     public static func named(_ name:String) -> Self? {
-        let n=EarbudFamily.normalize(name)
-        return allCases.first { p in
-            let bare=p.displayName.replacingOccurrences(of:"Soundcore ",with:"")
-            return [p.displayName,"Anker "+p.displayName,bare,"Soundcore "+bare.replacingOccurrences(of:"Life ",with:""),p.rawValue].contains { EarbudFamily.normalize($0) == n }
-        }
+        profilesByName[EarbudFamily.normalize(name)]
     }
     public var singleBattery:Bool { [.q30,.q35,.q45,.spaceOnePro].contains(self) }
     public var oldEQ:Bool { self == .q30 || self == .q35 }

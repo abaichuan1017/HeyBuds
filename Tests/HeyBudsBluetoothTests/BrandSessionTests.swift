@@ -12,6 +12,7 @@ import HeyBudsProtocol
     var packets:[Data]=[]
     var commands:[BrandFrame]=[]
     var response:((BrandFrame)->BrandFrame?)?
+    var onHostQuery:(() async throws -> Void)?
     var ignore=false
     init(_ family:EarbudFamily,version:UInt8=4) { self.family=family;decoder=BrandFrameCodec(family:family,gaiaVersion:version) }
     func open() async throws { active=true }
@@ -27,6 +28,10 @@ import HeyBudsProtocol
         } else { frames=decoder.feed(data) }
         for frame in frames {
             commands.append(frame)
+            if family == .huawei,frame.command == 0x2B31,let onHostQuery {
+                try await onHostQuery()
+                continue
+            }
             let answer:BrandFrame?
             if let response { answer=response(frame) }
             else {
@@ -174,6 +179,96 @@ import HeyBudsProtocol
     let task=Task { await s.refresh() }
     try await Task.sleep(for:.milliseconds(30));s.close();await task.value
     #expect(!s.ready && s.state.batteries.isEmpty && s.state.observedQueries.isEmpty)
+}
+
+private func huaweiHostFrame(count:UInt8,index:UInt8,device:UInt8,preferred:Bool=false) -> BrandFrame {
+    BrandFrame(0x2B31,[2,1,count,3,1,index,4,6,0,0,0,0,0,device,5,1,1,7,1,preferred ? 1 : 0])
+}
+
+@MainActor private func waitForHostRows(_ received:() -> Bool) async throws {
+    let clock=ContinuousClock(),deadline=clock.now.advanced(by:.seconds(5))
+    while !received() {
+        guard clock.now < deadline else { throw ProtocolError.timeout(0x2B31) }
+        try await Task.sleep(for:.milliseconds(5))
+    }
+}
+
+@Test @MainActor func huaweiHostSnapshotRequiresConsistentTotalsAndACompletedWrite() async throws {
+    let radio=BrandRadio(.huawei)
+    let session=DeviceSession(transport:radio,name:"FreeBuds Pro",catalog:try ModelCatalog())
+    defer { radio.onHostQuery=nil;session.close() }
+    try await session.open()
+
+    var rowsReceived=false
+    let (writePending,writeCompleted)=AsyncStream<Void>.makeStream()
+    defer { writeCompleted.finish() }
+    var updates=0,updatesBeforeHostRead=0
+    session.onChange={ updates += 1 }
+    radio.onHostQuery={
+        updatesBeforeHostRead=updates
+        let second=huaweiHostFrame(count:2,index:7,device:2,preferred:true)
+        try radio.emit(second)
+        try radio.emit(second)
+        try radio.emit(huaweiHostFrame(count:2,index:0,device:1))
+        #expect(updates == updatesBeforeHostRead)
+        rowsReceived=true
+        for await _ in writePending {}
+    }
+    let refresh=Task { await session.refresh() }
+    try await waitForHostRows { rowsReceived }
+    #expect(!session.state.observedQueries.contains(Command.hosts))
+    #expect(session.state.hosts.isEmpty && session.state.priorityAddress == nil)
+    writeCompleted.finish()
+    await refresh.value
+    #expect(updates == updatesBeforeHostRead + 1)
+    let complete=session.state.hosts,priority=session.state.priorityAddress
+    #expect(complete.map(\.address) == [[0,0,0,0,0,1],[0,0,0,0,0,2]])
+    #expect(priority == [0,0,0,0,0,2])
+
+    radio.onHostQuery={
+        try radio.emit(huaweiHostFrame(count:3,index:0,device:3))
+        try radio.emit(huaweiHostFrame(count:2,index:1,device:4))
+    }
+    await session.refresh()
+    #expect(session.state.hosts == complete && session.state.priorityAddress == priority)
+
+    // A complete-looking list can be contradicted before the write callback.
+    for count:UInt8 in [1,2] {
+        radio.onHostQuery={
+            try radio.emit(huaweiHostFrame(count:1,index:0,device:3))
+            try radio.emit(huaweiHostFrame(count:count,index:1,device:4))
+        }
+        await session.refresh()
+        #expect(session.state.hosts == complete && session.state.priorityAddress == priority)
+    }
+
+    radio.onHostQuery={
+        try radio.emit(BrandFrame(0x2B31,[1,0]))
+        try radio.emit(BrandFrame(0x2B31,[2,1,0]))
+    }
+    await session.refresh()
+    #expect(session.state.hosts.isEmpty && session.state.priorityAddress == nil)
+    #expect(session.state.observedQueries.contains(Command.hosts))
+}
+
+@Test @MainActor func closingAnIncompleteHuaweiHostReadDiscardsLateRows() async throws {
+    let radio=BrandRadio(.huawei)
+    let session=DeviceSession(transport:radio,name:"FreeBuds Pro",catalog:try ModelCatalog())
+    defer { radio.onHostQuery=nil;session.close() }
+    try await session.open()
+    var firstRow=false
+    radio.onHostQuery={
+        try radio.emit(huaweiHostFrame(count:2,index:0,device:1))
+        firstRow=true
+    }
+    let refresh=Task { await session.refresh() }
+    try await waitForHostRows { firstRow }
+    let callback=radio.onEvent
+    session.close()
+    callback?(.data(try BrandFrameCodec(family:.huawei).encode(huaweiHostFrame(count:2,index:1,device:2))))
+    await refresh.value
+    #expect(!session.ready && session.state.hosts.isEmpty && session.state.priorityAddress == nil)
+    #expect(!session.state.observedQueries.contains(Command.hosts))
 }
 
 @Test @MainActor func huaweiCustomEQRequiresCompleteFreshCustomField() async throws {

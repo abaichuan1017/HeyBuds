@@ -52,13 +52,13 @@ import HeyBudsProtocol
     let retry=Latch()
     let devices=[DeviceCandidate(id:"fixture-a",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo),
                  DeviceCandidate(id:"fixture-b",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo)]
-    init() throws {
+    init(discover:((ModelCatalog) async -> [DeviceCandidate])?=nil) throws {
         defaults=try #require(UserDefaults(suiteName:suite))
         defaults.set(false,forKey:"autoReconnect")
         defaults.set(false,forKey:"notifyLow")
         var services=AppServices()
         services.monitor=nil
-        services.discover={ [devices] _ in devices }
+        services.discover=discover ?? { [devices] _ in devices }
         services.hasCompetitor={ false }
         services.openAudio={ _ in Issue.record("Unexpected real audio connection") }
         services.closeAudio={ _ in Issue.record("Unexpected real audio disconnect") }
@@ -144,6 +144,51 @@ import HeyBudsProtocol
     try await eventually { f.retry.entered };f.retry.release()
     try await eventually { f.app.ready }
     #expect(f.app.sessionID != before && f.radios.count == 2)
+}
+
+@Test @MainActor func wakeDiscardsDiscoveryStartedBeforeSleep() async throws {
+    let old=Latch(),fresh=Latch()
+    let before=DeviceCandidate(id:"before",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo)
+    let after=DeviceCandidate(id:"after",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo)
+    var scans=0,announced:[String]=[]
+    let f=try AppFixture(discover:{ _ in
+        scans += 1
+        switch scans {
+        case 1: await old.wait(); return [before]
+        case 2: await fresh.wait(); return [after]
+        default: Issue.record("Concurrent callers should share the wake scan"); return []
+        }
+    })
+    defer { f.cleanup();old.release();fresh.release() }
+    f.app.onDeviceConnected={ announced.append($0.id) }
+    let first=Task { await f.app.rescan() }
+    try await eventually { old.entered }
+    f.app.willSleep()
+    f.app.wake()
+    try await eventually { fresh.entered }
+    old.release()
+    _=await first.value
+    #expect(announced.isEmpty && f.app.knownConnectedDevices.isEmpty)
+
+    var joined=false
+    let concurrent=Task { joined=true;await f.app.rescan() }
+    try await eventually { joined }
+    fresh.release()
+    await concurrent.value
+    #expect(scans == 2 && f.app.selectedID == after.id && announced == [after.id])
+}
+
+@Test @MainActor func sleepingAndStoppedAppSkipDiscovery() async throws {
+    var scans=0
+    let f=try AppFixture(discover:{ _ in scans += 1;return [] })
+    defer { f.cleanup() }
+    f.app.willSleep()
+    await f.app.rescan()
+    #expect(scans == 0)
+    f.app.wake()
+    f.app.stop()
+    await f.app.rescan()
+    #expect(scans == 0)
 }
 
 @Test @MainActor func storedCrossFamilyOverrideShowsWarningAndDoesNotRouteConnection() async throws {
