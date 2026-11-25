@@ -51,7 +51,7 @@ Features depend on the model, firmware and device responses. See the [model list
 
 ## Install and use
 
-HeyBuds 0.6.1 supports **Apple Silicon Macs running macOS 15 or later**. The app uses system materials and buttons on macOS 15 and Liquid Glass on macOS 26 and later.
+HeyBuds 0.6.2 supports **Apple Silicon Macs running macOS 15 or later**. The app uses system materials and buttons on macOS 15 and Liquid Glass on macOS 26 and later.
 
 1. Download `HeyBuds-arm64.dmg` from [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest), open it and drag HeyBuds to Applications.
 2. Pair and connect your earbuds in Bluetooth settings, then quit other earbud controllers.

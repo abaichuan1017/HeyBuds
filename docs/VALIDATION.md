@@ -2,7 +2,7 @@
 
 Protocol and session tests cover simulated device responses. Application checks cover presentation, preference migration and signed update delivery. See [Actions](https://github.com/abaichuan1017/HeyBuds/actions) for build status.
 
-HeyBuds 0.6.1 targets macOS 15 and later. Automated checks cover both control styles' layout and compatibility-style rendering in light/dark appearance with opaque/material surfaces on the development system. Liquid Glass uses native compositing and requires a window for visual inspection. Simulated discovery tests cover stale results across sleep and wake. Hardware coverage for individual models is documented below.
+HeyBuds 0.6.2 targets macOS 15 and later. Automated checks cover both control styles' layout and compatibility-style rendering in light/dark appearance with opaque/material surfaces on the development system. Liquid Glass uses native compositing and requires a window for visual inspection. Simulated discovery tests cover stale results across sleep and wake. Hardware coverage for individual models is documented below.
 
 Enco Air5 Pro has historical read/write observations. X4 coverage uses public EncoDeck frames and simulated sessions; HeyBuds/macOS hardware acceptance is still pending. Catalog entries do not guarantee hardware compatibility.
 
@@ -10,7 +10,7 @@ Sony WF-1000XM5, WH-1000XM5 and WH-CH720N coverage uses framing/parser fixtures 
 
 Build and release instructions are in [RELEASING.md](RELEASING.md). Model and feature limits are in [COMPATIBILITY.md](COMPATIBILITY.md).
 
-The 0.5 expansion adds model-specific parser and simulated-session coverage for Samsung, Google Maestro, Bose BMAP, Nothing/CMF and Sony MDR V1/V2 profiles. Cases include invalid/truncated fields, checksum failures, fresh readback, delayed write completion, cancellation and stale-session events. BLE tests exercise segmentation without starting CoreBluetooth discovery.
+The 0.5 expansion adds model-specific parser and simulated-session coverage for Samsung, Google Maestro, Bose BMAP, Nothing/CMF and Sony MDR V1/V2 profiles. Cases include invalid/truncated fields, checksum failures, fresh readback, delayed write completion, cancellation and stale-session events. BLE tests cover segmentation, write readiness, timeout, cancellation and disconnects using simulated inputs.
 
 All 16 newly listed models still need hardware acceptance: proprietary service discovery, model/firmware identity, actual battery/charging reports, each exposed setting and phone synchronization, plus disconnect/reconnect and sleep/wake behavior. Bose Ultra Earbuds 2 left/right component mapping remains unresolved. Local simulation is not a hardware compatibility claim.
 

@@ -4,24 +4,22 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.6.1</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.1</link>
-      <sparkle:version>20</sparkle:version>
-      <sparkle:shortVersionString>0.6.1</sparkle:shortVersionString>
+      <title>HeyBuds 0.6.2</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.2</link>
+      <sparkle:version>22</sparkle:version>
+      <sparkle:shortVersionString>0.6.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">- 正式版现支持 macOS 15 及以上的 Apple Silicon Mac。macOS 15 使用系统材质和按钮，macOS 26 及以上保留 Liquid Glass 界面。
-- Mac 唤醒后重新扫描耳机，避免睡前的扫描结果触发错误的连接提示或重连。
-- 华为耳机返回的多设备列表完整且一致时才更新显示，减少等待列表期间的后台唤醒。
-- 扫描已配对设备时复用小米、Redmi 和 Soundcore 的型号别名，减少重复匹配的开销。
+      <description format="plain-text">• 耳机昵称与蓝牙服务识别的品牌冲突时，避免显示错误型号或启用不匹配的控制。清除手动型号后恢复自动识别结果。
+• 设备设置复用按品牌排序的型号列表。蓝牙低功耗写入缓冲区满时，收到系统通知后再继续发送。
+• 诊断文件仅保留最近 80 条事件。连接失败时记录传输方式和错误码，详细错误仍可在应用内查看。
 
-- The stable release now supports Apple Silicon Macs running macOS 15 or later. It uses system materials and buttons on macOS 15 and retains Liquid Glass on macOS 26 and later.
-- Scan for earbuds again after the Mac wakes to prevent stale results from triggering connection alerts or reconnect attempts.
-- Update the Huawei device list when all entries agree on the list size and have arrived. Waiting for the list now takes fewer background wakeups.
-- Reuse the Xiaomi, Redmi and Soundcore model alias indexes to reduce the cost of identifying paired devices.</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.1/HeyBuds-arm64.dmg" length="2908963" type="application/octet-stream" sparkle:edSignature="/tuYRb6fZGg9ZQWdHzH0zjWgksFPOt4aIRNKnIUFLBQyHwqbr3I4Uj341DM2x61aLS50WlR8A0Pq85+Uvx2JCA=="></enclosure>
+• Respect the brand identified by the Bluetooth service when a nickname matches a different brand. Clearing a manual model restores automatic identification.
+• Reuse the sorted model list in device settings. Resume Bluetooth LE writes when macOS signals that buffer space is available.
+• Keep the latest 80 diagnostic events. Connection failures record the transport and error code, with the detailed message available in the app.</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.2/HeyBuds-arm64.dmg" length="2907983" type="application/octet-stream" sparkle:edSignature="efswsuIpUCJeyJwDBozhWkpxAcTRy+nwc3KWj0dfLYzSD6zxx7FeC0vRR8Zb6zOsoM9KrhLsBGXnvu6iQOFZDA=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: 93OhzP+R5XwJ2iAnyhG8pbsokjM+kDoED0tWWvRqURVd9T9b81leJ5+9UE7RttgijwesZ+TMjUUAgfFWsi5vCQ==
-length: 2135
+edSignature: wGQkQoZgsPD49cDrmLRVB/7r5V7GS3EUuesz/Ci5AvaDXdI7HGtkzPoUNJdFfx4ok4jIyqIVrjsA5gx//UNOAQ==
+length: 1961
 -->
