@@ -111,6 +111,8 @@ public struct ModelCatalog: Sendable {
     private let byID: [String: DeviceModel]
     private let byProductID: [String: DeviceModel]
     private let byName: [String: DeviceModel]
+    private let overrideModelsByFamily: [EarbudFamily: [DeviceModel]]
+    private static let automaticXiaomiIDs = Set(XiaomiProfile.allCases.map(\.modelID))
     private struct NameMatch: Sendable {
         let model: DeviceModel
         let name: String
@@ -150,7 +152,6 @@ public struct ModelCatalog: Sendable {
                         bits[index/8] = 1 << UInt8(index%8)
                         if !noise.contains(where: { $0.mode == leaf }) { noise.append(NoiseOption(mode:leaf,writeBytes:bits)) }
                     }
-                    if nodes.isEmpty, mode != .anc { continue }
                 }
             }
             let eqNodes=["equalizerMode","equalizerModeCompat","equalizerModeByVersion"].flatMap { entry["function"][$0].elements }
@@ -176,6 +177,8 @@ public struct ModelCatalog: Sendable {
         models=imported
         guard Set(models.map(\.id)).count == models.count else { throw ProtocolError.invalidPayload }
         byID=Dictionary(uniqueKeysWithValues:models.map { ($0.id,$0) })
+        overrideModelsByFamily = Dictionary(grouping: models.filter(Self.allowsOverride), by: \.family)
+            .mapValues { $0.sorted { $0.name < $1.name } }
         var products:[String:DeviceModel]=[:]
         var names:[String:DeviceModel]=[:]
         for model in models {
@@ -216,13 +219,28 @@ public struct ModelCatalog: Sendable {
             }
         }?.model
     }
+    public func model(id: String) -> DeviceModel? { byID[id] }
+
+    public func model(productID: String?, name: String, override: String? = nil, matching family: EarbudFamily?) -> DeviceModel? {
+        guard let match = model(productID: productID, name: name, override: override),
+              family == nil || match.family == family else { return nil }
+        return match
+    }
+
+    private static func allowsOverride(_ model: DeviceModel) -> Bool {
+        model.family.allowsModelOverride && !automaticXiaomiIDs.contains(model.id)
+    }
+
+    public func overrideModels(for family: EarbudFamily) -> [DeviceModel] {
+        overrideModelsByFamily[family] ?? []
+    }
+
     public func family(name:String, override:String?=nil) -> EarbudFamily? {
         // Model overrides select capabilities, never the wire protocol.
         model(productID:nil,name:name)?.family ?? EarbudFamily.detect(name)
     }
     public func validOverride(_ id:String?,family:EarbudFamily?) -> String? {
-        guard let id,let family,family.allowsModelOverride,byID[id]?.family == family else { return nil }
-        if family == .xiaomi,XiaomiProfile.allCases.contains(where:{$0.modelID == id}) { return nil }
+        guard let id, let model = byID[id], model.family == family, Self.allowsOverride(model) else { return nil }
         return id
     }
     public func routingFamily(name:String,services:Set<EarbudFamily>) -> EarbudFamily? {

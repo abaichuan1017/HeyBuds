@@ -1,6 +1,21 @@
 import Testing
 import HeyBudsProtocol
 
+@Test func indexedModelsAndManualChoicesMatchTheCatalog() throws {
+    let catalog=try ModelCatalog()
+    for model in catalog.models {
+        #expect(catalog.model(id:model.id)?.raw == model.raw)
+    }
+    #expect(catalog.model(id:"unknown") == nil)
+    let automaticXiaomiIDs=Set(XiaomiProfile.allCases.map(\.modelID))
+    for family in EarbudFamily.allCases {
+        let expected=catalog.models.filter {
+            family.allowsModelOverride && $0.family == family && !automaticXiaomiIDs.contains($0.id)
+        }.sorted { $0.name < $1.name }.map(\.id)
+        #expect(catalog.overrideModels(for:family).map(\.id) == expected)
+    }
+}
+
 @Test func modelOverrideNeverChangesDetectedWireFamily() throws {
     let catalog=try ModelCatalog()
     #expect(catalog.family(name:"FreeBuds Pro 3",override:"06EC10") == .huawei)

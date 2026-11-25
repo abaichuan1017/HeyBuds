@@ -112,3 +112,73 @@ import HeyBudsProtocol
     #expect(!secondFinished && aborted == 1)
     second.finish(.success(()));try await next.value
 }
+
+@MainActor private func waitForCapacityCheck(_ condition:() -> Bool) async throws {
+    let limit=ContinuousClock.now + .seconds(1)
+    while !condition(), ContinuousClock.now < limit { await Task.yield() }
+    try #require(condition())
+}
+
+@Test @MainActor func bleCapacitySleepsUntilSignaledAndWritesOnce() async throws {
+    let capacity=BLEWriteCapacity()
+    var available=false, checks=0, writes=0
+    let task=Task {
+        try await capacity.send(timeout:1,canSend:{ checks += 1; return available }) { writes += 1 }
+    }
+    try await waitForCapacityCheck { checks >= 2 }
+    let initialChecks=checks
+    try await Task.sleep(for:.milliseconds(120))
+    #expect(checks == initialChecks && writes == 0)
+    capacity.signal() // A stale callback while still full must not submit the fragment.
+    try await waitForCapacityCheck { checks > initialChecks }
+    available=true
+    capacity.signal()
+    try await task.value
+    capacity.signal()
+    #expect(writes == 1)
+}
+
+@Test @MainActor func transportCloseBeforeInstallingWaiterSkipsTheWrite() async {
+    let write=TransportWrite()
+    write.finish(.failure(ProtocolError.disconnected))
+    await #expect(throws:ProtocolError.disconnected) {
+        try await write.wait(abort:{ _ in Issue.record("Aborted a completed write") },
+                             start:{ Issue.record("Started a closed write") })
+    }
+}
+
+@Test @MainActor func bleCapacityRechecksWhenInstallingWaiter() async throws {
+    let capacity=BLEWriteCapacity()
+    var checks=0, writes=0
+    try await capacity.send(timeout:0.2,canSend:{ checks += 1; return checks >= 2 }) { writes += 1 }
+    try await capacity.send(canSend:{ true }) { writes += 1 }
+    #expect(writes == 2)
+}
+
+@Test @MainActor func bleCapacityHandlesTimeoutCancellationAndDisconnect() async throws {
+    let capacity=BLEWriteCapacity()
+    var writes=0
+    await #expect(throws:TransportFailure.self) {
+        try await capacity.send(timeout:0.02,canSend:{ false }) { writes += 1 }
+    }
+    var checks=0
+    let cancelled=Task {
+        try await capacity.send(canSend:{ checks += 1; return false }) { writes += 1 }
+    }
+    try await waitForCapacityCheck { checks >= 2 }
+    cancelled.cancel()
+    await #expect(throws:CancellationError.self) { try await cancelled.value }
+    capacity.signal()
+    checks=0
+    let disconnected=Task {
+        try await capacity.send(canSend:{ checks += 1; return false }) { writes += 1 }
+    }
+    try await waitForCapacityCheck { checks >= 2 }
+    capacity.close()
+    await #expect(throws:ProtocolError.disconnected) { try await disconnected.value }
+    capacity.signal()
+    await #expect(throws:ProtocolError.disconnected) {
+        try await capacity.send(canSend:{ true }) { writes += 1 }
+    }
+    #expect(writes == 0)
+}

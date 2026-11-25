@@ -152,6 +152,20 @@ import HeyBudsProtocol
     #expect(!s.canWrite(Command.setCustomEQ))
 }
 
+@Test @MainActor func clearingLegacyOverrideRestoresTheAutomaticProfile() throws {
+    let catalog=try ModelCatalog()
+    for name in ["Desktop headphones","FreeBuds Pro 3"] {
+        let session=DeviceSession(transport:BrandRadio(.vivo),name:name,catalog:catalog,family:.vivo)
+        let automatic=try #require(session.model?.id)
+        let explicit=try #require(catalog.model(productID:nil,name:"vivo TWS 4"))
+        session.setModelOverride(explicit.id)
+        #expect(session.model?.id == explicit.id && automatic != explicit.id)
+        session.setModelOverride(nil)
+        #expect(session.model?.id == automatic)
+        session.close()
+    }
+}
+
 @Test @MainActor func completeHuaweiHostListsProtectThisMacAndConfirmTargetOnly() async throws {
     let t=BrandRadio(.huawei),local:[UInt8]=[1,2,3,4,5,6]
     let s=DeviceSession(transport:t,name:"FreeBuds Pro",catalog:try ModelCatalog(),localHostAddress:local)

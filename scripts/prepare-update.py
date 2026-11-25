@@ -4,7 +4,9 @@ from pathlib import Path
 import argparse
 import plistlib
 import re
+import shutil
 import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
 from disk_image import mounted
 
@@ -40,7 +42,12 @@ ET.SubElement(item, 'enclosure', {
 })
 ET.indent(root, space='  ')
 feed = ROOT / 'docs/appcast.xml'
-ET.ElementTree(root).write(feed, encoding='utf-8', xml_declaration=True)
-subprocess.run([str(tools / 'sign_update'), '--account', 'HeyBuds-updates', str(feed)], check=True)
-subprocess.run(['swift', str(ROOT / 'scripts/verify-update.swift'), str(feed), str(archive), public_key], check=True)
+with tempfile.TemporaryDirectory(dir=feed.parent) as staging:
+    candidate = Path(staging) / feed.name
+    ET.ElementTree(root).write(candidate, encoding='utf-8', xml_declaration=True)
+    subprocess.run([str(tools / 'sign_update'), '--account', 'HeyBuds-updates', str(candidate)], check=True)
+    subprocess.run(['swift', str(ROOT / 'scripts/verify-update.swift'), str(candidate), str(archive), public_key], check=True)
+    if feed.exists():
+        shutil.copymode(feed, candidate)
+    candidate.replace(feed)
 print(f'Prepared signed feed for HeyBuds {version}. Keep the archive unchanged after signing.')

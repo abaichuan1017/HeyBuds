@@ -83,7 +83,7 @@ private struct SonyInbound {
             let identity=try await read([4,1],reply:5,type:identityType)
             guard let name=SonyProtocol.deviceText(identity.payload,type:1),
                   let identifiedProfile=SonyProtocol.profile(name:name),identifiedProfile.generation == version,
-                  let identified=catalog.models.first(where:{$0.id == identifiedProfile.modelID}),
+                  let identified=catalog.model(id:identifiedProfile.modelID),
                   SonyProtocol.profile(model:identified) == identifiedProfile else { throw ProtocolError.unsupported }
             // The returned identity and verified protocol always win over names/overrides.
             model=identified;profile=identifiedProfile;state.productID=identified.id
@@ -145,7 +145,7 @@ private struct SonyInbound {
         lastBattery=Date()
     }
     private func readNoise() async throws -> SonyFrame {
-        guard let profile else { throw ProtocolError.unsupported }
+        guard profile != nil else { throw ProtocolError.unsupported }
         return try await read([0x66,noiseSubtype],reply:0x67)
     }
     private var noiseSubtype:UInt8 { profile?.supportsNoiseAdaptation == true && functions.contains(0x6D) ? 0x19 : profile?.noiseSubtype ?? 0x17 }
@@ -163,7 +163,6 @@ private struct SonyInbound {
         ready && command == Command.setNoise && (reading == nil || reading == Command.noise)
             && profile?.allowsNoiseWrite(firmware:state.firmware) == true && canQuery(Command.noise) && noiseAvailable && state.sonyNoise?.settled == true
     }
-    func setEQ(_ id:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome {
         guard let current=state.sonyNoise,let profile else { throw ProtocolError.unsupported }
         // V1 NC reports an ambient value of zero. Enter ambient at the documented

@@ -574,7 +574,7 @@ struct PanelView: View {
                 settingAction(L("设备信息","Device info"),symbol:"chevron.right") { page = .device }
                 Divider()
                 settingPicker(L("设备型号","Device model"),helpText:app.modelOverrideAllowed == false ? L("此品牌按型号自动识别协议，不能手动切换型号。","This brand selects its protocol automatically by model; manual overrides are unavailable.") : L("仅在自动识别错误时手动指定。功能仍需耳机响应确认。","Override only if automatic identification is incorrect. Features still require device responses."),isDisabled:app.modelOverrideAllowed != true || app.operationBusy,
-                    selection:Binding(get:{app.overrideID.flatMap { id in app.catalog.models.contains(where:{$0.id == id}) ? id : nil } ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
+                    selection:Binding(get:{app.overrideID ?? "auto"},set:{app.overrideID=$0 == "auto" ? nil : $0}),
                     choices:[.init("auto",L("自动识别","Automatic"))]+app.overrideModels.map { .init($0.id,$0.name) })
             }
             if let warning=app.overrideWarning {

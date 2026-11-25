@@ -52,7 +52,7 @@ import HeyBudsProtocol
     let retry=Latch()
     let devices=[DeviceCandidate(id:"fixture-a",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo),
                  DeviceCandidate(id:"fixture-b",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo)]
-    init(discover:((ModelCatalog) async -> [DeviceCandidate])?=nil) throws {
+    init(discover:((ModelCatalog) async -> [DeviceCandidate])?=nil, connectionError:Error?=nil) throws {
         defaults=try #require(UserDefaults(suiteName:suite))
         defaults.set(false,forKey:"autoReconnect")
         defaults.set(false,forKey:"notifyLow")
@@ -64,6 +64,7 @@ import HeyBudsProtocol
         services.closeAudio={ _ in Issue.record("Unexpected real audio disconnect") }
         services.delay={ [retry] _ in await retry.wait() }
         services.makeSession={ [weak self] device,family,_,override,catalog in
+            if let connectionError { throw connectionError }
             let radio=AppRadio();self?.radios.append(radio)
             return DeviceSession(transport:radio,name:device.name,catalog:catalog,overrideID:override,family:family)
         }
@@ -203,6 +204,30 @@ import HeyBudsProtocol
     #expect(f.app.overrideWarning == nil)
     f.app.overrideID="huawei:FreeBudsPro3"
     #expect(f.app.overrideID == "06EC10" && f.app.error != nil)
+}
+
+@Test @MainActor func serviceFamilyTakesPrecedenceOverNicknameInDeviceInfo() throws {
+    let f=try AppFixture();defer { f.cleanup() }
+    f.app.candidates=[DeviceCandidate(id:"fixture-a",name:"FreeBuds Pro 3",audioConnected:true,classicAddress:nil,family:.oppo)]
+    #expect(f.app.title == "FreeBuds Pro 3")
+    #expect(f.app.connectionFamily == .oppo && f.app.model == nil)
+}
+
+@Test @MainActor func connectionFailuresKeepOnlyBoundedRedactedHistory() async throws {
+    let detail="headset-fixture-label"
+    let error=NSError(domain:"SimulatedBluetooth",code:7,userInfo:[NSLocalizedDescriptionKey:detail])
+    let f=try AppFixture(connectionError:error);defer { f.cleanup() }
+    for _ in 0..<45 {
+        f.app.connect()
+        try await eventually { !f.app.connecting }
+    }
+    let snapshot=f.app.diagnosticSnapshot()
+    let history=try #require(snapshot["events"] as? [String])
+    #expect(history.count == 80)
+    #expect(history.allSatisfy { $0.hasSuffix("connection failed (7)") })
+    let json=try JSONSerialization.data(withJSONObject:snapshot)
+    #expect(!String(decoding:json,as:UTF8.self).contains(detail))
+    #expect(f.app.error?.contains(detail) == true)
 }
 
 @Test @MainActor func xiaomiExplicitModelsCannotBeSelectedAsOverridesForAnotherDevice() throws {

@@ -30,11 +30,15 @@ import HeyBudsProtocol
     private let localHostAddress:[UInt8]?
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,family:EarbudFamily,overrideID:String?,localHostAddress:[UInt8]?=nil) {
         self.transport=transport;self.name=name;self.catalog=catalog;self.family=family;self.localHostAddress=localHostAddress
-        model=catalog.model(productID:nil,name:name,override:overrideID)
-            ?? catalog.models.first(where:{$0.family == family && $0.raw["familyOnly"].enabled})
-            ?? .readOnly(name:name,family:family)
-        if model.family != family { model = .readOnly(name:name,family:family) }
+        model=Self.resolveModel(catalog:catalog,family:family,name:name,productID:nil,override:overrideID)
         codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4))
+    }
+    private static func resolveModel(catalog:ModelCatalog,family:EarbudFamily,name:String,productID:String?,override:String?) -> DeviceModel {
+        if let match=catalog.model(productID:productID,name:name,override:override) {
+            return match.family == family ? match : .readOnly(name:name,family:family)
+        }
+        return catalog.models.first { $0.family == family && $0.raw["familyOnly"].enabled }
+            ?? .readOnly(name:name,family:family)
     }
     func open() async throws {
         let token=generation
@@ -379,8 +383,8 @@ import HeyBudsProtocol
         try await send(0x0120,payload:[enabled ? 1 : 0]);return .sent
     }
     func setModelOverride(_ id:String?) {
-        guard let new=catalog.model(productID:state.productID,name:name,override:id),new.family == family else { return }
-        model=new;codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));onChange?()
+        model=Self.resolveModel(catalog:catalog,family:family,name:name,productID:state.productID,override:id)
+        codec=BrandFrameCodec(family:family,gaiaVersion:UInt8(model.raw["gaiaVersion"].int ?? 4));onChange?()
     }
     func close() {
         generation=UUID();ready=false;poll?.cancel();poll=nil

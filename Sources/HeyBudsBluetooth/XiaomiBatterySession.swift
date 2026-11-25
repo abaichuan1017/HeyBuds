@@ -61,7 +61,7 @@ import HeyBudsProtocol
     private var poll:Task<Void,Never>?
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog) {
         let selected=XiaomiProfile.named(name);profile=selected
-        baseModel=selected.flatMap { p in catalog.models.first { $0.id == p.modelID } };model=baseModel
+        baseModel=selected.flatMap { catalog.model(id:$0.modelID) };model=baseModel
         source=transport as? any XiaomiBatterySource
     }
     private func read() async throws {
@@ -98,6 +98,5 @@ import HeyBudsProtocol
     func canQuery(_ command:UInt16) -> Bool { command == Command.battery || command == Command.firmware }
     func canWrite(_ command:UInt16,reading:UInt16?=nil) -> Bool { false }
     func setNoise(_ mode:NoiseMode) async throws -> WriteOutcome { throw ProtocolError.unsupported }
-    func setEQ(_ id:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func close() { active=false;ready=false;generation=UUID();poll?.cancel();poll=nil;source?.close();state=DeviceState();onChange?() }
 }

@@ -28,7 +28,7 @@ import HeyBudsProtocol
         let selected = NothingProfile.named(name)
         profile = selected
         identityTransport = transport as? any NothingIdentityTransport
-        model = selected.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        model = selected.flatMap { catalog.model(id:$0.modelID) }
         var codec = NothingFrameCodec(profile: selected ?? .earA)
         resetDecoder = { codec.reset() }
         channel = ControlChannel(transport: transport, timeout: timeout,

@@ -27,7 +27,7 @@ import HeyBudsProtocol
 
     convenience init(transport: EarbudTransport, name: String, catalog: ModelCatalog, timeout: Double=3) {
         let profile=BoseProfile.named(name)
-        let model=profile.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        let model=profile.flatMap { catalog.model(id:$0.modelID) }
         self.init(transport:transport,profile:profile,model:model,timeout:timeout)
     }
     init(transport: EarbudTransport, profile: BoseProfile?, model: DeviceModel?=nil, timeout: Double=3) {
@@ -254,7 +254,6 @@ import HeyBudsProtocol
         }
         throw ProtocolError.readbackMismatch
     }
-    func setEQ(_ id: UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func setCNC(_ level: UInt8) async throws -> WriteOutcome {
         guard canSetCNC, let profile else { throw ProtocolError.unsupported }
         let token=generation

@@ -26,11 +26,16 @@ public struct BLEControlProfile:Sendable {
     private var writeCharacteristic: CBCharacteristic?
     private var opening: CheckedContinuation<Void,Error>?
     private var writing: TransportWrite?
+    private let sendGate=RequestGate()
+    private var writeCapacity=BLEWriteCapacity()
     private var timeout: Task<Void,Never>?
     private var closing=false
     public init(name: String,profile:BLEControlProfile = .oppo) { targetName=name;self.profile=profile;super.init() }
     public func open() async throws {
+        try Task.checkCancellation()
+        guard opening == nil, peripheral == nil else { throw TransportFailure.unavailable("BLE control channel already opening or connected") }
         closing=false;bmapCodec.reset()
+        writeCapacity=BLEWriteCapacity()
         try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 opening=continuation
@@ -120,7 +125,10 @@ public struct BLEControlProfile:Sendable {
     }
     public func send(_ bytes: Data) async throws {
         guard let peripheral, let write=writeCharacteristic, !closing, peripheral.state == .connected else { throw ProtocolError.disconnected }
-        guard writing == nil else { throw TransportFailure.unavailable("Concurrent BLE write") }
+        let capacity=writeCapacity
+        try await sendGate.acquire()
+        defer { sendGate.release() }
+        guard capacity === writeCapacity, !closing, peripheral.state == .connected else { throw ProtocolError.disconnected }
         let type: CBCharacteristicWriteType=write.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
         let mtu=peripheral.maximumWriteValueLength(for:type)
         guard mtu > 0 else { throw ProtocolError.disconnected }
@@ -129,24 +137,32 @@ public struct BLEControlProfile:Sendable {
         else { fragments=stride(from:0,to:bytes.count,by:mtu).map { bytes.subdata(in:$0..<min($0+mtu,bytes.count)) } }
         for fragment in fragments {
             try Task.checkCancellation()
-            let deadline=Date().addingTimeInterval(5)
-            while type == .withoutResponse && !peripheral.canSendWriteWithoutResponse {
-                guard Date() < deadline, !closing else { throw ProtocolError.disconnected }
-                try await Task.sleep(for:.milliseconds(20))
-            }
-            guard !closing,peripheral === self.peripheral,peripheral.state == .connected else { throw ProtocolError.disconnected }
-            if type == .withoutResponse { peripheral.writeValue(fragment,for:write,type:type) }
-            else {
-                guard writing == nil else { throw ProtocolError.invalidPayload }
+            guard !closing,capacity === writeCapacity,peripheral.state == .connected else { throw ProtocolError.disconnected }
+            if type == .withoutResponse {
+                try await capacity.send(canSend:{ peripheral.canSendWriteWithoutResponse }) {
+                    guard peripheral.state == .connected else { throw ProtocolError.disconnected }
+                    peripheral.writeValue(fragment,for:write,type:type)
+                }
+            } else {
                 let completion=TransportWrite()
-                writing=completion
                 defer { if writing === completion { writing=nil } }
-                try await completion.wait(abort:{ [weak self] error in self?.fail(error) },start:{
+                try await completion.wait(abort:{ [weak self] error in
+                    guard let self, self.writeCapacity === capacity else { return }
+                    self.fail(error)
+                },start:{
+                    guard !closing, capacity === writeCapacity, peripheral.state == .connected else {
+                        completion.finish(.failure(ProtocolError.disconnected)); return
+                    }
+                    writing=completion
                     peripheral.writeValue(fragment,for:write,type:type)
                 })
-                guard !closing,peripheral === self.peripheral else { throw ProtocolError.disconnected }
+                guard !closing,capacity === writeCapacity else { throw ProtocolError.disconnected }
             }
         }
+    }
+    public func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+        guard !closing, peripheral === self.peripheral else { return }
+        writeCapacity.signal()
     }
     public func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         guard !closing,peripheral === self.peripheral,characteristic === writeCharacteristic else { return }
@@ -161,9 +177,41 @@ public struct BLEControlProfile:Sendable {
     }
     public func close() {
         closing=true; timeout?.cancel(); timeout=nil; central?.stopScan()
+        writeCapacity.close()
         if let peripheral { peripheral.delegate=nil; central?.cancelPeripheralConnection(peripheral) }
         peripheral=nil; writeCharacteristic=nil;bmapCodec.reset()
         let o=opening; opening=nil; o?.resume(throwing:ProtocolError.disconnected)
         let w=writing; writing=nil; w?.finish(.failure(ProtocolError.disconnected))
+    }
+}
+
+/// One connection's write-without-response capacity. The transport serializes whole frames.
+@MainActor final class BLEWriteCapacity {
+    private var pending:TransportWrite?
+    private var closed=false
+
+    func send(timeout:Double=5, canSend:() -> Bool, write:() throws -> Void) async throws {
+        let deadline=ProcessInfo.processInfo.systemUptime + timeout
+        while true {
+            try Task.checkCancellation()
+            guard !closed else { throw ProtocolError.disconnected }
+            if canSend() { try write(); return }
+            let remaining=deadline - ProcessInfo.processInfo.systemUptime
+            guard remaining > 0 else { throw TransportFailure.unavailable("Bluetooth write capacity timed out") }
+            let completion=TransportWrite()
+            defer { pending=nil }
+            try await completion.wait(timeout:remaining,abort:{ _ in },start:{
+                pending=completion
+                // Capacity or connection state can change while installing the waiter.
+                if closed { completion.finish(.failure(ProtocolError.disconnected)) }
+                else if canSend() { signal() }
+            })
+        }
+    }
+
+    func signal() { pending?.finish(.success(())) }
+    func close() {
+        closed=true
+        pending?.finish(.failure(ProtocolError.disconnected))
     }
 }

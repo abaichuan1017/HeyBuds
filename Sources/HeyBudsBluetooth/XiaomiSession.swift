@@ -38,7 +38,7 @@ import HeyBudsProtocol
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=2.5,authTimeout:Double=12) {
         self.authTimeout=authTimeout
         let selected=XiaomiProfile.named(name);profile=selected
-        model=selected.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        model=selected.flatMap { catalog.model(id:$0.modelID) }
         let auth=authentication
         var codec=XiaomiFrameCodec()
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{ codec.feed($0) },reset:{ codec.reset() },acknowledge:{ frame in

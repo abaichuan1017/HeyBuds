@@ -66,15 +66,16 @@ import HeyBudsProtocol
 @MainActor final class TransportWrite {
     private var continuation:CheckedContinuation<Void,Error>?
     private var deadline:Task<Void,Never>?
-    private var finished=false
+    private var result:Result<Void,Error>?
     private var abort:((Error) -> Void)?
 
     func wait(timeout:Double=5,abort:@escaping (Error) -> Void,
               start:() -> Void) async throws {
         try Task.checkCancellation()
-        self.abort=abort
         try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
+                if let result { continuation.resume(with:result); return }
+                self.abort=abort
                 self.continuation=continuation
                 deadline=Task { [weak self] in
                     do { try await Task.sleep(for:.seconds(timeout)) } catch { return }
@@ -85,12 +86,12 @@ import HeyBudsProtocol
         },onCancel: { Task { @MainActor [weak self] in self?.abortWrite(CancellationError()) } })
     }
     func finish(_ result:Result<Void,Error>) {
-        guard !finished else { return }
-        finished=true; deadline?.cancel(); deadline=nil; abort=nil
+        guard self.result == nil else { return }
+        self.result=result; deadline?.cancel(); deadline=nil; abort=nil
         let c=continuation; continuation=nil; c?.resume(with:result)
     }
     private func abortWrite(_ error:Error) {
-        guard !finished else { return }
+        guard result == nil else { return }
         let abort=abort
         finish(.failure(error))
         abort?(error)

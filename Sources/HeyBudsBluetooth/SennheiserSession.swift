@@ -17,7 +17,7 @@ import HeyBudsProtocol
     private var gainRange:ClosedRange<Int>?,soundMode:UInt8?
     private var maximumConnections:Int?
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=3) {
-        profile=SennheiserProfile.named(name);model=profile.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        profile=SennheiserProfile.named(name);model=profile.flatMap { catalog.model(id:$0.modelID) }
         var codec=SennheiserFrameCodec()
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{ codec.feed($0) },reset:{ codec.reset() })
         channel.onClose={ [weak self] reason in self?.close();self?.onClose?(reason) }

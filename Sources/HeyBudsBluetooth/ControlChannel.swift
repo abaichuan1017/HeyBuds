@@ -140,6 +140,7 @@ import HeyBudsProtocol
 
 extension AdditionalSession {
     var availableFeatures:[FeatureDefinition] { [] }
+    func setEQ(_ id:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func setFeature(_ feature:FeatureDefinition,enabled:Bool) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func saveEQ(_ entry:CustomEQEntry) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func gestureActions(_ entry:GestureEntry) -> [UInt8] { [] }

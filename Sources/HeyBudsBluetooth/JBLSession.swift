@@ -17,7 +17,7 @@ import HeyBudsProtocol
     private let minimumInterval:Duration
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=8,minimumInterval:Duration = .seconds(2)) {
         self.minimumInterval=minimumInterval
-        profile=JBLProfile.named(name);model=profile.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        profile=JBLProfile.named(name);model=profile.flatMap { catalog.model(id:$0.modelID) }
         var codec=JBLFrameCodec(profile:profile ?? .tune230)
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{ codec.feed($0) },reset:{ codec.reset() })
         channel.onClose={ [weak self] reason in self?.close();self?.onClose?(reason) }
@@ -85,6 +85,5 @@ import HeyBudsProtocol
         }
         throw ProtocolError.readbackMismatch
     }
-    func setEQ(_ id:UInt8) async throws -> WriteOutcome { throw ProtocolError.unsupported }
     func close() { active=false;ready=false;generation=UUID();poll?.cancel();poll=nil;channel.close();state=DeviceState();lastSend=nil;onChange?() }
 }

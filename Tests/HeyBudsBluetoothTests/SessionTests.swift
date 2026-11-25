@@ -47,6 +47,27 @@ import HeyBudsProtocol
     #expect(s.model?.id == "06C410")
     #expect(s.state.batteries[.left]?.percent == 70)
 }
+@Test @MainActor func unknownOPOProductCannotAdoptAnotherBrandsNickname() async throws {
+    let radio=MockTransport()
+    radio.handler={ frame in
+        switch frame.command {
+        case Command.capabilities: return [0]+Array(repeating:255,count:9)
+        case Command.product: return [0,0xFE,0xFE,0xFE]
+        case Command.battery: return [0,1,1,42]
+        default: return nil
+        }
+    }
+    let session=DeviceSession(transport:radio,name:"FreeBuds Pro 3",catalog:try ModelCatalog(),family:.oppo)
+    defer { session.close() }
+    try await session.open()
+    #expect(session.ready && session.state.batteries[.left]?.percent == 42)
+    #expect(session.model == nil)
+    #expect(!session.canWrite(Command.setNoise))
+    session.setModelOverride("06C410")
+    #expect(session.model?.id == "06C410")
+    session.setModelOverride(nil)
+    #expect(session.model == nil)
+}
 @Test @MainActor func encoX4SessionConfirmsParentWritesFromChildReports() async throws {
     let t=MockTransport()
     var report:UInt16=8

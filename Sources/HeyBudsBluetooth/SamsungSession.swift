@@ -16,7 +16,7 @@ import HeyBudsProtocol
 
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=3) {
         profile=SamsungProfile.named(name)
-        model=profile.flatMap { p in catalog.models.first { $0.id == p.modelID } }
+        model=profile.flatMap { catalog.model(id:$0.modelID) }
         let legacy=profile?.legacy == true
         var codec=SamsungFrameCodec(legacy:legacy)
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{ codec.feed($0) },reset:{ codec.reset() },acknowledge:{ frame in

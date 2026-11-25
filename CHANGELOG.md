@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.2-beta.1 — 2026-11-25
+
+- 耳机昵称与蓝牙服务识别的品牌冲突时，避免显示错误型号或启用不匹配的控制。清除手动型号后恢复自动识别结果。
+- 设备设置复用按品牌排序的型号列表。蓝牙低功耗写入缓冲区满时，收到系统通知后再继续发送。
+- 诊断文件仅保留最近 80 条事件。连接失败时记录传输方式和错误码，详细错误仍可在应用内查看。
+
+- Respect the brand identified by the Bluetooth service when a nickname matches a different brand. Clearing a manual model restores automatic identification.
+- Reuse the sorted model list in device settings. Resume Bluetooth LE writes when macOS signals that buffer space is available.
+- Keep the latest 80 diagnostic events. Connection failures record the transport and error code, with the detailed message available in the app.
+
 ## 0.6.1 — 2026-11-18
 
 - 正式版现支持 macOS 15 及以上的 Apple Silicon Mac。macOS 15 使用系统材质和按钮，macOS 26 及以上保留 Liquid Glass 界面。

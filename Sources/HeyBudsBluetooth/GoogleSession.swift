@@ -23,7 +23,7 @@ import HeyBudsProtocol
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=3) {
         let known=["Pixel Buds Pro":"google:pixel-buds-pro","Pixel Buds Pro 2":"google:pixel-buds-pro-2"]
         let n=EarbudFamily.normalize(name)
-        model=known.first { n == EarbudFamily.normalize($0.key) || n == EarbudFamily.normalize("Google "+$0.key) }.flatMap { entry in catalog.models.first { $0.id == entry.value } }
+        model=known.first { n == EarbudFamily.normalize($0.key) || n == EarbudFamily.normalize("Google "+$0.key) }.flatMap { catalog.model(id:$0.value) }
         var codec=GoogleFrameCodec()
         channel=ControlChannel(transport:transport,timeout:timeout,decode:{codec.feed($0)},reset:{codec.reset()})
         channel.onMessage={ [weak self] in self?.receive($0) }

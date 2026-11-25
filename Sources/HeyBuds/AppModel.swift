@@ -59,7 +59,6 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var scanTask:Task<Bool,Never>?
     @ObservationIgnored private var connectionEventTask:Task<Void,Never>?
     @ObservationIgnored private var connectionPresence=ConnectionPresence()
-    @ObservationIgnored private var recognizedProductIDs:[String:String]=[:]
     @ObservationIgnored private var retryTask:Task<Void,Never>?
     @ObservationIgnored private var connectionToken=UUID()
     @ObservationIgnored private var operationToken=UUID()
@@ -87,7 +86,12 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     }
     var candidate:DeviceCandidate? { candidates.first { $0.id == selectedID } }
     var state:DeviceState { _ = revision; return session?.state ?? DeviceState() }
-    var model:DeviceModel? { _ = revision; return session?.model ?? candidate.flatMap { catalog.model(productID:nil,name:$0.name,override:overrideID) } }
+    var model:DeviceModel? {
+        _ = revision
+        if let session { return session.model }
+        guard let candidate else { return nil }
+        return catalog.model(productID:nil,name:candidate.name,override:overrideID,matching:candidate.family)
+    }
     var ready:Bool { phase == "ready" && session?.ready == true }
     var connecting:Bool { phase == "connecting" }
     // The header and connection card use the macOS Bluetooth name, which may be
@@ -106,29 +110,31 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var features:[FeatureDefinition] { _ = revision; return session?.availableFeatures ?? model?.features ?? [] }
     var supportsSpatialAudio:Bool { _ = revision; return session?.supportsSpatialAudio == true }
     var connectionFamily:EarbudFamily? { candidate.flatMap { $0.family ?? catalog.family(name:$0.name) } }
-    var modelOverrideAllowed:Bool? {
-        guard let family=connectionFamily else { return nil }
-        if family == .xiaomi,let name=candidate?.name,XiaomiProfile.named(name) != nil { return false }
+    private func allowsModelOverride(for family:EarbudFamily) -> Bool {
+        if family == .xiaomi, let name=candidate?.name, XiaomiProfile.named(name) != nil { return false }
         return family.allowsModelOverride
     }
+    var modelOverrideAllowed:Bool? { connectionFamily.map(allowsModelOverride(for:)) }
     var overrideModels:[DeviceModel] {
-        if connectionFamily == .xiaomi {
-            guard modelOverrideAllowed == true else { return [] }
-            return catalog.models.filter { catalog.validOverride($0.id,family:.xiaomi) != nil }.sorted { $0.name < $1.name }
-        }
-        return catalog.models.filter { $0.family == connectionFamily }.sorted { $0.name < $1.name }
+        guard let family=connectionFamily, allowsModelOverride(for:family) else { return [] }
+        return catalog.overrideModels(for:family)
     }
     private var storedOverrideID:String? {
         _ = revision
         return selectedID.flatMap { defaults.string(forKey:"model.\($0)") }
     }
     var overrideWarning:String? {
-        if connectionFamily == .xiaomi,modelOverrideAllowed == false { return nil }
-        guard let stored=storedOverrideID,catalog.validOverride(stored,family:connectionFamily) == nil else { return nil }
+        guard let stored=storedOverrideID else { return nil }
+        let family=connectionFamily
+        if family == .xiaomi, !allowsModelOverride(for:.xiaomi) { return nil }
+        guard catalog.validOverride(stored,family:family) == nil else { return nil }
         return L("已忽略与当前协议不匹配的旧型号设置，请重新选择。","The saved model does not match this device’s protocol and was ignored. Choose a compatible model.")
     }
     var overrideID:String? {
-        get { modelOverrideAllowed == false ? nil : catalog.validOverride(storedOverrideID,family:connectionFamily) }
+        get {
+            guard let stored=storedOverrideID, let family=connectionFamily, allowsModelOverride(for:family) else { return nil }
+            return catalog.validOverride(stored,family:family)
+        }
         set {
             guard let selectedID else { return }
             guard connectionFamily != .xiaomi || modelOverrideAllowed != false || newValue == nil else { return }
@@ -243,7 +249,6 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                     s.interactive=self.interactive
                     s.onChange = { [weak self,weak s] in
                         guard let self, self.session === s else { return }
-                        if let id=self.selectedID, let product=s?.model?.id { self.recognizedProductIDs[id]=product }
                         self.revision += 1; self.maybeNotify(); self.updateConnectionPresence()
                     }
                     s.onClose = { [weak self,weak s] reason in
@@ -253,10 +258,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                         // The connection loop owns fallback while open() is in progress.
                         if self.connectTask == nil { self.scheduleReconnect() }
                     }
-                    s.onDiagnostic = { [weak self] line in
-                        guard let self else { return }
-                        self.history.append(line); if self.history.count > 80 { self.history.removeFirst(self.history.count-80) }
-                    }
+                    s.onDiagnostic = { [weak self] line in self?.recordDiagnostic(line) }
                     try await s.open()
                     guard !Task.isCancelled, self.connectionToken == token else { s.close(); return }
                     self.cancelRetry();self.phase="ready"; self.retry=0; self.revision += 1; self.onStatusChange?()
@@ -267,7 +269,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                     guard !Task.isCancelled, self.connectionToken == token else { return }
                     self.session?.close(); self.session=nil
                     errors.append("\(kind): \(error.localizedDescription)")
-                    self.history.append("\(kind) connection: \(error.localizedDescription)")
+                    self.recordDiagnostic("\(kind) connection failed (\((error as NSError).code))")
                 }
             }
             guard !Task.isCancelled, self.connectionToken == token else { return }
@@ -414,6 +416,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func bluetoothSettings() {
         NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.BluetoothSettings")!)
     }
+    private func recordDiagnostic(_ line:String) {
+        history.append(line)
+        if history.count > 80 { history.removeFirst() }
+    }
     func exportDiagnostics() {
         let panel=NSSavePanel(); panel.nameFieldStringValue="HeyBuds-diagnostics.json"
         guard panel.runModal() == .OK, let url=panel.url else { return }
@@ -435,7 +441,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             "backgroundMode":backgroundMode,"connectionTips":connectionTips,"knownConnectionCount":knownConnectedDevices.count,
             "battery":Dictionary(uniqueKeysWithValues:state.batteries.map { (String($0.key.rawValue),["percent":$0.value.percent,"charging":$0.value.charging ? 1 : 0]) }),
             "note":"Read-only observation; no listening, phone synchronization or sleep/wake certification."]
-        if let error { value["error"]=error }
+        if error != nil { value["error"]="See the error message in HeyBuds." }
         return value
     }
 }
