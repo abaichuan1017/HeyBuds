@@ -51,9 +51,9 @@
 
 ## 安装与使用
 
-正式版 HeyBuds 0.6.2 支持运行 **macOS 15 及以上版本的 Apple Silicon Mac**。macOS 15 使用系统材质和按钮，macOS 26 及以上使用 Liquid Glass 界面。
+正式版 HeyBuds 0.6.3 支持运行 **macOS 15 及以上版本的 Apple Silicon Mac**。macOS 15 使用系统材质和按钮，macOS 26 及以上使用 Liquid Glass 界面。
 
-0.6.3-beta.1 新增未适配蓝牙耳机和音箱的连接、断开提醒。弹窗显示系统蓝牙名称，macOS 提供音量控制时可以直接调节。
+0.6.3 新增未适配蓝牙耳机和音箱的连接、断开提醒。弹窗显示系统蓝牙名称，macOS 提供音量控制时可以直接调节。
 
 1. 从 [Releases](https://github.com/abaichuan1017/HeyBuds/releases/latest) 下载 `HeyBuds-arm64.dmg`，打开后将 HeyBuds 拖入“应用程序”。
 2. 在系统蓝牙设置中配对并连接耳机，退出其他耳机控制器。

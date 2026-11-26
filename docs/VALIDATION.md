@@ -2,7 +2,7 @@
 
 Protocol and session tests cover simulated device responses. Application checks cover presentation, preference migration and signed update delivery. See [Actions](https://github.com/abaichuan1017/HeyBuds/actions) for build status.
 
-HeyBuds 0.6.2 targets macOS 15 and later. Automated checks cover both control styles' layout and compatibility-style rendering in light/dark appearance with opaque/material surfaces on the development system. Liquid Glass uses native compositing and requires a window for visual inspection. Simulated discovery tests cover stale results across sleep and wake. Hardware coverage for individual models is documented below.
+HeyBuds 0.6.3 targets macOS 15 and later. Automated checks cover both control styles' layout and compatibility-style rendering in light/dark appearance with opaque/material surfaces on the development system. Liquid Glass uses native compositing and requires a window for visual inspection. Simulated discovery tests cover stale results across sleep and wake. Hardware coverage for individual models is documented below.
 
 Enco Air5 Pro has historical read/write observations. X4 coverage uses public EncoDeck frames and simulated sessions; HeyBuds/macOS hardware acceptance is still pending. Catalog entries do not guarantee hardware compatibility.
 

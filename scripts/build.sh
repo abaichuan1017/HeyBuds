@@ -97,8 +97,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>HeyBuds</string>
 <key>CFBundleDisplayName</key><string>HeyBuds</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.6.3-beta.1</string>
-<key>CFBundleVersion</key><string>23</string>
+<key>CFBundleShortVersionString</key><string>0.6.3</string>
+<key>CFBundleVersion</key><string>24</string>
 <key>CFBundleDevelopmentRegion</key><string>zh-Hans</string>
 <key>CFBundleLocalizations</key><array><string>zh-Hans</string><string>en</string></array>
 <key>CFBundleIconFile</key><string>HeyBuds.icns</string>

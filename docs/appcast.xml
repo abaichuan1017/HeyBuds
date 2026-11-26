@@ -4,22 +4,20 @@ IMPORTANT: This file was signed by Sparkle. Any modifications to this file requi
   <channel>
     <title>HeyBuds</title>
     <item>
-      <title>HeyBuds 0.6.2</title>
-      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.2</link>
-      <sparkle:version>22</sparkle:version>
-      <sparkle:shortVersionString>0.6.2</sparkle:shortVersionString>
+      <title>HeyBuds 0.6.3</title>
+      <link>https://github.com/abaichuan1017/HeyBuds/releases/tag/v0.6.3</link>
+      <sparkle:version>24</sparkle:version>
+      <sparkle:shortVersionString>0.6.3</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <description format="plain-text">• 耳机昵称与蓝牙服务识别的品牌冲突时，避免显示错误型号或启用不匹配的控制。清除手动型号后恢复自动识别结果。
-• 设备设置复用按品牌排序的型号列表。蓝牙低功耗写入缓冲区满时，收到系统通知后再继续发送。
-• 诊断文件仅保留最近 80 条事件。连接失败时记录传输方式和错误码，详细错误仍可在应用内查看。
+      <description format="plain-text">• 未适配的蓝牙耳机和音箱也会显示连接与断开提醒。弹窗使用系统蓝牙名称，macOS 提供可写音量时，可在弹窗或主面板调节该设备的输出音量。
+• Galaxy Buds 优先使用耳机公布的型号标识。Buds4 Pro 提供该标识时，改成任意昵称也能识别。
 
-• Respect the brand identified by the Bluetooth service when a nickname matches a different brand. Clearing a manual model restores automatic identification.
-• Reuse the sorted model list in device settings. Resume Bluetooth LE writes when macOS signals that buffer space is available.
-• Keep the latest 80 diagnostic events. Connection failures record the transport and error code, with the detailed message available in the app.</description>
-      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.2/HeyBuds-arm64.dmg" length="2907983" type="application/octet-stream" sparkle:edSignature="efswsuIpUCJeyJwDBozhWkpxAcTRy+nwc3KWj0dfLYzSD6zxx7FeC0vRR8Zb6zOsoM9KrhLsBGXnvu6iQOFZDA=="></enclosure>
+• Bluetooth headphones and speakers without a device profile now show connection and disconnection pop-ups using their system name. Adjust the device’s output volume in the pop-up or main panel when macOS makes it available.
+• Galaxy Buds now use the advertised model ID when available, so a Buds4 Pro that supplies its ID can be recognized under any nickname.</description>
+      <enclosure url="https://github.com/abaichuan1017/HeyBuds/releases/download/v0.6.3/HeyBuds-arm64.dmg" length="2949949" type="application/octet-stream" sparkle:edSignature="mE9KNrg97fk5p4Z2CuWQW1nBMIlajDa9AWBl30YVIur4q2ISfWQK0OHozhpxIIVym/YKtpw2ZFem0jkMFIPoAQ=="></enclosure>
     </item>
   </channel>
 </rss><!-- sparkle-signatures:
-edSignature: wGQkQoZgsPD49cDrmLRVB/7r5V7GS3EUuesz/Ci5AvaDXdI7HGtkzPoUNJdFfx4ok4jIyqIVrjsA5gx//UNOAQ==
-length: 1961
+edSignature: aRBq+xiGmavqO+FjRuuwR9ckWhPZtAIWPRC/OYvx9jPjSVI3THYRLE+Tp1sJQROMs+8g6ClvDj/YirzdezMlDA==
+length: 1778
 -->
