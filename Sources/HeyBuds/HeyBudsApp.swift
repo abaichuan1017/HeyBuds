@@ -23,7 +23,7 @@ import HeyBudsBluetooth
     private var showWhenReady=false
     private let connectionToast=ConnectionToastController()
     private var announcementTask:Task<Void,Never>?
-    private var pendingAnnouncementID:String?
+    private var announcements:[(device:DeviceCandidate,disconnected:Bool)]=[]
     private var explicitAccess=false
     func applicationDidFinishLaunching(_ notification:Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -70,7 +70,8 @@ import HeyBudsBluetooth
     private func finishLaunching(catalog:ModelCatalog) {
         model=AppModel(catalog:catalog)
         model.onStatusChange = { [weak self] in self?.updateStatus() }
-        model.onDeviceConnected = { [weak self] device in self?.announceConnection(device) }
+        model.onDeviceConnected = { [weak self] device in self?.announce(device,disconnected:false) }
+        model.onDeviceDisconnected = { [weak self] device in self?.announce(device,disconnected:true) }
         model.onPreviewConnectionTip = { [weak self] in self?.previewConnectionTip() }
         model.updater.onWillPresentUI = { [weak self] in self?.dismissPanelForUpdate() }
         connectionToast.onDismiss = { [weak self] in self?.explicitAccess=false; self?.updateStatus() }
@@ -162,11 +163,16 @@ import HeyBudsBluetooth
     private func updateStatus() {
         guard let button=statusItem?.button, let model else { return }
         let connected=model.knownConnectedDevices
-        if let pendingAnnouncementID, !connected.contains(where:{$0.id == pendingAnnouncementID}) {
-            announcementTask?.cancel(); announcementTask=nil; self.pendingAnnouncementID=nil
-        }
+        let connectedIDs=Set(connected.map(\.id))
+        let tipsEnabled=model.connectionTips && model.phase != "sleeping"
+        let first=announcements.first?.device.id
+        announcements.removeAll { !tipsEnabled || connectedIDs.contains($0.device.id) == $0.disconnected }
+        if first != announcements.first?.device.id { announcementTask?.cancel(); announcementTask=nil }
         if connectionToast.isShown, !connectionToast.preview,
-           (!model.connectionTips || !connected.contains(where:{$0.id == connectionToast.deviceID})) { connectionToast.dismiss(animated:false) }
+           !tipsEnabled || connectionToast.deviceID.map(connectedIDs.contains) == connectionToast.disconnected {
+            connectionToast.dismiss(animated:false,notify:false)
+        }
+        showNextAnnouncement()
         statusItem.isVisible=ConnectionPresence.showsStatusItem(background:model.backgroundMode,hasConnection:!connected.isEmpty,
             explicitAccess:explicitAccess || popover.isShown || connectionToast.isShown)
         let image=NSImage(systemSymbolName:!connected.isEmpty || model.ready ? EarbudIcon.pair : EarbudIcon.enclosure,accessibilityDescription:"HeyBuds")
@@ -195,7 +201,7 @@ import HeyBudsBluetooth
     private func showPanel() {
         guard model != nil else { showWhenReady=true; return }
         showWhenReady=false
-        announcementTask?.cancel(); announcementTask=nil; pendingAnnouncementID=nil
+        clearAnnouncements()
         explicitAccess=true; updateStatus()
         connectionToast.dismiss(animated:false,notify:false)
         guard !popover.isShown else { return }
@@ -237,29 +243,47 @@ import HeyBudsBluetooth
         guard let button=statusItem.button, let window=button.window else { return nil }
         return window.convertToScreen(button.convert(button.bounds,to:nil))
     }
-    private func announceConnection(_ device:DeviceCandidate) {
-        guard model.connectionTips else { return }
-        announcementTask?.cancel(); pendingAnnouncementID=device.id
+    private func clearAnnouncements() {
+        announcementTask?.cancel(); announcementTask=nil; announcements.removeAll()
+    }
+    private func announce(_ device:DeviceCandidate,disconnected:Bool) {
+        guard model.connectionTips, !popover.isShown else { return }
+        announcements.append((device,disconnected))
+        showNextAnnouncement()
+    }
+    private func showNextAnnouncement() {
+        guard announcementTask == nil, !connectionToast.isShown, !popover.isShown,
+              let event=announcements.first else { return }
         announcementTask=Task { [weak self] in
-            guard let self else { return }
-            // Give the initial battery response a short head start; the visible card
-            // continues observing current-session data if the response arrives later.
-            for _ in 0..<12 {
-                try? await Task.sleep(for:.milliseconds(200))
-                guard !Task.isCancelled, self.model.connectionTips,
-                      self.model.knownConnectedDevices.contains(where:{$0.id == device.id}) else { return }
-                if self.model.ready, self.model.selectedID == device.id, (!self.model.state.batteries.isEmpty || !self.model.state.unassignedBatteries.isEmpty) { break }
+            guard let self, !Task.isCancelled else { return }
+            let device=event.device
+            if !device.systemAudioOnly && !event.disconnected {
+                for _ in 0..<12 {
+                    if self.model.ready, self.model.selectedID == device.id,
+                       (!self.model.state.batteries.isEmpty || !self.model.state.unassignedBatteries.isEmpty) { break }
+                    try? await Task.sleep(for:.milliseconds(200))
+                    guard !Task.isCancelled else { return }
+                }
             }
-            self.pendingAnnouncementID=nil
-            guard !self.popover.isShown else { return }
-            self.connectionToast.show(app:self.model,device:device,preview:false,anchor:self.statusAnchor,onOpen:{ [weak self] in self?.showPanel() })
+            self.announcementTask=nil
+            self.announcements.removeFirst()
+            guard self.model.connectionTips, !self.popover.isShown,
+                  self.model.knownConnectedDevices.contains(where:{$0.id == device.id}) != event.disconnected else {
+                self.showNextAnnouncement(); return
+            }
+            self.connectionToast.show(app:self.model,device:device,preview:false,disconnected:event.disconnected,
+                                      anchor:self.statusAnchor,onOpen:{ [weak self] in
+                guard let self else { return }
+                if self.model.candidates.contains(where:{$0.id == device.id}) { self.model.select(device.id) }
+                self.showPanel()
+            })
             self.updateStatus()
         }
     }
     private func previewConnectionTip() {
-        announcementTask?.cancel(); pendingAnnouncementID=nil
+        clearAnnouncements()
         let device=model.knownConnectedDevices.first(where:{$0.id == model.selectedID}) ?? model.knownConnectedDevices.first ?? model.candidate
-        connectionToast.show(app:model,device:device,preview:true,anchor:statusAnchor,onOpen:{ [weak self] in self?.showPanel() })
+        connectionToast.show(app:model,device:device.map(model.tipDevice),preview:true,anchor:statusAnchor,onOpen:{ [weak self] in self?.showPanel() })
         popover.performClose(nil); updateStatus()
     }
     func applicationWillTerminate(_ notification:Notification) {

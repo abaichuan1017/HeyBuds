@@ -22,7 +22,7 @@
 
 原始资源与指纹见[上游来源](UPSTREAM.md)。vivo 原表保留在 `docs/reference/VivoDeviceModels.json`，归一化目录保留所有 `sourceEntries`；华为能力来自 `HuaweiModels.cs`。导入工具为 `scripts/import-brand-models.py`。
 
-Apple / Beats 由 macOS 原生管理，已从本应用移除。
+从 0.6.3-beta.1 起，未适配的蓝牙音频设备可以使用系统蓝牙名称显示连接和断开提醒。macOS 提供对应输出的可写音量时，可在弹窗和主面板调节。Apple / Beats 的品牌功能仍由 macOS 管理。
 
 ## OPPO Enco X4
 
@@ -40,6 +40,8 @@ Apple / Beats 由 macOS 原生管理，已从本应用移除。
 - WF-C700N 只对已知修复固件 2.0.7 开放降噪写入，2.0.5 与其他/未知固件只读。XM6 在设备报告新格式时保留两字节自适应参数；所有降噪写入先读当前参数再写后回读。
 
 ## Samsung
+
+从 0.6.3-beta.1 起，优先根据三星服务记录中的型号标识选择控制协议。设备未提供该标识时，使用已知型号名称和控制服务辅助匹配。遇到未知或互相冲突的型号标识时，提供系统音频功能。弹窗和主面板显示系统蓝牙名称。
 
 Galaxy Buds2、Buds2 Pro、Buds4 Pro 保留原有功能。新增初代、Buds+、Live、Pro、FE、Buds3、Buds3 Pro、Buds3 FE、Core、Buds4；初代使用独立服务、FE/EE 帧和 EQ 编码。初代/Buds+ 没有 ANC，Live/Buds3/Buds4 没有通透；其他噪声模式依型号和有效响应开放。Buds4 Pro 保留自适应及 5 档降噪强度；Buds2/2 Pro 保留触控锁。较新型号共用状态字段不代表完整布局或实机通过；未确认的充电标志不作推断。自定义 EQ 和 OTA 未接入。
 

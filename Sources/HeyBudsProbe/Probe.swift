@@ -24,10 +24,10 @@ import HeyBudsBluetooth
             } else if args.first == "read" {
                 let devices=await Discovery.paired(catalog:catalog)
                 guard let device=devices.first(where:{$0.audioConnected}) else { throw TransportFailure.unavailable("No paired connected earbuds. Use HeyBuds.app to grant Bluetooth permission.") }
-                guard let family=device.family ?? catalog.family(name:device.name) else { throw ProtocolError.unsupported }
-                let kind=family == .xiaomi && XiaomiProfile.named(device.name)?.systemBatteryOnly == true ? "System" : args.contains("--ble") || family.transportKinds(for:device.name) == ["BLE"] ? "BLE" : "RFCOMM"
+                guard let family=device.family ?? catalog.family(name:device.protocolName) else { throw ProtocolError.unsupported }
+                let kind=family == .xiaomi && XiaomiProfile.named(device.protocolName)?.systemBatteryOnly == true ? "System" : args.contains("--ble") || family.transportKinds(for:device.protocolName) == ["BLE"] ? "BLE" : "RFCOMM"
                 let transport=try ControlTransportFactory.make(device:device,family:family,kind:kind)
-                let session=DeviceSession(transport:transport,name:device.name,catalog:catalog,family:family)
+                let session=DeviceSession(transport:transport,name:device.protocolName,catalog:catalog,family:family)
                 defer { session.close() }
                 try await session.open(); await session.initialize()
                 let s=session.state

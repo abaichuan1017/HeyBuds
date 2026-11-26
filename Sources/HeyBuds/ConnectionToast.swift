@@ -4,6 +4,37 @@ import QuartzCore
 import HeyBudsBluetooth
 import HeyBudsProtocol
 
+struct OutputVolumeView:View {
+    let route:BluetoothAudioRoute?
+    let service:SystemAudio.VolumeService
+    @ViewState private var sample:(route:BluetoothAudioRoute,level:SystemAudio.Level)?
+    var body:some View {
+        HStack(spacing:10) {
+            Image(systemName:"speaker.wave.2").accessibilityHidden(true)
+            if let route, let sample, route == sample.route {
+                let level=sample.level
+                Slider(value:Binding(get:{ Double(level.value) },set:{ value in
+                    self.sample=service.set(Float(value),route).map { (route,$0) }
+                }),in:0...1).disabled(!level.writable)
+                    .accessibilityLabel(L("耳机音量","Headphone volume"))
+                Text(level.value,format:.percent.precision(.fractionLength(0)))
+                    .monospacedDigit().frame(minWidth:34,alignment:.trailing)
+            } else {
+                Text(L("系统音量不可用","System volume unavailable")).foregroundStyle(.secondary)
+                Spacer()
+            }
+        }.font(.system(size:12))
+        .task(id:route) {
+            sample=nil
+            guard let route else { return }
+            for await _ in service.changes(route) {
+                guard !Task.isCancelled else { return }
+                sample=service.level(route).map { (route,$0) }
+            }
+        }
+    }
+}
+
 struct ConnectionTipView:View {
     private static let contentSize=NSSize(width:336,height:164)
     // Keep the antialiased material edge inside the transparent window bounds.
@@ -11,13 +42,14 @@ struct ConnectionTipView:View {
     @Bindable var app:AppModel
     let device:DeviceCandidate?
     var preview=false
+    var disconnected=false
     let onOpen:() -> Void
     let onClose:() -> Void
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var name:String {
         guard let device else { return "HeyBuds" }
-        return device.id == app.selectedID ? app.title : device.name
+        return app.candidates.first(where:{$0.id == device.id})?.name ?? device.name
     }
     private var deviceModel:DeviceModel? {
         guard let device else { return nil }
@@ -41,7 +73,9 @@ struct ConnectionTipView:View {
     }
     private var missingBattery:Bool { reading(.left) == nil && reading(.right) == nil && unassignedReading(1) == nil && unassignedReading(2) == nil }
     private var statusText:String {
+        if disconnected { return L("已断开","Disconnected") }
         if preview && !connected { return L("连接提示预览","Connection preview") }
+        if device?.systemAudioOnly == true { return L("已连接","Connected") }
         if missingBattery {
             return app.connecting ? L("已连接 · 正在读取电量…","Connected · Reading battery…") : L("已连接 · 等待电量","Connected · Waiting for battery")
         }
@@ -49,7 +83,7 @@ struct ConnectionTipView:View {
     }
     private var header:some View {
         HStack(spacing:10) {
-            Image(systemName:EarbudIcon.pair).font(.system(size:28)).frame(width:44,height:36)
+            Image(systemName:device?.systemAudioOnly == true ? "headphones" : EarbudIcon.pair).font(.system(size:28)).frame(width:44,height:36)
             VStack(alignment:.leading,spacing:4) {
                 Text(name).font(.system(size:14,weight:.semibold)).lineLimit(1).truncationMode(.middle)
                 HStack(spacing:5) {
@@ -90,16 +124,28 @@ struct ConnectionTipView:View {
     }
     private var content:some View {
         ZStack(alignment:.topTrailing) {
-            Button(action:onOpen) {
-                VStack(spacing:12) {
-                    header
-                    batteryRow
+            if device?.systemAudioOnly == true || disconnected {
+                VStack(alignment:.leading,spacing:14) {
+                    Button(action:onOpen) { header.contentShape(Rectangle()) }
+                        .buttonStyle(.plain).accessibilityLabel(name + ", " + statusText)
+                        .accessibilityHint(L("打开控制面板","Open control panel"))
+                    if !disconnected, connected, let device {
+                        OutputVolumeView(route:app.candidates.first(where:{$0.id == device.id})?.audioRoute,service:app.volume)
+                    }
                 }.padding(.horizontal,16).padding(.vertical,14)
-                    .frame(width:Self.contentSize.width,height:Self.contentSize.height,alignment:.top)
-                    .contentShape(RoundedRectangle(cornerRadius:24))
-            }.buttonStyle(.plain)
-                .accessibilityLabel(name+(preview && !connected ? L("，连接提示预览",", connection preview") : L("，已连接。打开控制面板",", connected. Open controls")))
-                .accessibilityValue(L("左耳：","Left: ")+(reading(.left).map { "\($0.percent)%" } ?? L("未知","unknown"))+L("，右耳：",", right: ")+(reading(.right).map { "\($0.percent)%" } ?? L("未知","unknown")))
+                    .frame(width:Self.contentSize.width,height:compactHeight,alignment:disconnected ? .leading : .topLeading)
+            } else {
+                Button(action:onOpen) {
+                    VStack(spacing:12) {
+                        header
+                        batteryRow
+                    }.padding(.horizontal,16).padding(.vertical,14)
+                        .frame(width:Self.contentSize.width,height:Self.contentSize.height,alignment:.top)
+                        .contentShape(RoundedRectangle(cornerRadius:24))
+                }.buttonStyle(.plain)
+                    .accessibilityLabel(name+(preview && !connected ? L("，连接提示预览",", connection preview") : L("，已连接。打开控制面板",", connected. Open controls")))
+                    .accessibilityValue(L("左耳：","Left: ")+(reading(.left).map { "\($0.percent)%" } ?? L("未知","unknown"))+L("，右耳：",", right: ")+(reading(.right).map { "\($0.percent)%" } ?? L("未知","unknown")))
+            }
             Button(action:onClose) {
                 Image(systemName:"xmark").font(.system(size:10,weight:.medium)).foregroundStyle(.secondary)
                     .frame(width:22,height:22).background(.quaternary.opacity(0.55),in:Circle())
@@ -108,6 +154,10 @@ struct ConnectionTipView:View {
                 .help(L("关闭连接提示","Dismiss connection pop-up"))
                 .accessibilityLabel(L("关闭连接提示","Dismiss connection pop-up"))
         }
+    }
+    private var compactHeight:CGFloat { Self.size(for:device,disconnected:disconnected).height-4 }
+    static func size(for device:DeviceCandidate?,disconnected:Bool) -> NSSize {
+        NSSize(width:size.width,height:disconnected ? 78 : device?.systemAudioOnly == true ? 110 : size.height)
     }
 }
 
@@ -139,22 +189,23 @@ private final class ConnectionNotificationPanel:NSPanel {
     private var dismissal:Task<Void,Never>?
     private(set) var deviceID:String?
     private(set) var preview=false
+    private(set) var disconnected=false
     private(set) var presentationCount=0
     var onDismiss:(() -> Void)?
     var isShown:Bool { panel?.isVisible == true }
 
-    func show(app:AppModel,device:DeviceCandidate?,preview:Bool,anchor:NSRect?,onOpen:@escaping () -> Void) {
+    func show(app:AppModel,device:DeviceCandidate?,preview:Bool,disconnected:Bool=false,anchor:NSRect?,onOpen:@escaping () -> Void) {
         dismiss(animated:false,notify:false)
         presentationCount += 1
-        self.deviceID=device?.id; self.preview=preview
-        let size=ConnectionTipView.size
+        self.deviceID=device?.id; self.preview=preview; self.disconnected=disconnected
+        let size=ConnectionTipView.size(for:device,disconnected:disconnected)
         let panel=ConnectionNotificationPanel(contentRect:NSRect(origin:.zero,size:size),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
         panel.title="HeyBuds · Connection"; panel.isReleasedWhenClosed=false
         panel.level = .statusBar; panel.isOpaque=false; panel.backgroundColor = .clear; panel.hasShadow=true
         panel.appearance=app.appearance == "dark" ? NSAppearance(named:.darkAqua) : app.appearance == "light" ? NSAppearance(named:.aqua) : nil
         panel.hidesOnDeactivate=false; panel.isFloatingPanel=true
         panel.collectionBehavior=[.canJoinAllSpaces,.fullScreenAuxiliary,.ignoresCycle]
-        panel.contentView=NSHostingView(rootView:ConnectionTipView(app:app,device:device,preview:preview,onOpen:onOpen,onClose:{ [weak self] in self?.dismiss() }))
+        panel.contentView=NSHostingView(rootView:ConnectionTipView(app:app,device:device,preview:preview,disconnected:disconnected,onOpen:onOpen,onClose:{ [weak self] in self?.dismiss() }))
         let screen=anchor.flatMap { point in NSScreen.screens.first(where:{$0.frame.contains(NSPoint(x:point.midX,y:point.midY))}) } ?? NSScreen.main
         let visible=screen?.visibleFrame ?? NSRect(x:0,y:0,width:1280,height:800)
         let x=min(max((anchor?.midX ?? visible.maxX-size.width/2-12)-size.width/2,visible.minX+12),visible.maxX-size.width-12)
@@ -173,6 +224,11 @@ private final class ConnectionNotificationPanel:NSPanel {
             }
         }
         dismissal=Task { [weak self,weak app] in
+            if disconnected || device?.systemAudioOnly == true {
+                try? await Task.sleep(for:.seconds(disconnected ? 4 : 8))
+                if !Task.isCancelled { self?.dismiss() }
+                return
+            }
             let start=Date()
             let hasBattery:() -> Bool = { [weak app] in
                 guard let app, app.ready, app.selectedID == device?.id else { return false }

@@ -518,6 +518,8 @@
       "usage": "GPL v3 authentication algorithm/tables ported to Swift with attribution; model/configuration interoperability facts; no application assets copied",
       "sourceFiles": {
         "LICENSE": "e73f724ee2920492bcbe58f4cc8f813da140eb0a4b9b4fc2dc4823fbe65d910c",
+        "src/lib/devices/galaxyBuds/galaxyBudsConfig.js": "cf44a7c1c2ab0903ded173f3dd893c1ca3163d28e9618018430e7aeccff47171",
+        "src/lib/devices/galaxyBuds/galaxyBudsDetector.js": "3bba108772cf8cb8dd6de11ee0b746144c38abcb999b4c70de273fa574a34a22",
         "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds5.js": "b4b731247f444c9f5edeae8ff232a9a22f2a53d021f90b52d62de05f1718e1bd",
         "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds5Pro.js": "91db4d59f5c85f5a1a1fea382e634b9cfa20b0187a7b0bbf581874b453b1c399",
         "src/lib/devices/redmiBuds/deviceConfigs/RedmiBuds6Lite.js": "3851090aecf9275e8e962a3474ee9a0f94de602e56b5184543aa936cde79fc51",

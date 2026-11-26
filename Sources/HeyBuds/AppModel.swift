@@ -26,6 +26,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     var revision=0
     var onStatusChange:(() -> Void)?
     var onDeviceConnected:((DeviceCandidate) -> Void)?
+    var onDeviceDisconnected:((DeviceCandidate) -> Void)?
     var onPreviewConnectionTip:(() -> Void)?
     var backgroundMode:Bool {
         didSet { defaults.set(backgroundMode,forKey:"backgroundMode"); onStatusChange?() }
@@ -58,6 +59,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     @ObservationIgnored private var monitorTask:Task<Void,Never>?
     @ObservationIgnored private var scanTask:Task<Bool,Never>?
     @ObservationIgnored private var connectionEventTask:Task<Void,Never>?
+    @ObservationIgnored private var stopObservingOutputs:(() -> Void)?
     @ObservationIgnored private var connectionPresence=ConnectionPresence()
     @ObservationIgnored private var retryTask:Task<Void,Never>?
     @ObservationIgnored private var connectionToken=UUID()
@@ -97,19 +99,32 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     // The header and connection card use the macOS Bluetooth name, which may be
     // a personal nickname. The protocol model name belongs in Device info.
     var title:String { candidate?.name ?? "HeyBuds" }
+    var volume:SystemAudio.VolumeService { services.volume }
     var bluetoothConnected:Bool { !sleeping && (candidate?.audioConnected == true || ready) }
     var transportLabel:String { session?.transport.label ?? "" }
     var knownConnectedDevices:[DeviceCandidate] {
         guard !sleeping else { return [] }
         return candidates.filter { device in
-            device.audioConnected && (device.family != nil || (device.id == selectedID && session?.model != nil)
+            device.audioConnected && (device.systemAudioOnly || device.family != nil || (device.id == selectedID && session?.model != nil)
                 || catalog.family(name:device.name) != nil)
         }
+    }
+    func usesSystemAudioControls(_ device:DeviceCandidate) -> Bool {
+        if device.systemAudioOnly { return true }
+        let resolved=(device.id == selectedID ? session?.model : nil) ?? device.model(in:catalog)
+        guard let resolved else { return true }
+        return resolved.id == resolved.family.rawValue + ":unknown"
+    }
+    func tipDevice(_ device:DeviceCandidate) -> DeviceCandidate {
+        // Keep the last presentation when the system removes a disconnected device.
+        var snapshot=device
+        snapshot.systemAudioOnly=usesSystemAudioControls(device)
+        return snapshot
     }
     var presets:[EQPreset] { model?.presets.filter { $0.available(firmware:state.firmwareRevision) } ?? [] }
     var features:[FeatureDefinition] { _ = revision; return session?.availableFeatures ?? model?.features ?? [] }
     var supportsSpatialAudio:Bool { _ = revision; return session?.supportsSpatialAudio == true }
-    var connectionFamily:EarbudFamily? { candidate.flatMap { $0.family ?? catalog.family(name:$0.name) } }
+    var connectionFamily:EarbudFamily? { candidate.flatMap { $0.systemAudioOnly ? nil : ($0.family ?? catalog.family(name:$0.protocolName)) } }
     private func allowsModelOverride(for family:EarbudFamily) -> Bool {
         if family == .xiaomi, let name=candidate?.name, XiaomiProfile.named(name) != nil { return false }
         return family.allowsModelOverride
@@ -152,28 +167,34 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         case "connecting": return L("正在建立控制通道…","Opening control channel…")
         case "sleeping": return L("电脑已睡眠","Mac is asleep")
         default:
+            if let candidate, candidate.systemAudioOnly { return candidate.audioConnected ? L("蓝牙已连接","Bluetooth connected") : L("蓝牙已断开","Bluetooth disconnected") }
             if candidate?.audioConnected == true { return L("音频已连接 · 控制未连接","Audio connected · Controls offline") }
             return candidates.isEmpty ? L("等待耳机","Waiting for earbuds") : L("耳机未连接","Earbuds disconnected")
         }
     }
     func start() {
         stopped=false
-        services.monitor?.onChange = { [weak self] in
+        let devicesChanged:() -> Void = { [weak self] in
             guard let self, !self.stopped, !self.sleeping else { return }
             self.connectionEventTask?.cancel()
             self.connectionEventTask=Task { [weak self] in
                 try? await Task.sleep(for:.milliseconds(300))
                 guard !Task.isCancelled, let self else { return }
+                if let earlier=self.scanTask { _=await earlier.value }
+                guard !Task.isCancelled else { return }
                 guard await self.rescan(), !Task.isCancelled, !self.sleeping, !self.manualDisconnect else { return }
                 if self.autoReconnect, !self.ready, !self.connecting, self.retryTask == nil,
-                   self.candidate?.audioConnected == true { self.connect() }
+                   self.candidate?.audioConnected == true, self.candidate?.systemAudioOnly == false { self.connect() }
             }
         }
+        services.monitor?.onChange=devicesChanged
+        stopObservingOutputs?()
+        stopObservingOutputs=services.observeOutputs?(devicesChanged)
         monitorTask=Task { [weak self] in
             guard let self else { return }
             let scanned=await self.rescan()
             guard !Task.isCancelled else { return }
-            if scanned, !self.sleeping, !self.manualDisconnect, self.candidate?.audioConnected == true { self.connect() }
+            if scanned, !self.sleeping, !self.manualDisconnect, self.candidate?.audioConnected == true, self.candidate?.systemAudioOnly == false { self.connect() }
             while !Task.isCancelled {
                 try? await Task.sleep(for:.seconds(self.interactive ? 8 : 30))
                 guard !Task.isCancelled else { return }
@@ -195,9 +216,10 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
             self.candidates=devices
             self.services.monitor?.watch(devices)
             if !self.ready, !self.connecting {
+                let connected=self.knownConnectedDevices
                 if self.candidate?.audioConnected != true,
-                   let next=ConnectionPresence.preferredID(connectedIDs:self.knownConnectedDevices.map(\.id),selectedID:self.selectedID) {
-                    self.selectedID=next
+                   let next=connected.first(where:{ !$0.systemAudioOnly }) ?? connected.first {
+                    self.selectedID=next.id
                 } else if self.selectedID == nil || !devices.contains(where:{$0.id == self.selectedID}) {
                     self.selectedID=devices.first?.id
                 }
@@ -213,10 +235,11 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         scanTask=nil
     }
     private func updateConnectionPresence() {
-        let devices=knownConnectedDevices
-        let added=connectionPresence.update(Set(devices.map(\.id)))
+        let changes=connectionPresence.update(knownConnectedDevices.map(tipDevice))
         onStatusChange?()
-        for device in devices where added.contains(device.id) { onDeviceConnected?(device) }
+        guard !sleeping, !stopped else { return }
+        for device in changes.removed where device.systemAudioOnly { onDeviceDisconnected?(device) }
+        for device in changes.added { onDeviceConnected?(device) }
     }
     func select(_ id:String) {
         guard id != selectedID else { return }
@@ -225,6 +248,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
     func connect() {
         guard !connecting, !sleeping else { return }
         guard let candidate else { error=L("先在系统蓝牙设置中配对耳机。","Pair your earbuds in Bluetooth settings first."); return }
+        guard !candidate.systemAudioOnly else { return }
         guard let family=connectionFamily else { error=L("无法识别耳机控制协议。","The earbud control protocol could not be identified.");return }
         if services.hasCompetitor() { error=L("请先退出另一个耳机控制器，再连接 HeyBuds。","Quit the other earbud controller before connecting HeyBuds."); return }
         cancelRetry();connectTask?.cancel();invalidateOperation();sessionID=UUID();session?.close();session=nil
@@ -240,7 +264,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
                 await self.services.openAudio(address)
             }
             var errors:[String]=[]
-            let kinds=family.transportKinds(for:candidate.name)
+            let kinds=family.transportKinds(for:candidate.protocolName)
             for kind in kinds {
                 guard !Task.isCancelled, self.connectionToken == token, !self.sleeping, !self.manualDisconnect else { return }
                 do {
@@ -281,7 +305,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         retryToken=UUID();retryTask?.cancel();retryTask=nil
     }
     private func scheduleReconnect() {
-        guard autoReconnect,!manualDisconnect,!sleeping,!ready,retryTask == nil else { return }
+        guard autoReconnect,!manualDisconnect,!sleeping,!ready,retryTask == nil,candidate?.systemAudioOnly != true else { return }
         retry += 1
         let delay=min(60,pow(2,Double(min(retry,6))))
         let token=UUID(),connection=connectionToken,device=selectedID
@@ -336,6 +360,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         connectionEventTask?.cancel()
         cancelScan()
         services.monitor?.stop()
+        stopObservingOutputs?(); stopObservingOutputs=nil
         disconnect(audio:false)
     }
     func perform(noiseControl:Bool=false,_ operation:@escaping (DeviceSession) async throws -> WriteOutcome) {

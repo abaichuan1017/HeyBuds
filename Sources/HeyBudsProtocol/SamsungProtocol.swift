@@ -78,6 +78,40 @@ public enum SamsungProfile:String,Sendable,CaseIterable {
     case .buds2:return "samsung:buds2";case .buds2Pro:return "samsung:buds2-pro";case .buds4Pro:return "samsung:buds4-pro" } }
     private static let profilesByName = EarbudFamily.nameIndex(allCases) { [$0.rawValue, "Samsung " + $0.rawValue] }
 
+    public enum AdvertisedIdentity: Equatable, Sendable {
+        case absent, unknown, model(SamsungProfile)
+    }
+
+    // Samsung exposes the wearable ID in the last two bytes of a service class UUID.
+    // ID assignments: GalaxyBudsClient Model/Constants.cs and BudsLink galaxyBudsDetector.js.
+    public static func advertisedIdentity(serviceClasses:[Data]) -> AdvertisedIdentity {
+        let prefix:[UInt8] = [0xD9,0x08,0xAA,0xB5,0x7A,0x90,0x4C,0xBE,0x86,0x41,0x86,0xA5,0x53,0xDB]
+        var result:AdvertisedIdentity = .absent
+        for uuid in serviceClasses where uuid.count == 16 && uuid.starts(with:prefix) {
+            let id = uuid.suffix(2).reduce(UInt16(0)) { ($0 << 8) | UInt16($1) }
+            let profile:Self
+            switch id {
+            case 0x0101: profile = .buds
+            case 0x0102...0x010A: profile = .budsPlus
+            case 0x0116...0x011C: profile = .budsLive
+            case 0x012A...0x012D: profile = .budsPro
+            case 0x0139...0x0141,0x3801: profile = .buds2
+            case 0x0142...0x0143: profile = .budsCore
+            case 0x0145...0x0148: profile = .buds2Pro
+            case 0x014A...0x014B: profile = .budsFE
+            case 0x014D...0x014E: profile = .buds3
+            case 0x0154...0x0155: profile = .buds3Pro
+            case 0x015B...0x015C: profile = .buds3FE
+            case 0x0163...0x0164: profile = .buds4
+            case 0x0167...0x0169: profile = .buds4Pro
+            default: return .unknown
+            }
+            if case .model(let other) = result, other != profile { return .unknown }
+            result = .model(profile)
+        }
+        return result
+    }
+
     public static func named(_ name:String) -> Self? { named(name, on:nil) }
 
     public static func named(_ name:String, on serviceUUID:String?) -> Self? {

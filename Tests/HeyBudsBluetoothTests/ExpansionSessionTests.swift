@@ -217,6 +217,36 @@ import Testing
     }
 }
 
+@Test @MainActor func advertisedSamsungModelSurvivesRenamesAndOverridesConflictingNames() async throws {
+    let catalog=try ModelCatalog()
+    let prefix=Data([0xD9,0x08,0xAA,0xB5,0x7A,0x90,0x4C,0xBE,0x86,0x41,0x86,0xA5,0x53,0xDB])
+    func identity(_ ids:[UInt16]) -> SamsungProfile.AdvertisedIdentity {
+        SamsungProfile.advertisedIdentity(serviceClasses:ids.map { prefix+Data([UInt8($0 >> 8),UInt8(truncatingIfNeeded:$0)]) })
+    }
+    func device(_ name:String,_ id:SamsungProfile.AdvertisedIdentity,services:[String]=[SamsungProfile.service]) -> DeviceCandidate? {
+        Discovery.candidate(name:name,address:"fixture",connected:true,catalog:catalog,advertised:[.samsung:services],
+                            samsungID:id,isAudio:true,includingSystemAudio:true)
+    }
+    let known=identity([0x0167,0x0168])
+    #expect(known == .model(.buds4Pro))
+    #expect(identity([0x0146]) == .model(.buds2Pro))
+    #expect(identity([0x0167,0x0154]) == .unknown)
+    for alias in ["Commute","Galaxy Buds2","Pixel Buds Pro"] {
+        let candidate=try #require(device(alias,known))
+        #expect(candidate.name == alias && candidate.model(in:catalog)?.id == SamsungProfile.buds4Pro.modelID)
+        let f=SamsungExpansionFixture(.buds4Pro); f.radio.serviceUUID=candidate.controlServiceUUID
+        let session=DeviceSession(transport:f.radio,name:candidate.protocolName,catalog:catalog,family:candidate.family)
+        defer { session.close() }; try await session.open()
+        #expect(session.model?.id == SamsungProfile.buds4Pro.modelID && session.state.batteries[.left]?.percent == 70)
+    }
+    #expect(device("Galaxy Buds4 Pro",identity([0xFFFF]))?.systemAudioOnly == true)
+    #expect(device("Commute",known,services:[SamsungProfile.legacyService])?.systemAudioOnly == true)
+    #expect(device("Commute",identity([]))?.systemAudioOnly == true)
+    #expect(device("Test’s Buds4 Pro",identity([]))?.model(in:catalog)?.id == SamsungProfile.buds4Pro.modelID)
+    #expect(Discovery.candidate(name:"Desk mouse",address:"fixture",connected:true,catalog:catalog,advertised:[:],
+                                samsungID:.absent,isAudio:false,includingSystemAudio:true) == nil)
+}
+
 @Test @MainActor func expansionSamsungModelsUseDocumentedHandshakeACKAndReadback() async throws {
     for profile:SamsungProfile in [.buds2,.buds2Pro,.buds4Pro] {
         let f=SamsungExpansionFixture(profile);f.radio.writeDelay = .milliseconds(2)

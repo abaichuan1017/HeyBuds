@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 import HeyBudsBluetooth
 import HeyBudsProtocol
@@ -52,12 +53,14 @@ import HeyBudsProtocol
     let retry=Latch()
     let devices=[DeviceCandidate(id:"fixture-a",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo),
                  DeviceCandidate(id:"fixture-b",name:"OPPO Enco Air5 Pro",audioConnected:true,classicAddress:nil,family:.oppo)]
-    init(discover:((ModelCatalog) async -> [DeviceCandidate])?=nil, connectionError:Error?=nil) throws {
+    init(discover:((ModelCatalog) async -> [DeviceCandidate])?=nil, connectionError:Error?=nil, volume:SystemAudio.VolumeService?=nil) throws {
         defaults=try #require(UserDefaults(suiteName:suite))
         defaults.set(false,forKey:"autoReconnect")
         defaults.set(false,forKey:"notifyLow")
         var services=AppServices()
         services.monitor=nil
+        services.observeOutputs=nil
+        if let volume { services.volume=volume }
         services.discover=discover ?? { [devices] _ in devices }
         services.hasCompetitor={ false }
         services.openAudio={ _ in Issue.record("Unexpected real audio connection") }
@@ -213,6 +216,72 @@ import HeyBudsProtocol
                                       family:.samsung,controlServiceUUID:SamsungProfile.service)]
     #expect(f.app.title == name)
     #expect(f.app.model?.id == SamsungProfile.buds4Pro.modelID)
+}
+
+@Test @MainActor func systemOnlyHeadphonesAnnounceBothEdgesWithoutStartingAProtocolSession() async throws {
+    func device(_ name:String, connected:Bool) -> DeviceCandidate {
+        DeviceCandidate(id:"audio-fixture",name:name,audioConnected:connected,classicAddress:nil,systemAudioOnly:true)
+    }
+    var devices=[device("My headphones",connected:true)], connected:[String]=[], disconnected:[String]=[]
+    let f=try AppFixture(discover:{ _ in devices }); defer { f.cleanup() }
+    f.app.onDeviceConnected={ connected.append($0.name) }; f.app.onDeviceDisconnected={ disconnected.append($0.name) }
+    await f.app.rescan(); f.app.connect()
+    #expect(f.app.title == "My headphones" && f.app.bluetoothConnected && f.app.connectionFamily == nil && f.app.error == nil)
+    devices=[device("Galaxy Buds4 Pro",connected:true)]
+    await f.app.rescan(); await f.app.rescan()
+    #expect(f.app.title == "Galaxy Buds4 Pro" && f.app.model == nil && connected == ["My headphones"])
+    devices=[]; await f.app.rescan(); await f.app.rescan()
+    #expect(disconnected == ["Galaxy Buds4 Pro"])
+    devices=[device("Evening",connected:true)]; await f.app.rescan(); f.app.willSleep()
+    #expect(connected == ["My headphones","Evening"] && disconnected.count == 1 && f.radios.isEmpty)
+}
+
+@Test @MainActor func discoveryPrefersConnectedControlsAndKeepsAnExplicitAudioSelection() async throws {
+    let audio=DeviceCandidate(id:"audio",name:"My speaker",audioConnected:true,classicAddress:nil,systemAudioOnly:true)
+    let supported=DeviceCandidate(id:"buds",name:"Galaxy Buds4 Pro",audioConnected:true,classicAddress:nil,family:.samsung)
+    let f=try AppFixture(discover:{ _ in [audio,supported] }); defer { f.cleanup() }
+    await f.app.rescan()
+    #expect(f.app.selectedID == supported.id)
+    f.app.select(audio.id); await f.app.rescan()
+    #expect(f.app.selectedID == audio.id && f.radios.isEmpty)
+}
+
+@Test @MainActor func systemAudioPopupsRenderBothStatesAndObserveVolumeOnlyWhileConnected() async throws {
+    let route=BluetoothAudioRoute(uid:"volume-fixture",objectID:12)
+    let device=DeviceCandidate(id:"fixture-a",name:"通勤耳机",audioConnected:true,classicAddress:nil,systemAudioOnly:true,audioRoute:route)
+    let changes=AsyncStream<Void>.makeStream(bufferingPolicy:.bufferingNewest(1))
+    var reads=0, value:Float=0.45
+    let service=SystemAudio.VolumeService(level:{ requested in
+        #expect(requested == route); reads += 1; return .init(value:value,writable:true)
+    },set:{ _,_ in Issue.record("Rendering changed the output volume"); return nil },changes:{ _ in
+        changes.continuation.yield(()); return changes.stream
+    })
+    let f=try AppFixture(volume:service); defer { f.cleanup(); changes.continuation.finish() }
+    _=NSApplication.shared
+    for disconnected in [false,true] {
+        f.app.candidates=disconnected ? [] : [device]
+        let content=ConnectionTipView(app:f.app,device:device,disconnected:disconnected,onOpen:{},onClose:{})
+        let host=NSHostingView(rootView:content.background(Color.white).environment(\.colorScheme,.light))
+        let size=ConnectionTipView.size(for:device,disconnected:disconnected)
+        let window=NSWindow(contentRect:NSRect(origin:.zero,size:size),styleMask:.borderless,backing:.buffered,defer:false)
+        window.isReleasedWhenClosed=false; window.setFrameOrigin(NSPoint(x:-10000,y:-10000))
+        window.contentView=host; window.orderBack(nil)
+        defer { window.orderOut(nil); window.contentView=nil }
+        if !disconnected {
+            try await eventually { reads == 1 }
+            value=0.7; changes.continuation.yield(()); try await eventually { reads == 2 }
+        }
+        host.layoutSubtreeIfNeeded()
+        #expect(abs(host.fittingSize.width-size.width) < 1 && abs(host.fittingSize.height-size.height) < 1)
+        if let output=ProcessInfo.processInfo.environment["HEYBUDS_QA_OUTPUT"] {
+            let bitmap=try #require(host.bitmapImageRepForCachingDisplay(in:host.bounds))
+            host.cacheDisplay(in:host.bounds,to:bitmap)
+            let data=try #require(bitmap.representation(using:.png,properties:[:]))
+            let url=URL(fileURLWithPath:output,isDirectory:true).appendingPathComponent(disconnected ? "audio-disconnected.png" : "audio-connected.png")
+            try data.write(to:url)
+        }
+    }
+    #expect(reads == 2)
 }
 
 @Test @MainActor func serviceFamilyTakesPrecedenceOverNicknameInDeviceInfo() throws {

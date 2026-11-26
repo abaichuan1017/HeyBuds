@@ -92,28 +92,41 @@ struct PanelView: View {
                     Button(L("重新查找设备","Refresh devices")) { Task { await app.rescan() } }
                     Button(L("蓝牙设置…","Bluetooth Settings…")) { app.bluetoothSettings() }
                 } label: {
-                    Text(app.bluetoothConnected ? app.title : L("未连接","Not connected"))
+                    Text(app.candidate == nil ? L("未连接","Not connected") : app.title)
                         .font(.system(size:14,weight:.semibold)).lineLimit(1).truncationMode(.tail)
                 }
                 .menuStyle(.borderlessButton).menuIndicator(.visible)
                 .accessibilityLabel(L("选择设备","Select device"))
-                .accessibilityValue(app.bluetoothConnected ? L("已连接 · ","Connected · ")+app.title : L("未连接","Not connected"))
+                .accessibilityValue((app.bluetoothConnected ? L("已连接 · ","Connected · ") : L("未连接 · ","Not connected · "))+app.title)
                 .help(L("选择已配对的耳机","Select paired earbuds"))
             }
             Spacer(minLength:0)
             ZStack {
                 if app.connecting || app.operationBusy { ProgressView().controlSize(.small) }
             }.frame(width:16,height:16)
-            Button {
+            if app.candidate?.systemAudioOnly == true {
+                Button { app.bluetoothSettings() } label: { Image(systemName:"gearshape").frame(width:28,height:28) }
+                    .compatibleButtonStyle().buttonBorderShape(.circle)
+                    .accessibilityLabel(L("蓝牙设置","Bluetooth settings")).help(L("蓝牙设置","Bluetooth settings"))
+            } else { Button {
                 if app.ready || app.connecting { app.disconnect() } else { app.connect() }
             } label: { Image(systemName:"power").font(.system(size:14,weight:.medium)).frame(width:28,height:28) }
             .compatibleButtonStyle().buttonBorderShape(.circle)
             .help(app.ready ? L("断开耳机","Disconnect earbuds") : L("连接耳机","Connect earbuds"))
             .accessibilityLabel(app.ready ? L("断开耳机","Disconnect earbuds") : L("连接耳机","Connect earbuds"))
+            }
         }
     }
     @ViewBuilder private var home:some View {
-        if app.ready {
+        if let device=app.candidate, app.usesSystemAudioControls(device), !app.ready {
+            VStack(alignment:.leading,spacing:12) {
+                Text(app.status).font(.system(size:14,weight:.semibold))
+                if device.audioConnected { OutputVolumeView(route:device.audioRoute,service:app.volume) }
+            }.card()
+        } else if app.ready {
+            if let device=app.candidate, device.audioConnected, app.usesSystemAudioControls(device) {
+                OutputVolumeView(route:device.audioRoute,service:app.volume).card()
+            }
             HStack(alignment:.top,spacing:8) {
                 if app.model?.unassignedEarbudBatteries == true {
                     ForEach([UInt8(1),2],id:\.self) { id in
@@ -555,12 +568,12 @@ struct PanelView: View {
                 Divider()
                 settingToggle(L("断线自动重连","Reconnect automatically"),isOn:$app.autoReconnect)
                 Divider()
-                settingToggle(L("后台运行","Background mode"),helpText:L("未连接已识别耳机时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no recognized earbuds are connected. Reopen HeyBuds to access settings."),isOn:$app.backgroundMode)
+                settingToggle(L("后台运行","Background mode"),helpText:L("没有蓝牙音频设备连接时隐藏图标，重新打开 HeyBuds 可进入设置。","Hide the icon when no Bluetooth audio device is connected. Reopen HeyBuds to access settings."),isOn:$app.backgroundMode)
                 Divider()
                 settingToggle(L("登录时启动","Launch at login"),isOn:Binding(get:{app.launchAtLogin},set:app.setLogin))
             }.onAppear { app.refreshLoginStatus() }
             settingsGroup(L("提醒","Notifications")) {
-                settingToggle(L("连接提示","Connection pop-up"),isOn:$app.connectionTips)
+                settingToggle(L("连接提示","Connection pop-up"),helpText:L("耳机连接时提醒。仅使用系统音频的设备断开时也会提醒。","Show a pop-up on connection, and also on disconnection for devices using system audio controls."),isOn:$app.connectionTips)
                 Divider()
                 settingAction(L("预览连接提示","Preview connection pop-up"),symbol:"play.circle") { app.onPreviewConnectionTip?() }
                 Divider()

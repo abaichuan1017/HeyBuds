@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.3-beta.1 — 2026-11-26
+
+- 未适配的蓝牙耳机和音箱也会显示连接与断开提醒。弹窗使用系统蓝牙名称，连接后可以在弹窗或主面板调节该设备的系统输出音量。
+- Galaxy Buds 优先使用耳机公布的型号标识。Buds4 Pro 提供该标识时，改成任意昵称也能识别。
+
+- Bluetooth headphones and speakers without a device profile now show connection and disconnection pop-ups using their system name. Adjust the device’s output volume in the pop-up or main panel when macOS makes it available.
+- Galaxy Buds now use the advertised model ID when available, so a Buds4 Pro that supplies its ID can be recognized under any nickname.
+
 ## 0.6.2 — 2026-11-25
 
 - 耳机昵称与蓝牙服务识别的品牌冲突时，避免显示错误型号或启用不匹配的控制。清除手动型号后恢复自动识别结果。
