@@ -33,6 +33,28 @@ import HeyBudsProtocol
     #expect(catalog.routingFamily(name:"Personal headphones",services:[.oppo,.vivo]) == nil)
 }
 
+@Test func samsungShortNamesRequireTheMatchingServiceAndAnExactModel() throws {
+    let catalog = try ModelCatalog()
+    for name in ["Buds4 Pro", "テストの Buds4 Pro", "测试的Buds4 Pro (A1b2)", "Test’s Buds4 Pro",
+                 "Test's Buds 4 Pro", "테스트의 Buds4 Pro"] {
+        #expect(SamsungProfile.named(name) == nil)
+        #expect(catalog.routingFamily(name:name,services:[]) != .samsung)
+        #expect(SamsungProfile.named(name,on:SamsungProfile.service.lowercased()) == .buds4Pro)
+        #expect(EarbudFamily.samsung.serviceUUID(for:name) == nil)
+    }
+    for name in ["Test’s Redmi Buds 4 Pro", "テストの Pixel Buds Pro", "Buds4 Pro Max", "Buds5 Pro",
+                 "Buds2 FE", "Buds4 Pro (test)", "Personal headphones", "Galaxy Buds"] {
+        #expect(SamsungProfile.named(name,on:SamsungProfile.service) == nil)
+    }
+    #expect(SamsungProfile.named("Test’s Galaxy Buds4 Pro",on:SamsungProfile.service) == .buds4Pro)
+    #expect(SamsungProfile.named("Samsung Galaxy Buds+ (A1B2)") == .budsPlus)
+    #expect(SamsungProfile.named("Galaxy Buds",on:SamsungProfile.legacyService) == .buds)
+    #expect(SamsungProfile.named("Galaxy Buds4 Pro",on:SamsungProfile.legacyService) == nil)
+    let bothServices = [SamsungProfile.service, SamsungProfile.legacyService]
+    #expect(EarbudFamily.samsung.serviceUUID(for:"Galaxy Buds",among:bothServices) == SamsungProfile.legacyService)
+    #expect(EarbudFamily.samsung.serviceUUID(for:"Personal headphones",among:bothServices) == nil)
+}
+
 @Test func expansionUsesOnlyModelSpecificControlRoutes() throws {
     let catalog=try ModelCatalog()
     #expect(catalog.models.count == 283)

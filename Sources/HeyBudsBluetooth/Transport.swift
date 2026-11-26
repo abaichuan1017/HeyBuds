@@ -11,9 +11,14 @@ public enum TransportFailure: Error, LocalizedError {
 @MainActor public protocol EarbudTransport: AnyObject {
     var onEvent: ((TransportEvent) -> Void)? { get set }
     var label: String { get }
+    /// The Bluetooth service selected for this connection, when known.
+    var serviceUUID: String? { get }
     func open() async throws
     func send(_ bytes: Data) async throws
     func close()
+}
+public extension EarbudTransport {
+    var serviceUUID: String? { nil }
 }
 public struct DeviceCandidate: Identifiable, Equatable, Sendable {
     public let id: String
@@ -24,6 +29,12 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
     public let controlServiceUUID:String?
     public init(id: String, name: String, audioConnected: Bool, classicAddress: String?, family:EarbudFamily?=nil,controlServiceUUID:String?=nil) {
         self.id=id; self.name=name; self.audioConnected=audioConnected; self.classicAddress=classicAddress;self.family=family;self.controlServiceUUID=controlServiceUUID
+    }
+    public func model(in catalog:ModelCatalog, override:String?=nil) -> DeviceModel? {
+        if family == .samsung {
+            return SamsungProfile.named(name,on:controlServiceUUID).flatMap { catalog.model(id:$0.modelID) }
+        }
+        return catalog.model(productID:nil,name:name,override:override,matching:family)
     }
 }
 @MainActor public enum Discovery {
@@ -49,8 +60,7 @@ public struct DeviceCandidate: Identifiable, Equatable, Sendable {
                 let family=catalog?.routingFamily(name:name,services:services)
                 guard let family else { return nil }
                 let available=family.classicServiceUUIDs.filter { device.getServiceRecord(for:uuid($0)) != nil }
-                let preferred=family.serviceUUID(for:name)
-                let service=preferred.flatMap { available.contains($0) ? $0 : nil } ?? (available.count == 1 ? available.first : nil)
+                let service=family.serviceUUID(for:name,among:available)
                 return DeviceCandidate(id:address,name:name,audioConnected:device.isConnected(),classicAddress:address,family:family,controlServiceUUID:service)
             }.sorted { $0.audioConnected == $1.audioConnected ? $0.name < $1.name : $0.audioConnected }
         }.value

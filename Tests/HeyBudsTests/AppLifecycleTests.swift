@@ -206,6 +206,15 @@ import HeyBudsProtocol
     #expect(f.app.overrideID == "06EC10" && f.app.error != nil)
 }
 
+@Test @MainActor func personalizedBuds4ProShowsItsModelAndKeepsTheBluetoothTitle() throws {
+    let f=try AppFixture(); defer { f.cleanup() }
+    let name="テストの Buds4 Pro"
+    f.app.candidates=[DeviceCandidate(id:"fixture-a",name:name,audioConnected:true,classicAddress:nil,
+                                      family:.samsung,controlServiceUUID:SamsungProfile.service)]
+    #expect(f.app.title == name)
+    #expect(f.app.model?.id == SamsungProfile.buds4Pro.modelID)
+}
+
 @Test @MainActor func serviceFamilyTakesPrecedenceOverNicknameInDeviceInfo() throws {
     let f=try AppFixture();defer { f.cleanup() }
     f.app.candidates=[DeviceCandidate(id:"fixture-a",name:"FreeBuds Pro 3",audioConnected:true,classicAddress:nil,family:.oppo)]

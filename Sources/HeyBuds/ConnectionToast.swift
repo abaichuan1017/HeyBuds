@@ -22,7 +22,7 @@ struct ConnectionTipView:View {
     private var deviceModel:DeviceModel? {
         guard let device else { return nil }
         if device.id == app.selectedID { return app.model }
-        return app.catalog.model(productID:nil,name:device.name,matching:device.family)
+        return device.model(in:app.catalog)
     }
     private var connected:Bool { device.map { d in app.knownConnectedDevices.contains(where:{$0.id == d.id}) } ?? false }
     private func reading(_ slot:BatterySlot) -> BatteryReading? {

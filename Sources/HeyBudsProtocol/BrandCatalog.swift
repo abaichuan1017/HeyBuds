@@ -49,6 +49,14 @@ public enum EarbudFamily: String, Codable, CaseIterable, Sendable {
         if self == .samsung { return SamsungProfile.named(name)?.serviceUUID }
         return serviceUUID
     }
+    public func serviceUUID(for name:String, among available:[String]) -> String? {
+        guard available.count > 1 else { return available.first }
+        if self == .samsung {
+            return available.first { SamsungProfile.named(name,on:$0) != nil }
+        }
+        guard let preferred=serviceUUID(for:name), available.contains(preferred) else { return nil }
+        return preferred
+    }
     public var serviceUUID:String? {
         switch self {
         case .oppo:return "0000079A-D102-11E1-9B23-00025B00A5A5"

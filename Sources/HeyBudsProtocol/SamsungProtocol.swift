@@ -76,13 +76,28 @@ public enum SamsungProfile:String,Sendable,CaseIterable {
     case .buds:return "samsung:buds";case .budsPlus:return "samsung:buds-plus";case .budsLive:return "samsung:buds-live";case .budsPro:return "samsung:buds-pro"
     case .budsFE:return "samsung:buds-fe";case .buds3:return "samsung:buds3";case .buds3Pro:return "samsung:buds3-pro";case .buds3FE:return "samsung:buds3-fe";case .budsCore:return "samsung:buds-core";case .buds4:return "samsung:buds4"
     case .buds2:return "samsung:buds2";case .buds2Pro:return "samsung:buds2-pro";case .buds4Pro:return "samsung:buds4-pro" } }
-    public static func named(_ name:String) -> Self? {
-        let trimmed=name.trimmingCharacters(in:.whitespaces)
-        // Samsung appends a short hexadecimal pairing suffix. Reject arbitrary
-        // suffixes (FE/Pro/new generations), rather than matching a family prefix.
-        let base=trimmed.replacingOccurrences(of:#"\s*\([0-9a-fA-F]{4}\)$"#,with:"",options:.regularExpression)
-        let n=EarbudFamily.normalize(base.replacingOccurrences(of:"+",with:"plus"))
-        return allCases.first { n == EarbudFamily.normalize($0.rawValue.replacingOccurrences(of:"+",with:"plus")) || n == EarbudFamily.normalize("Samsung "+$0.rawValue.replacingOccurrences(of:"+",with:"plus")) }
+    private static let profilesByName = EarbudFamily.nameIndex(allCases) { [$0.rawValue, "Samsung " + $0.rawValue] }
+
+    public static func named(_ name:String) -> Self? { named(name, on:nil) }
+
+    public static func named(_ name:String, on serviceUUID:String?) -> Self? {
+        let service = serviceUUID?.uppercased()
+        var base = name.trimmingCharacters(in:.whitespacesAndNewlines)
+        if base.hasSuffix(")") {
+            // A four-digit hexadecimal pairing suffix is separate from the model.
+            base = base.replacingOccurrences(of:#"\s*\([0-9a-fA-F]{4}\)$"#, with:"", options:.regularExpression)
+        }
+        if let profile = profilesByName[EarbudFamily.normalize(base)] {
+            return service == nil || profile.serviceUUID == service ? profile : nil
+        }
+        // Short Bluetooth names like “Buds4 Pro” are shared across brands.
+        guard service == Self.service else { return nil }
+        let modelName = base.replacingOccurrences(of:#"^.+(?:の|的|의|['’]s\s+)\s*"#, with:"",
+                                                  options:[.regularExpression, .caseInsensitive])
+        let key = EarbudFamily.normalize(modelName)
+        let profile = profilesByName[key] ?? profilesByName["galaxy" + key]
+        guard let profile, profile.serviceUUID == service else { return nil }
+        return profile
     }
     public func minimumStatusLength(revision:UInt8) -> Int {
         switch self {

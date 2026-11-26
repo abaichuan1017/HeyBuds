@@ -15,7 +15,7 @@ import HeyBudsProtocol
     private let controls=RequestGate()
 
     init(transport:EarbudTransport,name:String,catalog:ModelCatalog,timeout:Double=3) {
-        profile=SamsungProfile.named(name)
+        profile=SamsungProfile.named(name,on:transport.serviceUUID)
         model=profile.flatMap { catalog.model(id:$0.modelID) }
         let legacy=profile?.legacy == true
         var codec=SamsungFrameCodec(legacy:legacy)

@@ -90,7 +90,7 @@ func L(_ chinese:String,_ english:String) -> String { UserDefaults.standard.stri
         _ = revision
         if let session { return session.model }
         guard let candidate else { return nil }
-        return catalog.model(productID:nil,name:candidate.name,override:overrideID,matching:candidate.family)
+        return candidate.model(in:catalog,override:overrideID)
     }
     var ready:Bool { phase == "ready" && session?.ready == true }
     var connecting:Bool { phase == "connecting" }

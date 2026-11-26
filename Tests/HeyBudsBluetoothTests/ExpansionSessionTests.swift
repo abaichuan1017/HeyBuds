@@ -6,6 +6,7 @@ import Testing
 @MainActor private final class ExpansionTransport:EarbudTransport {
     var onEvent:((TransportEvent) -> Void)?
     let label="Simulated expansion transport"
+    var serviceUUID:String?
     var active=false
     var packets:[Data]=[]
     var responder:((Data) throws -> [Data])?
@@ -177,6 +178,42 @@ import Testing
         default:break
         }
         return []
+    }
+}
+
+@Test @MainActor func personalizedBuds4ProOpensOnSamsungServiceAndConfirmsControls() async throws {
+    let fixture=SamsungExpansionFixture(.buds4Pro)
+    let name="テストの Buds4 Pro"
+    let catalog=try ModelCatalog()
+    let family=try #require(catalog.routingFamily(name:name,services:[.samsung]))
+    let services=[SamsungProfile.legacyService,SamsungProfile.service]
+    fixture.radio.serviceUUID=family.serviceUUID(for:name,among:services)
+    #expect(fixture.radio.serviceUUID == SamsungProfile.service)
+    let session=DeviceSession(transport:fixture.radio,name:name,catalog:catalog,family:family)
+    defer { session.close() }
+    try await session.open()
+    #expect(session.ready && session.model?.id == SamsungProfile.buds4Pro.modelID)
+    #expect(session.state.batteries[.left]?.percent == 70)
+    #expect(try await session.setNoise(.transparency) == .confirmed)
+    #expect(try await session.setEQ(4) == .confirmed)
+    #expect(try await session.setSamsungANCLevel(3) == .confirmed)
+    #expect(session.state.noise == .transparency && session.state.eq == 4 && session.state.samsungControls?.ancLevel == 3)
+}
+
+@Test @MainActor func unverifiedSamsungNamesNeverOpenTheControlChannel() async throws {
+    let catalog = try ModelCatalog()
+    let endpoints:[(String,String?)] = [
+        ("Test’s Buds4 Pro",nil), ("Test’s Buds4 Pro",SamsungProfile.legacyService),
+        ("Test’s Buds4 Pro",EarbudFamily.oppo.serviceUUID), ("Test’s Buds5 Pro",SamsungProfile.service),
+        ("Test’s Redmi Buds 4 Pro",SamsungProfile.service)
+    ]
+    for (name, service) in endpoints {
+        let radio = ExpansionTransport()
+        radio.serviceUUID = service
+        let session = DeviceSession(transport:radio,name:name,catalog:catalog,family:.samsung)
+        defer { session.close() }
+        await #expect(throws:ProtocolError.unsupported) { try await session.open() }
+        #expect(!radio.active && radio.packets.isEmpty && session.model == nil)
     }
 }
 
